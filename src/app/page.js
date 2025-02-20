@@ -213,16 +213,16 @@ export default function Home() {
         {/* Features Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-12">
           {/* Lightning-Fast Delivery */}
-          <div className="flex flex-col items-center text-center">
+          <div className=" flex flex-col items-center text-center border-2 rounded-md border-yellow-400 p-6">
             <span className="text-yellow-500 text-5xl mb-4">🚚</span>
             <h3 className="font-bold text-lg mb-2">Lightning-Fast Delivery</h3>
             <p className="text-gray-300">
-              Get select prints in as fast as 59 minutes in Lagos, Abuja, Asaba & Anambra.
+              Get select prints in as fast as 59 minutes Anywhere in Nigeria .
             </p>
           </div>
 
           {/* Affordable & Transparent Pricing */}
-          <div className="flex flex-col items-center text-center">
+          <div className="flex flex-col items-center text-center border-2 rounded-md border-yellow-400 p-6">
             <span className="text-yellow-500 text-5xl mb-4">💰</span>
             <h3 className="font-bold text-lg mb-2">Affordable & Transparent Pricing</h3>
             <p className="text-gray-300">
@@ -231,7 +231,7 @@ export default function Home() {
           </div>
 
           {/* Premium Quality Guaranteed */}
-          <div className="flex flex-col items-center text-center">
+          <div className="flex flex-col items-center text-center border-2 rounded-md border-yellow-400 p-6">
             <span className="text-yellow-500 text-5xl mb-4">🏆</span>
             <h3 className="font-bold text-lg mb-2">Premium Quality Guaranteed</h3>
             <p className="text-gray-300">
@@ -240,7 +240,7 @@ export default function Home() {
           </div>
 
           {/* Bulk & Custom Orders */}
-          <div className="flex flex-col items-center text-center">
+          <div className="flex flex-col items-center text-center border-2 rounded-md border-yellow-400 p-6">
             <span className="text-yellow-500 text-5xl mb-4">📦</span>
             <h3 className="font-bold text-lg mb-2">Bulk & Custom Orders</h3>
             <p className="text-gray-300">
@@ -249,7 +249,7 @@ export default function Home() {
           </div>
 
           {/* Hassle-Free Online Ordering */}
-          <div className="flex flex-col items-center text-center">
+          <div className="flex flex-col items-center text-center border-2 rounded-md border-yellow-400 p-6">
             <span className="text-yellow-500 text-5xl mb-4">🛒</span>
             <h3 className="font-bold text-lg mb-2">Hassle-Free Online Ordering</h3>
             <p className="text-gray-300">
@@ -258,7 +258,7 @@ export default function Home() {
           </div>
 
           {/* Eco-Friendly Printing */}
-          <div className="flex flex-col items-center text-center">
+          <div className="flex flex-col items-center text-center border-2 rounded-md border-yellow-400 p-6">
             <span className="text-yellow-500 text-5xl mb-4">🌱</span>
             <h3 className="font-bold text-lg mb-2">Eco-Friendly Printing</h3>
             <p className="text-gray-300">

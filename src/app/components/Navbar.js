@@ -17,7 +17,7 @@ const NAV_LINKS = [
 const AuthButtons = ({ isMobile = false, closeMenu }) => (
   <div className={`flex ${isMobile ? "flex-col items-center space-y-4 mt-6 " : "space-x-4"}`}>
     <Link
-      href="/signup"
+      href="/Register"
       className={`bg-yellow-400 text-black px-4 py-2 rounded ${
         isMobile ? "w-3/4 text-center" : "hover:bg-yellow-300"
       }`}

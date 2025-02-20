@@ -19,11 +19,11 @@ const Footer = () => {
             alt="59 Minutes Print"
             width={96}
             height={96}
-            className="mb-4 rounded-full shadow-lg"
+            className="mb-4 rounded shadow-lg"
           /> 
           <br></br>
-          <p className="text-sm">
-            Copyright <br></br> © 2025 59MinutesPrint. All Rights Reserved.
+          <p className="text-1xl">
+            Copyright <br></br> © 2025 59MinutesPrint. <br></br> All Rights Reserved.
           </p>
         </div>
 
@@ -95,22 +95,26 @@ const Footer = () => {
           </ul>
         </div>
       </div>
-
+      
+      
+        <h1>Follow us on social Media Handles</h1>
+      
       {/* Social Media and Payment Info */}
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center mt-8">
         {/* Social Media Icons */}
         <div className="flex space-x-4">
+          
           <Link href="https://facebook.com">
-            <FaFacebookF className="text-xl cursor-pointer hover:text-yellow-500 transform hover:scale-110 transition-all" />
+            <FaFacebookF className="text-5xl cursor-pointer hover:text-yellow-500 transform hover:scale-110 transition-all" />
           </Link>
           <Link href="https://instagram.com">
-            <FaInstagram className="text-xl cursor-pointer hover:text-yellow-500 transform hover:scale-110 transition-all" />
+            <FaInstagram className="text-5xl cursor-pointer hover:text-yellow-500 transform hover:scale-110 transition-all" />
           </Link>
           <Link href="https://twitter.com">
-            <FaTwitter className="text-xl cursor-pointer hover:text-yellow-500 transform hover:scale-110 transition-all" />
+            <FaTwitter className="text-5xl cursor-pointer hover:text-yellow-500 transform hover:scale-110 transition-all" />
           </Link>
-          <Link href="mailto:info@59minutesprint.com">
-            <FaEnvelope className="text-xl cursor-pointer hover:text-yellow-500 transform hover:scale-110 transition-all" />
+          <Link href="mailto:59minutesprints@gmail.com">
+            <FaEnvelope className="text-5xl cursor-pointer hover:text-yellow-500 transform hover:scale-110 transition-all" />
           </Link>
         </div>
 
