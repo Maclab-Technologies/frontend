@@ -157,7 +157,7 @@ export default function Home() {
                 <label className="block mb-2 font-semibold">Message</label>
                 <textarea
                   placeholder="Message"
-                  className="w-full px-4 py-2 bg-gray-800 rounded-lg text-white h-32"
+                  className="w-full px-4 py-2  rounded-lg text-white h-32"
                 ></textarea>
               </div>
 
