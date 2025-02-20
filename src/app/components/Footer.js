@@ -33,7 +33,7 @@ const Footer = () => {
           <ul className="space-y-1">
             {[
               { href: "/About", label: "About Us" },
-              { href: "/career", label: "Career" },
+              { href: "/Career", label: "Career" },
               { href: "/contact", label: "Contact Us" },
               { href: "/blog", label: "Our Blog" },
               { href: "/promise", label: "Our Promise" },
@@ -140,7 +140,7 @@ const Footer = () => {
 
           <div>
             <h4 className="font-bold uppercase">Delivery</h4>
-            <div className="p-2 bg-gray-800 rounded-lg inline-block mt-2">
+            <div className="p-2 rounded-lg inline-block mt-2">
               <Image
                 src={GIGlogo}
                 alt="Delivery"
