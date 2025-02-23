@@ -21,7 +21,7 @@ const Navbar = () => {
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   return (
-    <nav className="bg-black text-white py-4 border-3 border-yellow-400">
+    <nav className="bg-black text-white py-4 border-b-4 border-yellow-400">
       <div className="container mx-auto flex items-center justify-between px-4">
         {/* Logo */}
         <Link href="/" className="flex items-center">
