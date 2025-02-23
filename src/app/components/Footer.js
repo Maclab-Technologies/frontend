@@ -10,7 +10,7 @@ import { FaFacebookF, FaInstagram, FaTwitter, FaEnvelope } from "react-icons/fa"
 
 const Footer = () => {
   return (
-    <footer className="bg-gradient-to-b from-black to-gray-900 text-white p-8">
+    <footer className="bg-[#171301] text-white p-8 border-t-yellow-400 border-t-3">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* Logo and Copyright */}
         <div>

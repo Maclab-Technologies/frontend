@@ -12,7 +12,7 @@ export default function Home() {
       {/* Hero Section */}
       <section className="flex flex-col md:flex-row items-center justify-between min-h-screen">
         {/* Left Section: Image */}
-        <div className="md:w-1/2 flex justify-center items-center p-8">
+        <div className="hidden md:flex md:w-1/2 justify-center items-center p-8">
           <Image
             src={brandguy}
             alt="Delivery Person"
@@ -20,6 +20,7 @@ export default function Home() {
             priority
           />
         </div>
+
 
         {/* Right Section: Text */}
         <div className="md:w-1/2 p-8">

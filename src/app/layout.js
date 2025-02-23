@@ -2,6 +2,8 @@
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import "../../src/app/globals.css"; // Ensure TailwindCSS is imported
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export const metadata = {
   title: "59Minutes Prints",
@@ -12,7 +14,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="min-h-screen flex flex-col w-100">
+
         <Navbar />
+        <ToastContainer position="top-right" autoClose={3000} />
         <main className="">{children}</main>
         <Footer />
       </body>
