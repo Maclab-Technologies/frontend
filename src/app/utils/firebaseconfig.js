@@ -2,9 +2,7 @@
 
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-// import { getAnalytics } from "firebase/analytics";
 
-// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyAZBVEdnLI83-Rbe1mquehYigoDgvXqZuU",
   authDomain: "minutes-prints-local.firebaseapp.com",
@@ -15,9 +13,13 @@ const firebaseConfig = {
   measurementId: "G-P7P40SMF6N"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-// const analytics = getAnalytics(app);
+// Ensure Firebase only runs on the client
+let app;
+let auth;
+
+if (typeof window !== "undefined") {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+}
 
 export { app, auth };
