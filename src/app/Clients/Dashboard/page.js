@@ -11,7 +11,7 @@ const Dashboard = () => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (!currentUser) {
-        router.push("/Auth/Login"); // Redirect to login if not authenticated
+        router.push("/Auth/Login"); 
       } else {
         setUser(currentUser);
       }
@@ -22,7 +22,7 @@ const Dashboard = () => {
 
   const handleLogout = async () => {
     await signOut(auth);
-    router.push("/Auth/Login"); // Redirect after logout
+    router.push("/Auth/Login"); 
   };
 
   return user ? (

@@ -12,7 +12,7 @@ import logo from "../../../public/images/brandimage.jpeg";
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
-  { label: "Products", href: "/products" },
+  { label: "Products", href: "/Products" },
   { label: "Categories", href: "/categories" },
   { label: "Features", href: "/Pages/Features" },
   { label: "Orders", href: "/orders" },
@@ -94,10 +94,10 @@ const Navbar = () => {
             ) : (
               <div className="flex flex-col space-y-4 w-full items-center">
                 <Link href="/cart" className="text-white text-lg hover:text-yellow-300">
-                  <FaShoppingCart size={30} />
+                  <FaShoppingCart size={35} />
                 </Link>
                 <div className="relative group">
-                  <FaUserCircle size={24} className="text-white cursor-pointer" />
+                  <FaUserCircle size={35} className="text-white cursor-pointer" />
                   <div className="absolute right-0 mt-2 bg-white text-black shadow-md rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
                     <Link href="/profile" className="block px-4 py-2 hover:bg-gray-800">
                       Profile

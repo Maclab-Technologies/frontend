@@ -61,7 +61,7 @@ export default function Home() {
           ].map((category) => (
             <div
               key={category}
-              className="bg-[#726002] hover:bg-yellow-600 text-center py-12 rounded-lg text-black font-semibold text-lg"
+              className="bg-[#726002] hover:bg-yellow-600 text-center py-16 rounded-lg text-black font-semibold text-lg flex items-center justify-center shadow-lg"
               style={{ height: "250px" }}
             >
               {category}

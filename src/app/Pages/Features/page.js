@@ -39,9 +39,17 @@ export default function Features() {
             </div>
           </div>
         </section>
-  
+        {/* Advert Section  */}
+
+
+        <section className="bg-white text-black  h-[30]">
+          <div className="mx-auto ">
+           <h2>This Advertisemnet and Sponsorship section </h2> 
+           <button>Shop Now</button>
+          </div>
+        </section>
         {/* "Why Choose Us" Section */}
-        <section className="bg-black text-white px-8 py-16 mt-16">
+        <section className="bg-black text-white px-8 py-16 ">
           <div className="text-center mb-12">
             <h2 className="text-2xl font-bold mb-4">
               Get High-Quality Prints Delivered in Record Time!
