@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@firebasegen/default-connector": "file:dataconnect-generated/js/default-connector",
+    "@vercel/analytics": "^1.5.0",
     "axios": "^1.7.9",
     "firebase": "^11.3.1",
     "flowbite-react": "^0.10.2",
