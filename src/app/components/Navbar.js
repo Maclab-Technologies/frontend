@@ -5,9 +5,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { FiMenu, FiX } from "react-icons/fi";
-import { FaShoppingCart, FaUserCircle } from "react-icons/fa"; // Icons for cart & user
+import { FaShoppingCart, FaUserCircle } from "react-icons/fa";
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
-import { app } from "../utils/firebaseconfig"; // Import your Firebase config
+import { app } from "../utils/firebaseconfig";
 import logo from "../../../public/images/brandimage.jpeg";
 
 const NAV_LINKS = [
@@ -21,17 +21,17 @@ const NAV_LINKS = [
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [user, setUser] = useState(null); // Firebase Auth user state
+  const [user, setUser] = useState(null);
   const pathname = usePathname();
   const auth = getAuth(app);
 
   useEffect(() => {
-    // Listen for Firebase Auth state changes
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
-
-    return () => unsubscribe(); // Cleanup listener on unmount
+    if (typeof window !== "undefined") {
+      const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        setUser(currentUser);
+      });
+      return () => unsubscribe();
+    }
   }, [auth]);
 
   const handleLogout = async () => {
@@ -50,29 +50,40 @@ const Navbar = () => {
           <Image src={logo} alt="Brand Logo" width={50} height={50} className="h-12" />
         </Link>
 
-        {/* Hamburger Menu (Mobile) */}
-        <button className="md:hidden text-white focus:outline-none" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+        {/* Mobile Menu Button */}
+        <button
+          className="md:hidden text-white focus:outline-none"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
           {isMobileMenuOpen ? <FiX size={32} /> : <FiMenu size={32} />}
         </button>
 
         {/* Mobile Navigation */}
         <div
-          className={`fixed top-0 right-0 h-full w-64 bg-black shadow-md transform ${
-            isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
-          } transition-transform duration-300 ease-in-out z-20 md:hidden`}
+          className={`fixed top-0 right-0 h-full w-64 bg-black shadow-md z-20 transition-transform duration-300 ease-in-out md:hidden ${isMobileMenuOpen ? "translate-x-0" : "hidden"
+            }`}
         >
-          <button className="absolute top-4 right-4 text-white" onClick={() => setIsMobileMenuOpen(false)}>
+          <button
+            className="absolute top-4 right-4 text-white"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
             <FiX size={32} />
           </button>
           <ul className="flex flex-col space-y-4 p-6">
             {NAV_LINKS.map(({ label, href }) => (
               <li key={href}>
-                <Link href={href} className="text-white hover:text-yellow-400 block py-2" onClick={() => setIsMobileMenuOpen(false)}>
+                <Link
+                  href={href}
+                  className="text-white hover:text-yellow-400 block py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
                   {label.toUpperCase()}
                 </Link>
               </li>
             ))}
           </ul>
+
+          {/* Authentication for Mobile */}
           <div className="flex flex-col items-center space-y-4 mt-6">
             {!user ? (
               <>
@@ -93,12 +104,18 @@ const Navbar = () => {
               </>
             ) : (
               <div className="flex flex-col space-y-4 w-full items-center">
-                <Link href="/cart" className="text-white text-lg hover:text-yellow-300">
-                  <FaShoppingCart size={35} />
+                <Link href="/Clients/Cart" className="text-white text-2xxl hover:text-yellow-300">
+                  <FaShoppingCart size={50} />
                 </Link>
                 <div className="relative group">
                   <FaUserCircle size={35} className="text-white cursor-pointer" />
-                  <div className="absolute right-0 mt-2 bg-white text-black shadow-md rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute right-0 mt-2 bg-white text-black shadow-md rounded-md opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
+                    <Link href="/profile" className="block px-4 py-2 hover:bg-gray-800">
+                      Profile
+                    </Link>
+                    <Link href="/Clients/Dasboard" className="block px-4 py-2 hover:bg-gray-800">
+                      Dashbaord
+                    </Link>
                     <Link href="/profile" className="block px-4 py-2 hover:bg-gray-800">
                       Profile
                     </Link>
@@ -134,12 +151,18 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              <Link href="/cart" className="text-yellow-400 text-lg hover:text-yellow-300">
-                <FaShoppingCart size={24} />
+              <Link href="/Clients/Cart" className="text-yellow-400 text-lg hover:text-yellow-300">
+                <FaShoppingCart size={40} />
               </Link>
-              <div className="relative group">
-                <FaUserCircle size={24} className="text-yellow-400 cursor-pointer" />
-                <div className="absolute right-0 mt-2 bg-black text-white shadow-md rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="relative group w-50">
+                <FaUserCircle size={40} className="text-yellow-400 cursor-pointer" />
+                <div className="absolute right-0 mt-2 bg-black text-white shadow-md rounded-md opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
+                  <Link href="/profile" className="block px-4 py-2 hover:bg-gray-800">
+                    Profile
+                  </Link>
+                  <Link href="/Clients/Dasboard" className="block px-4 py-2 hover:bg-gray-800">
+                    Dashbaord
+                  </Link>
                   <Link href="/profile" className="block px-4 py-2 hover:bg-gray-800">
                     Profile
                   </Link>

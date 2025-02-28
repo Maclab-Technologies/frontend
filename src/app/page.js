@@ -3,10 +3,12 @@
 import "../app/globals.css";
 import Image from "next/image";
 import brandguy from "../../public/images/brandguy.png";
+import { useRouter } from "next/navigation";
 
 
 
 export default function Home() {
+  const router = useRouter();
   return (
     <div className="bg-black text-white min-h-screen">
       {/* Hero Section */}
@@ -34,7 +36,7 @@ export default function Home() {
             Need high-quality prints in record time? We print and deliver orders in as fast as
             59 minutes.
           </p>
-          <button className="mt-6 px-6 py-2 bg-yellow-500 hover:bg-yellow-600 rounded-full text-black font-semibold">
+          <button  onClick={() => router.push("/Auth/Register")} className="mt-6 px-6 py-2 bg-yellow-500 hover:bg-yellow-600 rounded-full text-black font-semibold">
             Get Started Now
           </button>
         </div>
