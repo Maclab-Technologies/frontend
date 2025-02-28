@@ -23,7 +23,7 @@ export default function ProductDetail() {
         const foundProduct = data.find((p) => String(p.id) === String(id));
         if (foundProduct) {
           setProduct(foundProduct);
-          setSelectedImage(foundProduct.images[0]); // Set initial image
+          setSelectedImage(foundProduct.images[0]);
         }
       })
       .catch((error) => console.error("Error fetching product:", error))
@@ -54,10 +54,13 @@ export default function ProductDetail() {
       quantity,
     };
 
-    // Save to localStorage (for now, can be improved with Redux)
+    // Save to localStorage
     const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
     const updatedCart = [...existingCart, cartItem];
     localStorage.setItem("cart", JSON.stringify(updatedCart));
+
+    // Dispatch event to update cart counter in Navbar
+    window.dispatchEvent(new Event("cartUpdated"));
 
     // Show toast notification
     toast.success(`${product.name} added to cart!`, {
@@ -73,20 +76,22 @@ export default function ProductDetail() {
 
   return (
     <div className="container mx-auto p-6 bg-black">
-      <ToastContainer /> {/* Toast Notification Container */}
-      
+      <ToastContainer />
       <div className="flex flex-col md:flex-row items-start bg-black shadow-lg rounded-lg p-6 max-w-4xl mx-auto">
-        
-        {/* Small Images - Display at Bottom on Mobile */}
+        {/* Desktop: Small Images - Vertical Scrollable Column */}
         <div className="hidden md:flex flex-col space-y-4 max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
           {product.images.slice(0, 5).map((image, index) => (
-            <button key={index} onClick={() => setSelectedImage(image)} className="w-full">
+            <button
+              key={index}
+              onClick={() => setSelectedImage(image)}
+              className="w-full"
+            >
               <Image
                 src={image}
                 alt={`${product.name} - ${index + 1}`}
                 width={120}
                 height={120}
-                className={`rounded-lg object-cover cursor-pointer block mx-auto ${
+                className={`rounded-lg object-cover cursor-pointer block mx-auto transition-all duration-300 ${
                   selectedImage === image ? "border-4 border-yellow-500" : ""
                 }`}
               />
@@ -109,7 +114,9 @@ export default function ProductDetail() {
         <div className="w-full md:w-1/2 md:pl-6 text-left">
           <h1 className="text-3xl font-bold text-white">{product.name}</h1>
           <p className="text-white mt-2">{product.description}</p>
-          <p className="text-lg font-bold text-yellow-400 mt-2">₦{product.price}</p>
+          <p className="text-lg font-bold text-yellow-400 mt-2">
+            ₦{product.price}
+          </p>
 
           {/* Quantity Selector */}
           <div className="mt-4 flex items-center space-x-4">
@@ -130,17 +137,41 @@ export default function ProductDetail() {
 
           {/* Buttons */}
           <div className="mt-4 flex space-x-3">
-            <button 
+            <button
               className="bg-yellow-400 text-black font-bold px-6 py-2 rounded-md hover:bg-yellow-500 transition"
               onClick={handleAddToCart}
             >
               Add to Cart
             </button>
-            <button className="bg-white text-black font-bold px-6 py-2 rounded-md hover:bg-gray-300 transition">
-              Order
+            <button
+              className="bg-white text-black font-bold px-6 py-2 rounded-md hover:bg-gray-300 transition"
+              onClick={() => router.push("/Products")}
+            >
+              Back To Products
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Mobile: Small Images - Horizontal Scrollable Row */}
+      <div className="md:hidden flex space-x-3 overflow-x-auto mt-4 px-4 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
+        {product.images.slice(0, 5).map((image, index) => (
+          <button
+            key={index}
+            onClick={() => setSelectedImage(image)}
+            className="flex-shrink-0"
+          >
+            <Image
+              src={image}
+              alt={`${product.name} - ${index + 1}`}
+              width={80}
+              height={80}
+              className={`rounded-lg object-cover cursor-pointer transition-all duration-300 ${
+                selectedImage === image ? "border-4 border-yellow-500" : ""
+              }`}
+            />
+          </button>
+        ))}
       </div>
     </div>
   );

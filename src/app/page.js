@@ -64,7 +64,7 @@ export default function Home() {
             <div
               key={category}
               className="bg-[#726002] hover:bg-yellow-600 text-center py-16 rounded-lg text-black font-semibold text-lg flex items-center justify-center shadow-lg"
-              style={{ height: "250px" }}
+              style={{ height: "200px" }}
             >
               {category}
             </div>
@@ -110,7 +110,7 @@ export default function Home() {
             <div
               key={category}
               className="bg-[#726002] hover:bg-yellow-600 text-center py-16 rounded-lg text-black font-semibold text-lg flex items-center justify-center shadow-lg"
-              style={{ height: "250px" }}
+              style={{ height: "200px" }}
             >
               {category}
             </div>

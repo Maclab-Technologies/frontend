@@ -22,9 +22,11 @@ const NAV_LINKS = [
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
+  const [cartCount, setCartCount] = useState(0);
   const pathname = usePathname();
   const auth = getAuth(app);
 
+  // Listen for authentication state changes
   useEffect(() => {
     if (typeof window !== "undefined") {
       const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -33,6 +35,27 @@ const Navbar = () => {
       return () => unsubscribe();
     }
   }, [auth]);
+
+  // Update cart count from localStorage on mount and when cart changes.
+  useEffect(() => {
+    const updateCartCount = () => {
+      const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
+      setCartCount(storedCart.length);
+    };
+
+    // Initial update
+    updateCartCount();
+
+    // Listen for a custom event "cartUpdated"
+    window.addEventListener("cartUpdated", updateCartCount);
+    // Also listen for storage events from other tabs
+    window.addEventListener("storage", updateCartCount);
+
+    return () => {
+      window.removeEventListener("cartUpdated", updateCartCount);
+      window.removeEventListener("storage", updateCartCount);
+    };
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -47,7 +70,13 @@ const Navbar = () => {
       <div className="container mx-auto flex items-center justify-between px-4">
         {/* Logo */}
         <Link href="/" className="flex items-center">
-          <Image src={logo} alt="Brand Logo" width={50} height={50} className="h-12" />
+          <Image
+            src={logo}
+            alt="Brand Logo"
+            width={50}
+            height={50}
+            className="h-12"
+          />
         </Link>
 
         {/* Mobile Menu Button */}
@@ -60,8 +89,9 @@ const Navbar = () => {
 
         {/* Mobile Navigation */}
         <div
-          className={`fixed top-0 right-0 h-full w-64 bg-black shadow-md z-20 transition-transform duration-300 ease-in-out md:hidden ${isMobileMenuOpen ? "translate-x-0" : "hidden"
-            }`}
+          className={`fixed top-0 right-0 h-full w-64 bg-black shadow-md z-20 transition-transform duration-300 ease-in-out md:hidden ${
+            isMobileMenuOpen ? "translate-x-0" : "hidden"
+          }`}
         >
           <button
             className="absolute top-4 right-4 text-white"
@@ -104,22 +134,43 @@ const Navbar = () => {
               </>
             ) : (
               <div className="flex flex-col space-y-4 w-full items-center">
-                <Link href="/Clients/Cart" className="text-white text-2xxl hover:text-yellow-300">
+                <Link
+                  href="/Clients/Cart"
+                  className="relative text-white hover:text-yellow-300"
+                >
                   <FaShoppingCart size={50} />
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                    {cartCount}
+                  </span>
                 </Link>
                 <div className="relative group">
-                  <FaUserCircle size={35} className="text-white cursor-pointer" />
+                  <FaUserCircle
+                    size={35}
+                    className="text-white cursor-pointer"
+                  />
                   <div className="absolute right-0 mt-2 bg-white text-black shadow-md rounded-md opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
-                    <Link href="/profile" className="block px-4 py-2 hover:bg-gray-800">
+                    <Link
+                      href="/profile"
+                      className="block px-4 py-2 hover:bg-gray-800"
+                    >
                       Profile
                     </Link>
-                    <Link href="/Clients/Dasboard" className="block px-4 py-2 hover:bg-gray-800">
-                      Dashbaord
+                    <Link
+                      href="/Clients/Dasboard"
+                      className="block px-4 py-2 hover:bg-gray-800"
+                    >
+                      Dashboard
                     </Link>
-                    <Link href="/profile" className="block px-4 py-2 hover:bg-gray-800">
+                    <Link
+                      href="/profile"
+                      className="block px-4 py-2 hover:bg-gray-800"
+                    >
                       Profile
                     </Link>
-                    <button className="block w-full text-left px-4 py-2 hover:bg-gray-800" onClick={handleLogout}>
+                    <button
+                      className="block w-full text-left px-4 py-2 hover:bg-gray-800"
+                      onClick={handleLogout}
+                    >
                       Logout
                     </button>
                   </div>
@@ -132,7 +183,11 @@ const Navbar = () => {
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center justify-center flex-grow space-x-6">
           {NAV_LINKS.map(({ label, href }) => (
-            <Link key={href} href={href} className="text-white hover:text-yellow-400 block py-2">
+            <Link
+              key={href}
+              href={href}
+              className="text-white hover:text-yellow-400 block py-2"
+            >
               {label.toUpperCase()}
             </Link>
           ))}
@@ -142,31 +197,55 @@ const Navbar = () => {
         <div className="hidden md:flex items-center space-x-4">
           {!user ? (
             <>
-              <Link href="/Auth/Register" className="bg-yellow-400 text-black px-4 py-2 rounded hover:bg-yellow-300">
+              <Link
+                href="/Auth/Register"
+                className="bg-yellow-400 text-black px-4 py-2 rounded hover:bg-yellow-300"
+              >
                 Sign Up
               </Link>
-              <Link href="/Auth/Login" className="border border-yellow-400 text-yellow-400 px-4 py-2 rounded hover:border-yellow-300 hover:text-yellow-300">
+              <Link
+                href="/Auth/Login"
+                className="border border-yellow-400 text-yellow-400 px-4 py-2 rounded hover:border-yellow-300 hover:text-yellow-300"
+              >
                 Login
               </Link>
             </>
           ) : (
             <>
-              <Link href="/Clients/Cart" className="text-yellow-400 text-lg hover:text-yellow-300">
+              <Link
+                href="/Clients/Cart"
+                className="relative text-yellow-400 text-lg hover:text-yellow-300"
+              >
                 <FaShoppingCart size={40} />
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                  {cartCount}
+                </span>
               </Link>
               <div className="relative group w-50">
                 <FaUserCircle size={40} className="text-yellow-400 cursor-pointer" />
                 <div className="absolute right-0 mt-2 bg-black text-white shadow-md rounded-md opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
-                  <Link href="/profile" className="block px-4 py-2 hover:bg-gray-800">
+                  <Link
+                    href="/profile"
+                    className="block px-4 py-2 hover:bg-gray-800"
+                  >
                     Profile
                   </Link>
-                  <Link href="/Clients/Dasboard" className="block px-4 py-2 hover:bg-gray-800">
-                    Dashbaord
+                  <Link
+                    href="/Clients/Dasboard"
+                    className="block px-4 py-2 hover:bg-gray-800"
+                  >
+                    Dashboard
                   </Link>
-                  <Link href="/profile" className="block px-4 py-2 hover:bg-gray-800">
+                  <Link
+                    href="/profile"
+                    className="block px-4 py-2 hover:bg-gray-800"
+                  >
                     Profile
                   </Link>
-                  <button className="block w-full text-left px-4 py-2 hover:bg-gray-800" onClick={handleLogout}>
+                  <button
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-800"
+                    onClick={handleLogout}
+                  >
                     Logout
                   </button>
                 </div>

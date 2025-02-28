@@ -4,7 +4,7 @@
     "id": "Business-Card",
     "name": "Business Card (Standard)",
     "description": "A high-quality standard business card with a glossy finish, perfect for professionals looking to make a great first impression.",
-    "images": ["/images/brandimage.jpeg", "/images/paystacklogo.png", "/images/brandimage.jpeg", "/images/brandimage.jpeg", "/images/brandimage.jpeg"],
+    "images": ["/images/Flutterwave_Logo.png", "/images/paystacklogo.png", "/images/brandimage.jpeg", "/images/GIG_Logistics_logo.png", "/images/corporate-business-card.webp"],
     "price": "25,000",
     "stock": 100,
     "category": "Business Cards",

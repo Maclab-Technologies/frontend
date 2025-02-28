@@ -59,7 +59,7 @@ export default function ProductsPage() {
               alt={product.name}
               width={200}
               height={100}
-              className="rounded-md object-cover w-100 h-64"
+              className="rounded-md object-cover w-100 h-64 "
             />
             <div className="text-center mt-3">
               <h2 className="text-lg font-semibold">{product.name}</h2>
