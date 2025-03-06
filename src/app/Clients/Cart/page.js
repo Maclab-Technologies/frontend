@@ -1,41 +1,76 @@
-"use client";
+'use client';
 
 import { useSelector, useDispatch } from "react-redux";
+import { useEffect } from "react";
 import Image from "next/image";
-import { updateQuantity, removeFromCart } from "../../Redux/CartSlice";
+import { updateQuantity, removeFromCart, clearCart, setCart } from "../../Redux/CartSlice";
 import { useRouter } from "next/navigation";
+import { FiTrash } from "react-icons/fi";
 
 export default function Cart() {
   const cartItems = useSelector((state) => state.cart.items);
   const dispatch = useDispatch();
   const router = useRouter();
 
-  // Handle updating the quantity of an item
+  // Hydrate cart from localStorage on mount
+  useEffect(() => {
+    const savedCart = localStorage.getItem('cart');
+    if (savedCart) {
+      try {
+        const parsedCart = JSON.parse(savedCart);
+        dispatch(setCart(parsedCart));
+      } catch (error) {
+        console.error("Error parsing cart from localStorage:", error);
+        localStorage.removeItem('cart');
+      }
+    }
+  }, [dispatch]);
+
+  // Listen for storage changes across tabs
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const savedCart = localStorage.getItem('cart');
+      if (savedCart) {
+        try {
+          const parsedCart = JSON.parse(savedCart);
+          dispatch(setCart(parsedCart));
+        } catch (error) {
+          console.error("Error parsing cart from localStorage:", error);
+          localStorage.removeItem('cart');
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('cartUpdated', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('cartUpdated', handleStorageChange);
+    };
+  }, [dispatch]);
+
   const handleQuantityChange = (id, newQuantity) => {
     if (newQuantity < 1) return;
     dispatch(updateQuantity({ id, quantity: newQuantity }));
   };
 
-  // Handle removing an item from the cart
   const handleRemoveItem = (id) => {
     dispatch(removeFromCart(id));
   };
 
-  // Calculate total price based on items and their quantities
   const totalPrice = cartItems.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0
   );
 
-  // Handle checkout navigation
   const handleCheckout = () => {
-    router.push("/checkout");
+    router.push("/Checkout");
   };
 
   return (
     <div className="container mx-auto p-6 bg-black text-white min-h-screen">
       <h1 className="text-3xl font-bold mb-4">Shopping Cart</h1>
-
       {cartItems.length === 0 ? (
         <p className="text-gray-400">Your cart is empty.</p>
       ) : (
@@ -70,12 +105,14 @@ export default function Cart() {
                       className="w-16 px-2 py-1 text-black rounded"
                     />
                   </div>
-                  <button
-                    className="bg-red-500 text-white px-3 py-1 mt-2 rounded-md hover:bg-red-600"
-                    onClick={() => handleRemoveItem(item.id)}
-                  >
-                    Remove
-                  </button>
+                  <div className="mt-2 flex items-center gap-1">
+                    <button
+                      onClick={() => handleRemoveItem(item.id)}
+                      className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition flex items-center gap-1"
+                    >
+                      <FiTrash size={20} /> Remove
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -84,12 +121,20 @@ export default function Cart() {
             <h2 className="text-2xl font-bold">
               Total: ₦{totalPrice.toLocaleString()}
             </h2>
-            <button
-              className="bg-green-500 text-white px-6 py-3 mt-4 rounded-md hover:bg-green-600 transition"
-              onClick={handleCheckout}
-            >
-              Proceed to Checkout
-            </button>
+            <div className="flex flex-wrap gap-4 mt-4">
+              <button
+                onClick={handleCheckout}
+                className="bg-green-500 text-white px-6 py-3 rounded-md hover:bg-green-600 transition"
+              >
+                Proceed to Checkout
+              </button>
+              <button
+                onClick={() => dispatch(clearCart())}
+                className="bg-red-500 text-white px-6 py-3 rounded-md hover:bg-red-600 transition"
+              >
+                Clear Cart
+              </button>
+            </div>
           </div>
         </>
       )}

@@ -26,7 +26,7 @@ const Navbar = () => {
   const pathname = usePathname();
   const auth = getAuth(app);
 
-  // Listen for authentication state changes
+  // Listen for Firebase auth state changes
   useEffect(() => {
     if (typeof window !== "undefined") {
       const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -36,25 +36,25 @@ const Navbar = () => {
     }
   }, [auth]);
 
-  // Update cart count from localStorage on mount and when cart changes.
+  // Update cart count from localStorage
   useEffect(() => {
     const updateCartCount = () => {
-      const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
-      setCartCount(storedCart.length);
+      if (typeof window !== "undefined") {
+        const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
+        setCartCount(storedCart.length);
+      }
     };
 
-    // Initial update
     updateCartCount();
 
-    // Listen for a custom event "cartUpdated"
-    window.addEventListener("cartUpdated", updateCartCount);
-    // Also listen for storage events from other tabs
-    window.addEventListener("storage", updateCartCount);
-
-    return () => {
-      window.removeEventListener("cartUpdated", updateCartCount);
-      window.removeEventListener("storage", updateCartCount);
-    };
+    if (typeof window !== "undefined") {
+      window.addEventListener("cartUpdated", updateCartCount);
+      window.addEventListener("storage", updateCartCount);
+      return () => {
+        window.removeEventListener("cartUpdated", updateCartCount);
+        window.removeEventListener("storage", updateCartCount);
+      };
+    }
   }, []);
 
   const handleLogout = async () => {
@@ -90,7 +90,7 @@ const Navbar = () => {
         {/* Mobile Navigation */}
         <div
           className={`fixed top-0 right-0 h-full w-64 bg-black shadow-md z-20 transition-transform duration-300 ease-in-out md:hidden ${
-            isMobileMenuOpen ? "translate-x-0" : "hidden"
+            isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
           }`}
         >
           <button
@@ -113,7 +113,7 @@ const Navbar = () => {
             ))}
           </ul>
 
-          {/* Authentication for Mobile */}
+          {/* Mobile Authentication Section */}
           <div className="flex flex-col items-center space-y-4 mt-6">
             {!user ? (
               <>
@@ -136,19 +136,16 @@ const Navbar = () => {
               <div className="flex flex-col space-y-4 w-full items-center">
                 <Link
                   href="/Clients/Cart"
-                  className="relative text-white hover:text-yellow-300"
+                  className="relative text-yellow-400 text-lg hover:text-yellow-300"
                 >
-                  <FaShoppingCart size={50} />
+                  <FaShoppingCart size={40} />
                   <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                     {cartCount}
                   </span>
                 </Link>
                 <div className="relative group">
-                  <FaUserCircle
-                    size={35}
-                    className="text-white cursor-pointer"
-                  />
-                  <div className="absolute right-0 mt-2 bg-white text-black shadow-md rounded-md opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
+                  <FaUserCircle size={40} className="text-yellow-400 cursor-pointer" />
+                  <div className="absolute right-0 mt-2 bg-black text-white shadow-md rounded-md opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
                     <Link
                       href="/profile"
                       className="block px-4 py-2 hover:bg-gray-800"
@@ -156,16 +153,22 @@ const Navbar = () => {
                       Profile
                     </Link>
                     <Link
-                      href="/Clients/Dasboard"
+                      href="/Clients/Dashboard"
                       className="block px-4 py-2 hover:bg-gray-800"
                     >
                       Dashboard
                     </Link>
                     <Link
-                      href="/profile"
+                      href="/Inbox"
                       className="block px-4 py-2 hover:bg-gray-800"
                     >
-                      Profile
+                      Inbox
+                    </Link>
+                    <Link
+                      href="/Help"
+                      className="block px-4 py-2 hover:bg-gray-800"
+                    >
+                      Help
                     </Link>
                     <button
                       className="block w-full text-left px-4 py-2 hover:bg-gray-800"
@@ -221,7 +224,7 @@ const Navbar = () => {
                   {cartCount}
                 </span>
               </Link>
-              <div className="relative group w-50">
+              <div className="relative group">
                 <FaUserCircle size={40} className="text-yellow-400 cursor-pointer" />
                 <div className="absolute right-0 mt-2 bg-black text-white shadow-md rounded-md opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
                   <Link
@@ -231,16 +234,22 @@ const Navbar = () => {
                     Profile
                   </Link>
                   <Link
-                    href="/Clients/Dasboard"
+                    href="/Clients/Dashboard"
                     className="block px-4 py-2 hover:bg-gray-800"
                   >
                     Dashboard
                   </Link>
                   <Link
-                    href="/profile"
+                    href="/Inbox"
                     className="block px-4 py-2 hover:bg-gray-800"
                   >
-                    Profile
+                    Inbox
+                  </Link>
+                  <Link
+                    href="/Help"
+                    className="block px-4 py-2 hover:bg-gray-800"
+                  >
+                    Help
                   </Link>
                   <button
                     className="block w-full text-left px-4 py-2 hover:bg-gray-800"

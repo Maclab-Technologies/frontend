@@ -1,8 +1,7 @@
-import ReduxProvider from "./Redux/Provider"; // Adjust path if necessary
+import ReduxProvider from "./Redux/Provider";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import Image from "next/image";
-import "../../src/app/globals.css"; // Ensure TailwindCSS is imported
+import "../../src/app/globals.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -10,10 +9,9 @@ export const metadata = {
   title: "59Minutes Prints",
   description: "High-quality printing services delivered fast",
   icons: {
-    icon: "/images/brandimage.jpeg", // Ensure this image exists in your public/images folder
+    icon: "../../public/images/brandimage.jpeg", 
   },
 };
-
 export default function RootLayout({ children }) {
   return (
     <html lang="en">

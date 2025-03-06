@@ -10,7 +10,7 @@ import { FaFacebookF, FaInstagram, FaTwitter, FaEnvelope } from "react-icons/fa"
 
 const Footer = () => {
   return (
-    <footer className="bg-[#171301] text-white p-8 border-t-yellow-400 border-t-3">
+    <footer className="bg-[#171301] text-white p-8 border-t-4 border-t-yellow-400">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* Logo and Copyright */}
         <div>
@@ -20,17 +20,17 @@ const Footer = () => {
             width={96}
             height={96}
             className="mb-4 rounded shadow-lg"
-          /> 
-          <br></br>
-          <p className="text-1xl">
-            Copyright <br></br> © 2025 59MinutesPrint. <br></br> All Rights Reserved.
+          />
+          <p className="text-base">
+            Copyright © 2025 59MinutesPrint.<br />
+            All Rights Reserved.
           </p>
         </div>
 
         {/* Footer Links */}
         <div>
-          <h4 className="font-bold text-lg uppercase mb-2">59MinutesPrint</h4>
-          <ul className="space-y-1">
+          <h4 className="font-bold text-lg uppercase mb-4">59MinutesPrint</h4>
+          <ul className="space-y-2">
             {[
               { href: "/About", label: "About Us" },
               { href: "/Career", label: "Career" },
@@ -42,7 +42,7 @@ const Footer = () => {
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className="hover:text-yellow-500  decoration-yellow-500"
+                  className="hover:text-yellow-500 transition-colors duration-200"
                 >
                   {link.label}
                 </Link>
@@ -52,10 +52,10 @@ const Footer = () => {
         </div>
 
         <div>
-          <h4 className="font-bold text-lg uppercase mb-2">
+          <h4 className="font-bold text-lg uppercase mb-4">
             Help and Information
           </h4>
-          <ul className="space-y-1">
+          <ul className="space-y-2">
             {[
               { href: "/material-quality", label: "Material Quality" },
               { href: "/shipping", label: "Shipping and Delivery" },
@@ -66,7 +66,7 @@ const Footer = () => {
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className="hover:text-yellow-500  decoration-yellow-500"
+                  className="hover:text-yellow-500 transition-colors duration-200"
                 >
                   {link.label}
                 </Link>
@@ -76,8 +76,8 @@ const Footer = () => {
         </div>
 
         <div>
-          <h4 className="font-bold text-lg uppercase mb-2">Monetize</h4>
-          <ul className="space-y-1">
+          <h4 className="font-bold text-lg uppercase mb-4">Monetize</h4>
+          <ul className="space-y-2">
             {[
               { href: "/vendor", label: "Become a Vendor" },
               { href: "/sell-creativity", label: "Sell your Creativity" },
@@ -86,7 +86,7 @@ const Footer = () => {
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className="hover:text-yellow-500  decoration-yellow-500"
+                  className="hover:text-yellow-500 transition-colors duration-200"
                 >
                   {link.label}
                 </Link>
@@ -96,62 +96,65 @@ const Footer = () => {
         </div>
       </div>
       
-      
-        <h1>Follow us on social Media Handles</h1>
-      
-      {/* Social Media and Payment Info */}
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center mt-8">
-        {/* Social Media Icons */}
-        <div className="flex space-x-4">
-          
-          <Link href="https://facebook.com">
-            <FaFacebookF className="text-5xl cursor-pointer hover:text-yellow-500 transform hover:scale-110 transition-all" />
-          </Link>
-          <Link href="https://instagram.com">
-            <FaInstagram className="text-5xl cursor-pointer hover:text-yellow-500 transform hover:scale-110 transition-all" />
-          </Link>
-          <Link href="https://twitter.com">
-            <FaTwitter className="text-5xl cursor-pointer hover:text-yellow-500 transform hover:scale-110 transition-all" />
-          </Link>
-          <Link href="mailto:59minutesprints@gmail.com">
-            <FaEnvelope className="text-5xl cursor-pointer hover:text-yellow-500 transform hover:scale-110 transition-all" />
-          </Link>
-        </div>
-
-        {/* Payment Methods */}
-        <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-8 mt-4 md:mt-0">
-          <div>
-            <h4 className="font-bold uppercase">Accepted Payment</h4>
-            <div className="p-2 bg-gray-800 rounded-lg inline-block mt-2">
-              <Image
-                src={paystacklogo}
-                alt="Paystack"
-                width={100}
-                height={50}
-                className="w-35"
-              />
-            </div>
-            <div className="p-2 bg-gray-800 rounded-lg inline-block mt-2 mx-4">
-              <Image
-                src={Flutterwavelogo}
-                alt="Flutterwave"
-                width={100}
-                height={50}
-                className="w-35"
-              />
-            </div>
+      {/* Social Media Section */}
+      <div className="max-w-7xl mx-auto mt-10">
+        <h4 className="font-bold text-lg uppercase mb-4 text-center md:text-left">Follow us on social Media</h4>
+        
+        {/* Social Media and Payment Info */}
+        <div className="flex flex-col md:flex-row justify-between items-center mt-4">
+          {/* Social Media Icons */}
+          <div className="flex space-x-6">
+            <Link href="https://facebook.com" aria-label="Facebook">
+              <FaFacebookF className="text-3xl cursor-pointer hover:text-yellow-500 transform hover:scale-110 transition-all" />
+            </Link>
+            <Link href="https://instagram.com" aria-label="Instagram">
+              <FaInstagram className="text-3xl cursor-pointer hover:text-yellow-500 transform hover:scale-110 transition-all" />
+            </Link>
+            <Link href="https://twitter.com" aria-label="Twitter">
+              <FaTwitter className="text-3xl cursor-pointer hover:text-yellow-500 transform hover:scale-110 transition-all" />
+            </Link>
+            <Link href="mailto:59minutesprints@gmail.com" aria-label="Email">
+              <FaEnvelope className="text-3xl cursor-pointer hover:text-yellow-500 transform hover:scale-110 transition-all" />
+            </Link>
           </div>
 
-          <div>
-            <h4 className="font-bold uppercase">Delivery</h4>
-            <div className="p-2 rounded-lg inline-block mt-2">
-              <Image
-                src={GIGlogo}
-                alt="Delivery"
-                width={100}
-                height={50}
-                className="w-35"
-              />
+          {/* Payment Methods */}
+          <div className="flex flex-col md:flex-row space-y-6 md:space-y-0 md:space-x-8 mt-6 md:mt-0">
+            <div>
+              <h4 className="font-bold uppercase mb-2 text-center md:text-left">Accepted Payment</h4>
+              <div className="flex space-x-4">
+                <div className="p-2 bg-gray-800 rounded-lg inline-block">
+                  <Image
+                    src={paystacklogo}
+                    alt="Paystack"
+                    width={100}
+                    height={50}
+                    className="h-8 w-auto"
+                  />
+                </div>
+                <div className="p-2 bg-gray-800 rounded-lg inline-block">
+                  <Image
+                    src={Flutterwavelogo}
+                    alt="Flutterwave"
+                    width={100}
+                    height={50}
+                    className="h-8 w-auto"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="font-bold uppercase mb-2 text-center md:text-left">Delivery</h4>
+              <div className="p-2 rounded-lg inline-block">
+                <Image
+                  src={GIGlogo}
+                  alt="GIG Logistics"
+                  width={100}
+                  height={50}
+                  className="h-8 w-auto"
+                />
+              </div>
             </div>
           </div>
         </div>

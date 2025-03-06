@@ -23,7 +23,7 @@ export default function ProductDetail() {
         const foundProduct = data.find((p) => String(p.id) === String(id));
         if (foundProduct) {
           setProduct(foundProduct);
-          setSelectedImage(foundProduct.images[0]);
+          setSelectedImage(foundProduct.images[0]); // Set initial image
         }
       })
       .catch((error) => console.error("Error fetching product:", error))
@@ -44,7 +44,13 @@ export default function ProductDetail() {
       </div>
     );
 
-  // Function to handle add to cart
+  // Handle quantity changes
+  const increaseQuantity = () =>
+    setQuantity(Math.min(product.stock, quantity + 1));
+  const decreaseQuantity = () =>
+    setQuantity(Math.max(1, quantity - 1));
+
+  // Handle adding product to cart (localStorage)
   const handleAddToCart = () => {
     const cartItem = {
       id: product.id,
@@ -54,15 +60,13 @@ export default function ProductDetail() {
       quantity,
     };
 
-    // Save to localStorage
     const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
     const updatedCart = [...existingCart, cartItem];
     localStorage.setItem("cart", JSON.stringify(updatedCart));
 
-    // Dispatch event to update cart counter in Navbar
+    // Dispatch event to update cart counter (if used in Navbar)
     window.dispatchEvent(new Event("cartUpdated"));
 
-    // Show toast notification
     toast.success(`${product.name} added to cart!`, {
       position: "top-right",
       autoClose: 3000,
@@ -79,7 +83,7 @@ export default function ProductDetail() {
       <ToastContainer />
       <div className="flex flex-col md:flex-row items-start bg-black shadow-lg rounded-lg p-6 max-w-4xl mx-auto">
         {/* Desktop: Small Images - Vertical Scrollable Column */}
-        <div className="hidden md:flex flex-col space-y-4 max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
+        <div className="hidden md:flex flex-col space-y-4 max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800 pr-2">
           {product.images.slice(0, 5).map((image, index) => (
             <button
               key={index}
@@ -106,7 +110,7 @@ export default function ProductDetail() {
             alt={product.name}
             width={350}
             height={350}
-            className="rounded-lg object-cover"
+            className="rounded-lg object-cover shadow-lg"
           />
         </div>
 
@@ -114,22 +118,23 @@ export default function ProductDetail() {
         <div className="w-full md:w-1/2 md:pl-6 text-left">
           <h1 className="text-3xl font-bold text-white">{product.name}</h1>
           <p className="text-white mt-2">{product.description}</p>
-          <p className="text-lg font-bold text-yellow-400 mt-2">
-            ₦{product.price}
-          </p>
+          <p className="text-lg font-bold text-yellow-400 mt-2">₦{product.price}</p>
+          <p className="text-sm text-white">Stock: {product.stock}</p>
+          <p className="text-sm text-white">Color: {product.color}</p>
+          <p className="text-sm text-white">Category: {product.category}</p>
 
           {/* Quantity Selector */}
           <div className="mt-4 flex items-center space-x-4">
             <button
               className="bg-gray-300 text-black px-3 py-2 rounded-md hover:bg-gray-400 transition"
-              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              onClick={decreaseQuantity}
             >
               -
             </button>
             <span className="text-lg font-semibold text-white">{quantity}</span>
             <button
               className="bg-gray-300 text-black px-3 py-2 rounded-md hover:bg-gray-400 transition"
-              onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+              onClick={increaseQuantity}
             >
               +
             </button>
@@ -156,11 +161,7 @@ export default function ProductDetail() {
       {/* Mobile: Small Images - Horizontal Scrollable Row */}
       <div className="md:hidden flex space-x-3 overflow-x-auto mt-4 px-4 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
         {product.images.slice(0, 5).map((image, index) => (
-          <button
-            key={index}
-            onClick={() => setSelectedImage(image)}
-            className="flex-shrink-0"
-          >
+          <button key={index} onClick={() => setSelectedImage(image)} className="flex-shrink-0">
             <Image
               src={image}
               alt={`${product.name} - ${index + 1}`}

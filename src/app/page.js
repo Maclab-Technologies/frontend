@@ -4,116 +4,123 @@ import "../app/globals.css";
 import Image from "next/image";
 import brandguy from "../../public/images/brandguy.png";
 import { useRouter } from "next/navigation";
-
-
+import Link from "next/link";
 
 export default function Home() {
   const router = useRouter();
+  
+  // Categories data to avoid repetition
+  const popularCategories = [
+    "Bags",
+    "Banners & Large Format",
+    "Brochures",
+    "Business Cards",
+    "Calendars",
+    "Campaign Materials",
+    "Caps & Hats",
+    "Clothing & Apparel",
+    "Frames & Wall Arts",
+    "Flyers & Handbills",
+    "ID Cards",
+    "Labels",
+  ];
+  
+  const otherCategories = [
+    "Flyers & Handbills",
+    "Frames & Wall Arts",
+    "Greeting Cards",
+    "ID Cards",
+    "Labels",
+    "Letterhead",
+    "Mugs",
+    "Notepads and Jotters",
+    "Posters",
+    "Presentation Folders",
+    "Promotional Items",
+    "Stickers",
+    "Umbrella",
+    "Wedding Stationery",
+  ];
+  
+  // Category component to avoid duplication
+  const CategoryItem = ({ name }) => (
+    <Link 
+      href={`/categories/${name.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and')}`}
+      className="bg-[#726002] hover:bg-yellow-600 text-center py-8 rounded-lg text-black font-semibold text-lg flex items-center justify-center shadow-lg transition-colors duration-300 h-48"
+    >
+      {name}
+    </Link>
+  );
+
   return (
     <div className="bg-black text-white min-h-screen">
       {/* Hero Section */}
-      <section className="flex flex-col md:flex-row items-center justify-between min-h-screen">
+      <section className="flex flex-col md:flex-row items-center justify-between py-16 md:py-24 md:min-h-screen">
         {/* Left Section: Image */}
         <div className="hidden md:flex md:w-1/2 justify-center items-center p-8">
           <Image
             src={brandguy}
             alt="Delivery Person"
-            className="max-w-md w-full rounded-lg"
+            className="max-w-md w-full rounded-lg shadow-xl"
             priority
           />
         </div>
 
-
         {/* Right Section: Text */}
         <div className="md:w-1/2 p-8">
-          <h1 className="text-4xl md:text-5xl font-bold leading-snug">
+          <h1 className="text-4xl md:text-5xl font-bold leading-tight">
             Welcome to <br />
             <span className="text-yellow-500">
-              59 Minutes Print – Nigeria’s Fastest & Most Reliable Online Printing Service
+              59 Minutes Print – Nigeria's Fastest & Most Reliable Online Printing Service
             </span>
           </h1>
-          <p className="mt-4 text-lg">
+          <p className="mt-6 text-lg text-gray-300">
             Need high-quality prints in record time? We print and deliver orders in as fast as
             59 minutes.
           </p>
-          <button  onClick={() => router.push("/Auth/Register")} className="mt-6 px-6 py-2 bg-yellow-500 hover:bg-yellow-600 rounded-full text-black font-semibold">
+          <button  
+            onClick={() => router.push("/Auth/Register")} 
+            className="mt-8 px-8 py-3 bg-yellow-500 hover:bg-yellow-600 rounded-full text-black font-semibold transition-all duration-300 shadow-lg transform hover:scale-105"
+          >
             Get Started Now
           </button>
         </div>
       </section>
 
       {/* Popular Categories Section */}
-
-      <section className="px-8 py-16">
+      <section className="px-8 py-16 bg-gradient-to-b from-black to-gray-900">
         <h2 className="text-3xl font-bold mb-8 text-center">Popular Categories</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 [#726002] ">
-          {[
-            "Bags",
-            "Banners & Large Format",
-            "Brochures",
-            "Business Cards",
-            "Calendars",
-            "Campaign Materials",
-            "Caps & Hats",
-            "Clothing & Apparel",
-            "Frames & Wall Arts",
-            "Flyers & Handbills",
-            "ID Cards",
-            "Labels",
-          ].map((category) => (
-            <div
-              key={category}
-              className="bg-[#726002] hover:bg-yellow-600 text-center py-16 rounded-lg text-black font-semibold text-lg flex items-center justify-center shadow-lg"
-              style={{ height: "200px" }}
-            >
-              {category}
-            </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {popularCategories.map((category) => (
+            <CategoryItem key={category} name={category} />
           ))}
         </div>
       </section>
 
-      {/* Advert Categories Section*/}
-      <section className="bg-white h-[300px] flex justify-center items-center">
-        <div className="text-center">
+      {/* Advert Categories Section */}
+      <section className="bg-white py-16">
+        <div className="max-w-4xl mx-auto text-center px-4">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
             Check out our Latest Promotions!
           </h2>
           <p className="text-lg text-gray-600 mb-8">
             Don't miss out on exclusive offers and exciting discounts. Grab them while they last!
           </p>
-          <button className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-300">
+          <button 
+            onClick={() => router.push("/Products")}
+            className="px-8 py-3 bg-yellow-500 text-black font-semibold rounded-full hover:bg-yellow-600 transition duration-300 shadow-lg"
+          >
             Shop Now
           </button>
         </div>
       </section>
 
-      {/* Other Categries */}
+      {/* Other Categories */}
       <section className="px-8 py-16">
         <h2 className="text-3xl font-bold mb-8 text-center">Other Categories</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          {[
-            "Flyers & Handbills",
-            "Frames & Wall Arts",
-            "Greeting Cards",
-            "ID Cards",
-            "Labels",
-            "Letterhead",
-            "Mugs",
-            "Notepads and Jotters",
-            "Posters",
-            "Presentation Folders",
-            "Promotional Items",
-            "Stickers",
-            "Umbrella",
-            "Wedding Stationery",
-          ].map((category) => (
-            <div
-              key={category}
-              className="bg-[#726002] hover:bg-yellow-600 text-center py-16 rounded-lg text-black font-semibold text-lg flex items-center justify-center shadow-lg"
-              style={{ height: "200px" }}
-            >
-              {category}
-            </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {otherCategories.map((category) => (
+            <CategoryItem key={category} name={category} />
           ))}
         </div>
       </section>
@@ -270,6 +277,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+
 
 
     </div>
