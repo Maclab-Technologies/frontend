@@ -1,7 +1,7 @@
 import ReduxProvider from "./Redux/Provider";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import "../../src/app/globals.css";
+import "./globals.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -9,9 +9,10 @@ export const metadata = {
   title: "59Minutes Prints",
   description: "High-quality printing services delivered fast",
   icons: {
-    icon: "../../public/images/brandimage.jpeg", 
+    icon: "/images/brandimage.jpeg", // use public folder path
   },
 };
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en">

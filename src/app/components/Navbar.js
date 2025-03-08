@@ -13,7 +13,7 @@ import logo from "../../../public/images/brandimage.jpeg";
 const NAV_LINKS = [
   { label: "Home", href: "/" },
   { label: "Products", href: "/Products" },
-  { label: "Categories", href: "/categories" },
+  { label: "Categories", href: "/Pages/Categories" },
   { label: "Features", href: "/Pages/Features" },
   { label: "Orders", href: "/orders" },
   { label: "Track Orders", href: "/track-orders" },
