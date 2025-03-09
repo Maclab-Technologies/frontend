@@ -65,7 +65,7 @@ export default function Cart() {
   );
 
   const handleCheckout = () => {
-    router.push("/Checkout");
+    router.push("/Clients/Checkout");
   };
 
   return (

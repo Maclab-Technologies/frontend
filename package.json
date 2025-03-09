@@ -20,8 +20,10 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-icons": "^5.5.0",
+    "react-paystack": "^6.0.0",
     "react-redux": "^9.2.0",
     "react-toastify": "^11.0.3",
+    "resend": "^4.1.2",
     "tailwind-scrollbar": "^3.0.3"
   },
   "devDependencies": {

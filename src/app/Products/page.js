@@ -76,7 +76,7 @@ export default function ProductsPage() {
           const imagesArray = Array.isArray(product.images)
             ? product.images
             : [product.images];
-          const mainImage = imagesArray[0] || "/images/placeholder.jpg"; // fallback image if needed
+          const mainImage = imagesArray[0] ; // fallback image if needed
 
           return (
             <div
