@@ -1,4 +1,4 @@
-"use client";
+"use client"; 
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -13,6 +13,9 @@ export default function PaymentSuccess() {
       const storedOrder = localStorage.getItem("lastOrder");
       if (storedOrder) {
         setOrderDetails(JSON.parse(storedOrder));
+
+        // Clear order details from localStorage after loading
+        localStorage.removeItem("lastOrder");
       }
     }
   }, []);
