@@ -31,13 +31,15 @@ export default function CheckoutPage() {
     return true;
   };
 
-  const handlePaystackPayment = usePaystackPayment({
+  const config = {
     reference: new Date().getTime().toString(),
     email,
     amount: amountInKobo,
     publicKey: PAYSTACK_PUBLIC_KEY,
     currency: "NGN",
-  });
+  };
+
+  const handlePaystackPayment = usePaystackPayment(config);
 
   const onSuccess = (reference) => {
     console.log("Payment Success:", reference);
@@ -63,7 +65,7 @@ export default function CheckoutPage() {
     setName("");
     setAddress("");
 
-    router.push(`/Clients/Payment-sucess?ref=${reference.reference}`);
+    router.push(`/Clients/Payment-success?ref=${reference.reference}`);
   };
 
   const onClose = () => {
@@ -81,26 +83,58 @@ export default function CheckoutPage() {
       <h1 className="text-4xl font-bold mb-6 text-center">Billing & Checkout</h1>
       <div className="bg-gray-800 p-6 rounded-lg mb-6 shadow-lg">
         <h2 className="text-2xl font-semibold mb-4">Billing Information</h2>
-        <input type="text" placeholder="Full Name" className="w-full p-3 mb-3 text-black rounded-md border-none focus:ring-2 focus:ring-yellow-400" value={name} onChange={(e) => setName(e.target.value)} />
-        <input type="email" placeholder="Email Address" className="w-full p-3 mb-3 text-black rounded-md border-none focus:ring-2 focus:ring-yellow-400" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <input type="text" placeholder="Shipping Address" className="w-full p-3 mb-3 text-black rounded-md border-none focus:ring-2 focus:ring-yellow-400" value={address} onChange={(e) => setAddress(e.target.value)} />
+        <input
+          type="text"
+          placeholder="Full Name"
+          className="w-full p-3 mb-3 text-black rounded-md border-none focus:ring-2 focus:ring-yellow-400"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <input
+          type="email"
+          placeholder="Email Address"
+          className="w-full p-3 mb-3 text-black rounded-md border-none focus:ring-2 focus:ring-yellow-400"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Shipping Address"
+          className="w-full p-3 mb-3 text-black rounded-md border-none focus:ring-2 focus:ring-yellow-400"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+        />
       </div>
       <div className="bg-gray-800 p-6 rounded-lg mb-6 shadow-lg">
         <h2 className="text-2xl font-semibold mb-4">Order Summary</h2>
-        {cartItems.length > 0 ? cartItems.map((item) => (
-          <div key={item.id} className="flex justify-between mb-2">
-            <p>{item.name} x {item.quantity}</p>
-            <p>₦{(item.price * item.quantity).toLocaleString()}</p>
-          </div>
-        )) : <p className="text-red-400">Your cart is empty.</p>}
+        {cartItems.length > 0 ? (
+          cartItems.map((item) => (
+            <div key={item.id} className="flex justify-between mb-2">
+              <p>{item.name} x {item.quantity}</p>
+              <p>₦{(item.price * item.quantity).toLocaleString()}</p>
+            </div>
+          ))
+        ) : (
+          <p className="text-red-400">Your cart is empty.</p>
+        )}
         <hr className="my-4 border-gray-600" />
         <h3 className="text-xl font-bold">Total: ₦{totalPrice.toLocaleString()}</h3>
       </div>
       <div className="flex flex-col md:flex-row gap-4">
-        <button onClick={() => handlePaystackPayment(onSuccess, onClose)} className="w-full md:w-1/2 flex items-center justify-center gap-2 px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-black rounded-md font-bold transition shadow-lg">
+        <button
+          onClick={() => {
+            if (validateForm()) {
+              handlePaystackPayment(onSuccess, onClose);
+            }
+          }}
+          className="w-full md:w-1/2 flex items-center justify-center gap-2 px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-black rounded-md font-bold transition shadow-lg"
+        >
           Pay with Paystack
         </button>
-        <button onClick={() => alert("Flutterwave integration pending...")} className="w-full md:w-1/2 flex items-center justify-center gap-2 px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-black rounded-md font-bold transition shadow-lg">
+        <button
+          onClick={() => alert("Flutterwave integration pending...")}
+          className="w-full md:w-1/2 flex items-center justify-center gap-2 px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-black rounded-md font-bold transition shadow-lg"
+        >
           Pay with Flutterwave
         </button>
       </div>
