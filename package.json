@@ -24,7 +24,8 @@
     "react-redux": "^9.2.0",
     "react-toastify": "^11.0.3",
     "resend": "^4.1.2",
-    "tailwind-scrollbar": "^3.0.3"
+    "tailwind-scrollbar": "^3.0.3",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.20",

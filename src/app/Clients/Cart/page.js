@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useSelector, useDispatch } from "react-redux";
 import { useEffect } from "react";
@@ -8,79 +8,80 @@ import { useRouter } from "next/navigation";
 import { FiTrash } from "react-icons/fi";
 
 export default function Cart() {
-  const cartItems = useSelector((state) => state.cart.items);
+  const cartItems = useSelector((state) => state.cart.items) || [];
   const dispatch = useDispatch();
   const router = useRouter();
 
-  // Hydrate cart from localStorage on mount
+  // Hydrate cart from localStorage on component mount
   useEffect(() => {
-    const savedCart = localStorage.getItem('cart');
-    if (savedCart) {
-      try {
-        const parsedCart = JSON.parse(savedCart);
-        dispatch(setCart(parsedCart));
-      } catch (error) {
-        console.error("Error parsing cart from localStorage:", error);
-        localStorage.removeItem('cart');
-      }
-    }
-  }, [dispatch]);
-
-  // Listen for storage changes across tabs
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const savedCart = localStorage.getItem('cart');
+    if (typeof window !== "undefined") {
+      const savedCart = localStorage.getItem("cart");
       if (savedCart) {
         try {
           const parsedCart = JSON.parse(savedCart);
           dispatch(setCart(parsedCart));
         } catch (error) {
           console.error("Error parsing cart from localStorage:", error);
-          localStorage.removeItem('cart');
+          localStorage.removeItem("cart");
+        }
+      }
+    }
+  }, [dispatch]);
+
+  // Listen for storage changes (cart sync across multiple tabs)
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const savedCart = localStorage.getItem("cart");
+      if (savedCart) {
+        try {
+          const parsedCart = JSON.parse(savedCart);
+          dispatch(setCart(parsedCart));
+        } catch (error) {
+          console.error("Error parsing cart from localStorage:", error);
+          localStorage.removeItem("cart");
         }
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('cartUpdated', handleStorageChange);
-
+    window.addEventListener("storage", handleStorageChange);
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('cartUpdated', handleStorageChange);
+      window.removeEventListener("storage", handleStorageChange);
     };
   }, [dispatch]);
 
+  // Handle quantity change
   const handleQuantityChange = (id, newQuantity) => {
     if (newQuantity < 1) return;
     dispatch(updateQuantity({ id, quantity: newQuantity }));
   };
 
+  // Handle remove item from cart
   const handleRemoveItem = (id) => {
     dispatch(removeFromCart(id));
   };
 
+  // Handle checkout
+  const handleCheckout = () => {
+    router.push("/Clients/Checkout");
+  };
+
+  // Calculate total price
   const totalPrice = cartItems.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0
   );
 
-  const handleCheckout = () => {
-    router.push("/Clients/Checkout");
-  };
-
   return (
     <div className="container mx-auto p-6 bg-black text-white min-h-screen">
       <h1 className="text-3xl font-bold mb-4">Shopping Cart</h1>
+
       {cartItems.length === 0 ? (
         <p className="text-gray-400">Your cart is empty.</p>
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {cartItems.map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center bg-gray-800 p-4 rounded-lg"
-              >
+              <div key={item.id} className="flex items-center bg-gray-800 p-4 rounded-lg">
                 <Image
                   src={item.image}
                   alt={item.name}
@@ -90,18 +91,14 @@ export default function Cart() {
                 />
                 <div className="ml-4 flex-grow">
                   <h2 className="text-xl font-semibold">{item.name}</h2>
-                  <p className="text-yellow-400">
-                    ₦{(item.price * item.quantity).toLocaleString()}
-                  </p>
+                  <p className="text-yellow-400">₦{(item.price * item.quantity).toLocaleString()}</p>
                   <div className="flex items-center mt-2">
                     <label className="mr-2">Quantity:</label>
                     <input
                       type="number"
                       min="1"
                       value={item.quantity}
-                      onChange={(e) =>
-                        handleQuantityChange(item.id, parseInt(e.target.value))
-                      }
+                      onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value))}
                       className="w-16 px-2 py-1 text-black rounded"
                     />
                   </div>
@@ -117,6 +114,7 @@ export default function Cart() {
               </div>
             ))}
           </div>
+
           <div className="mt-6 border-t border-gray-700 pt-4">
             <h2 className="text-2xl font-bold">
               Total: ₦{totalPrice.toLocaleString()}

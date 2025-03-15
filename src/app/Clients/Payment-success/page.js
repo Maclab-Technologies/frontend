@@ -1,6 +1,5 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function PaymentSuccess() {
@@ -9,8 +8,9 @@ export default function PaymentSuccess() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const searchParams = new URLSearchParams(window.location.search);
-      setReference(searchParams.get("ref"));
+      const urlParams = new URLSearchParams(window.location.search);
+      const ref = urlParams.get("ref");
+      setReference(ref);
 
       const storedOrder = localStorage.getItem("lastOrder");
       if (storedOrder) {
@@ -20,7 +20,7 @@ export default function PaymentSuccess() {
         } catch (error) {
           console.error("Error parsing order details:", error);
         }
-        // Clear order details after loading
+        // Clear localStorage after fetching
         localStorage.removeItem("lastOrder");
       }
     }
@@ -34,43 +34,38 @@ export default function PaymentSuccess() {
 
   return (
     <div className="container mx-auto p-6 bg-black text-white min-h-screen">
-      <h1 className="text-3xl font-bold mb-4">Payment Successful</h1>
+      <h1 className="text-3xl font-bold mb-4 text-center">Payment Successful 🎉</h1>
+
       {orderDetails ? (
-        <div className="bg-gray-800 p-4 rounded-lg">
-          <p className="text-lg">Order Reference: {reference || "N/A"}</p>
-          <p className="text-lg">Name: {orderDetails?.name || "N/A"}</p>
-          <p className="text-lg">Email: {orderDetails?.email || "N/A"}</p>
-          <p className="text-lg">Shipping Address: {orderDetails?.address || "N/A"}</p>
-          <p className="text-lg">Date: {orderDetails?.date || "N/A"}</p>
+        <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
+          <p className="text-lg mb-2">Order Reference: {reference || "N/A"}</p>
+          <p className="text-lg mb-2">Name: {orderDetails?.name || "N/A"}</p>
+          <p className="text-lg mb-2">Email: {orderDetails?.email || "N/A"}</p>
+          <p className="text-lg mb-2">Shipping Address: {orderDetails?.address || "N/A"}</p>
+          <p className="text-lg mb-4">Date: {orderDetails?.date || "N/A"}</p>
 
-          {orderDetails.items && orderDetails.items.length > 0 ? (
-            <>
-              <h2 className="text-2xl font-semibold mt-4">Items Purchased:</h2>
-              <ul>
-                {orderDetails.items.map((item, index) => (
-                  <li key={index} className="flex justify-between">
-                    {item.name} x {item.quantity} - ₦{(item.price * item.quantity).toLocaleString()}
-                  </li>
-                ))}
-              </ul>
-            </>
-          ) : (
-            <p>No items found.</p>
-          )}
+          <h2 className="text-2xl font-semibold mb-4">Items Purchased:</h2>
+          <ul className="mb-4">
+            {orderDetails.items.map((item, index) => (
+              <li key={index} className="flex justify-between mb-2">
+                {item.name} x {item.quantity} - ₦{(item.price * item.quantity).toLocaleString()}
+              </li>
+            ))}
+          </ul>
 
-          <h2 className="text-xl font-bold mt-4">
+          <h2 className="text-xl font-bold mb-6">
             Total: ₦{orderDetails?.total?.toLocaleString() || "0"}
           </h2>
-          
+
           <button
             onClick={handlePrint}
-            className="mt-4 px-6 py-2 bg-blue-500 rounded hover:bg-blue-600 transition"
+            className="px-6 py-2 bg-yellow-500 text-black rounded-md font-semibold hover:bg-yellow-600 transition"
           >
-            Print Receipt
+            Print Receipt 🖨️
           </button>
         </div>
       ) : (
-        <p>Loading order details...</p>
+        <p className="text-center text-lg text-gray-400">Loading order details...</p>
       )}
     </div>
   );
