@@ -1,7 +1,7 @@
 [
   {
     "s/n": "1",
-    "id": "Business-Card",
+    "id": "Business-Card-Standard",
     "name": "Business Card (Standard)",
     "description": "A high-quality standard business card with a glossy finish, perfect for professionals looking to make a great first impression.",
     "images": ["/images/Flutterwave_Logo.png", "/images/paystacklogo.png", "/images/brandimage.jpeg", "/images/GIG_Logistics_logo.png", "/images/corporate-business-card.webp"],
@@ -9,7 +9,6 @@
     "stock": 100,
     "category": "Business Cards",
     "ownership": "Vendor",
-    "joined": "2024-02-01",
     "vendor": "PrintMaster Inc.",
     "material": "Glossy Paper",
     "color": "White"

@@ -9,12 +9,14 @@ export default function ProductsPage() {
   const [filters, setFilters] = useState({ search: "", category: "", vendor: "" });
 
   useEffect(() => {
+    // Fetch product data from public/Products/products.json
     fetch("/Products/products.json")
       .then((res) => res.json())
       .then((data) => setProducts(data))
       .catch((error) => console.error("Error fetching products:", error));
   }, []);
 
+  // Filter products based on search, category, and vendor
   const filteredProducts = products.filter((product) => {
     return (
       product.name.toLowerCase().includes(filters.search.toLowerCase()) &&
@@ -76,12 +78,12 @@ export default function ProductsPage() {
           const imagesArray = Array.isArray(product.images)
             ? product.images
             : [product.images];
-          const mainImage = imagesArray[0] ; // fallback image if needed
+          const mainImage = imagesArray[0]; // Use the first image as main
 
           return (
             <div
               key={product.id}
-              className="bg-white rounded-lg shadow-lg flex gap-3 items-center m-2 p-3"
+              className="bg-white rounded-lg shadow-lg flex gap-3 items-center m-2 p-3 transition-transform transform hover:scale-105"
             >
               {/* Product Image */}
               <div className="w-full md:w-1/3">
@@ -94,13 +96,13 @@ export default function ProductsPage() {
                 />
               </div>
               {/* Product Details */}
-              <div className="w-full md:w-2/3 text-center mt-3">
+              <div className="w-full md:w-2/3 text-center">
                 <h2 className="text-lg font-semibold">{product.name}</h2>
                 <p className="text-yellow-600 font-bold">₦{product.price}</p>
                 <p className="text-sm text-gray-500">Stock: {product.stock}</p>
                 <p className="text-sm text-gray-500">Color: {product.color}</p>
                 <p className="text-sm text-gray-500">Category: {product.category}</p>
-                <Link href={`/Products/${product.id}`} passHref>
+                <Link href={`/Products/${product.id}`}>
                   <button className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
                     View Product
                   </button>

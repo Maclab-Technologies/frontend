@@ -1,138 +1,139 @@
 "use client";
 
 import { useSelector, useDispatch } from "react-redux";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import { updateQuantity, removeFromCart, clearCart, setCart } from "../../Redux/CartSlice";
+import { updateQuantity, removeFromCart, setCart } from "../../Redux/CartSlice";
 import { useRouter } from "next/navigation";
-import { FiTrash } from "react-icons/fi";
+import { FiTrash, FiShoppingCart } from "react-icons/fi";
 
 export default function Cart() {
-  const cartItems = useSelector((state) => state.cart.items) || [];
+  const cartItems = useSelector((state) => state.cart.cartItems || []);
   const dispatch = useDispatch();
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Hydrate cart from localStorage on component mount
+  // ✅ Load Cart from localStorage when page loads
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedCart = localStorage.getItem("cart");
-      if (savedCart) {
-        try {
-          const parsedCart = JSON.parse(savedCart);
-          dispatch(setCart(parsedCart));
-        } catch (error) {
-          console.error("Error parsing cart from localStorage:", error);
-          localStorage.removeItem("cart");
-        }
-      }
+    const savedCart = JSON.parse(localStorage.getItem("cart")) || [];
+    dispatch(setCart(savedCart));
+    setIsLoading(false);
+  }, [dispatch]);
+
+  // ✅ Save to localStorage when cart updates
+  useEffect(() => {
+    if (!isLoading) {
+      localStorage.setItem("cart", JSON.stringify(cartItems));
     }
-  }, [dispatch]);
+  }, [cartItems, isLoading]);
 
-  // Listen for storage changes (cart sync across multiple tabs)
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const savedCart = localStorage.getItem("cart");
-      if (savedCart) {
-        try {
-          const parsedCart = JSON.parse(savedCart);
-          dispatch(setCart(parsedCart));
-        } catch (error) {
-          console.error("Error parsing cart from localStorage:", error);
-          localStorage.removeItem("cart");
-        }
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
-  }, [dispatch]);
-
-  // Handle quantity change
   const handleQuantityChange = (id, newQuantity) => {
-    if (newQuantity < 1) return;
-    dispatch(updateQuantity({ id, quantity: newQuantity }));
+    const quantity = Math.max(1, parseInt(newQuantity) || 1); // Prevents negative or empty input
+    dispatch(updateQuantity({ id, quantity }));
   };
 
-  // Handle remove item from cart
   const handleRemoveItem = (id) => {
     dispatch(removeFromCart(id));
   };
 
-  // Handle checkout
   const handleCheckout = () => {
+    if (cartItems.length === 0) {
+      alert("Your cart is empty. Please add items before proceeding to checkout.");
+      return;
+    }
     router.push("/Clients/Checkout");
   };
 
-  // Calculate total price
-  const totalPrice = cartItems.reduce(
-    (acc, item) => acc + item.price * item.quantity,
-    0
-  );
+  const handleContinueShopping = () => {
+    router.push("/Products");
+  };
+
+  const totalPrice = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+
+  const formatCurrency = (price) => {
+    return new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency: "NGN",
+    }).format(price);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-black text-white">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 bg-black text-white min-h-screen">
-      <h1 className="text-3xl font-bold mb-4">Shopping Cart</h1>
+      <h1 className="text-4xl font-bold mb-8 flex items-center gap-2">
+        <FiShoppingCart className="text-yellow-400" /> Cart ({totalItems} items)
+      </h1>
 
+      {/* 🚫 Empty Cart */}
       {cartItems.length === 0 ? (
-        <p className="text-gray-400">Your cart is empty.</p>
+        <div className="text-center py-20">
+          <p className="text-gray-400 text-lg mb-6">Your cart is empty 😢.</p>
+          <button
+            onClick={handleContinueShopping}
+            className="bg-yellow-400 text-black px-8 py-3 rounded-md hover:bg-yellow-500 transition duration-300"
+          >
+            Continue Shopping 🛍️
+          </button>
+        </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* 🛒 Cart Items */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
             {cartItems.map((item) => (
-              <div key={item.id} className="flex items-center bg-gray-800 p-4 rounded-lg">
+              <div key={item.id} className="flex items-center bg-gray-800 p-5 rounded-lg">
                 <Image
-                  src={item.image}
+                  src={item.image || "/placeholder.jpg"}
                   alt={item.name}
                   width={80}
                   height={80}
-                  className="rounded-lg"
+                  className="rounded-md"
                 />
-                <div className="ml-4 flex-grow">
-                  <h2 className="text-xl font-semibold">{item.name}</h2>
-                  <p className="text-yellow-400">₦{(item.price * item.quantity).toLocaleString()}</p>
-                  <div className="flex items-center mt-2">
-                    <label className="mr-2">Quantity:</label>
+                <div className="ml-6 flex-grow">
+                  <h2 className="text-xl font-semibold mb-2">{item.name}</h2>
+                  <p className="text-yellow-400 mb-2">{formatCurrency(item.price)}</p>
+                  <div className="flex items-center gap-4">
+                    <button onClick={() => handleQuantityChange(item.id, item.quantity - 1)} className="bg-gray-700 px-3 py-1 rounded-md">
+                      -
+                    </button>
                     <input
                       type="number"
-                      min="1"
                       value={item.quantity}
-                      onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value))}
-                      className="w-16 px-2 py-1 text-black rounded"
+                      min="1"
+                      onChange={(e) => handleQuantityChange(item.id, e.target.value)}
+                      className="w-14 text-center bg-black border border-gray-600 rounded-md"
                     />
-                  </div>
-                  <div className="mt-2 flex items-center gap-1">
-                    <button
-                      onClick={() => handleRemoveItem(item.id)}
-                      className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition flex items-center gap-1"
-                    >
-                      <FiTrash size={20} /> Remove
+                    <button onClick={() => handleQuantityChange(item.id, item.quantity + 1)} className="bg-gray-700 px-3 py-1 rounded-md">
+                      +
                     </button>
                   </div>
+                  <button
+                    onClick={() => handleRemoveItem(item.id)}
+                    className="text-red-500 mt-4 flex items-center gap-2"
+                  >
+                    <FiTrash /> Remove
+                  </button>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="mt-6 border-t border-gray-700 pt-4">
-            <h2 className="text-2xl font-bold">
-              Total: ₦{totalPrice.toLocaleString()}
-            </h2>
-            <div className="flex flex-wrap gap-4 mt-4">
-              <button
-                onClick={handleCheckout}
-                className="bg-green-500 text-white px-6 py-3 rounded-md hover:bg-green-600 transition"
-              >
-                Proceed to Checkout
-              </button>
-              <button
-                onClick={() => dispatch(clearCart())}
-                className="bg-red-500 text-white px-6 py-3 rounded-md hover:bg-red-600 transition"
-              >
-                Clear Cart
-              </button>
-            </div>
+          {/* 🛍️ Cart Summary Section */}
+          <div className="flex justify-between items-center border-t pt-6">
+            <h2 className="text-2xl font-bold">Total: {formatCurrency(totalPrice)}</h2>
+            <button
+              onClick={handleCheckout}
+              className="bg-yellow-400 text-black px-8 py-3 rounded-md hover:bg-yellow-500 transition duration-300"
+            >
+              Proceed to Checkout 🚀
+            </button>
           </div>
         </>
       )}

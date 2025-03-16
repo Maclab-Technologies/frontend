@@ -1,75 +1,57 @@
-// Redux/cartSlice.js 
+// Redux/CartSlice.js
 import { createSlice } from "@reduxjs/toolkit";
+
+const initialState = {
+  cartItems: [] // ✅ This should match the local state structure
+};
 
 const cartSlice = createSlice({
   name: "cart",
-  initialState: {
-    items: []
-  },
+  initialState,
   reducers: {
     addToCart: (state, action) => {
       const item = action.payload;
-      const existingItemIndex = state.items.findIndex((i) => i.id === item.id);
-      
+      const existingItemIndex = state.cartItems.findIndex((i) => i.id === item.id);
+
       if (existingItemIndex > -1) {
-        // If item exists, update quantity
-        state.items[existingItemIndex].quantity += item.quantity;
+        state.cartItems[existingItemIndex].quantity += item.quantity;
       } else {
-        // If item doesn't exist, add new item
-        state.items.push(item);
+        state.cartItems.push(item);
       }
 
-      // Sync with localStorage
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('cart', JSON.stringify(state.items));
-        window.dispatchEvent(new Event('cartUpdated'));
-      }
+      localStorage.setItem("cart", JSON.stringify(state.cartItems)); // ✅ Sync with localStorage
     },
-    
+
     setCart: (state, action) => {
-      state.items = action.payload;
+      state.cartItems = action.payload;
     },
-    
+
     removeFromCart: (state, action) => {
-      state.items = state.items.filter((item) => item.id !== action.payload);
-      
-      // Sync with localStorage
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('cart', JSON.stringify(state.items));
-        window.dispatchEvent(new Event('cartUpdated'));
-      }
+      state.cartItems = state.cartItems.filter((item) => item.id !== action.payload);
+      localStorage.setItem("cart", JSON.stringify(state.cartItems)); // ✅ Sync with localStorage
     },
-    
+
     updateQuantity: (state, action) => {
       const { id, quantity } = action.payload;
-      const item = state.items.find((i) => i.id === id);
-      
+      const item = state.cartItems.find((i) => i.id === id);
+
       if (item) {
         item.quantity = quantity;
-        
-        // Sync with localStorage
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('cart', JSON.stringify(state.items));
-          window.dispatchEvent(new Event('cartUpdated'));
-        }
       }
+
+      localStorage.setItem("cart", JSON.stringify(state.cartItems)); // ✅ Sync with localStorage
     },
-    
+
     clearCart: (state) => {
-      state.items = [];
-      
-      // Clear localStorage
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('cart');
-        window.dispatchEvent(new Event('cartUpdated'));
-      }
+      state.cartItems = [];
+      localStorage.removeItem("cart");
     }
   }
 });
 
 export const { 
   addToCart, 
-  setCart,
+  setCart, 
   removeFromCart, 
   updateQuantity, 
   clearCart 
