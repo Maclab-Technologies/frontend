@@ -17,7 +17,8 @@ export default function PaymentSuccess() {
       try {
         // Get reference from URL
         const urlParams = new URLSearchParams(window.location.search);
-        const ref = urlParams.get("ref");
+        const ref = urlParams.get("reference") || urlParams.get("ref");
+
         
         if (!ref) {
           setError("Invalid payment reference. Please contact support.");

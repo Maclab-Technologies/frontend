@@ -134,7 +134,7 @@ export default function ProductDetail() {
             <button
               onClick={() => {
                 setDesignOption("Hire Graphics Designer");
-                router.push("/pages/Hire-designer");
+                router.push("/Pages/Hire-designer");
               }}
               className={`flex items-center gap-3 bg-gray-800 px-6 py-5 rounded-lg text-lg ${
                 designOption === "Hire Graphics Designer" ? "bg-yellow-400 text-black" : ""

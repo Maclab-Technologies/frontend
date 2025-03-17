@@ -1,6 +1,6 @@
 "use client";
 
-import  { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { clearCart } from '../../Redux/CartSlice';
 
@@ -13,18 +13,19 @@ const Checkout = () => {
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
 
-  // Ensure Paystack script is loaded before accessing window.PaystackPop
+  // ✅ Paystack script added correctly
   useEffect(() => {
-    const paystackScript = document.createElement('script');
-    paystackScript.src = 'https://js.paystack.co/v1/inline.js';
-    paystackScript.async = true;
-    document.body.appendChild(paystackScript);
+    const script = document.createElement('script');
+    script.src = 'https://js.paystack.co/v1/inline.js';
+    script.async = true;
+    document.body.appendChild(script);
 
     return () => {
-      document.body.removeChild(paystackScript);
+      document.body.removeChild(script);
     };
   }, []);
 
+  // ✅ Input Validation
   const validateInput = () => {
     if (!fullName || !email || !phone) {
       setError('All fields are required');
@@ -46,6 +47,7 @@ const Checkout = () => {
     return true;
   };
 
+  // ✅ Handle Paystack Payment
   const handlePaystackPayment = async () => {
     if (!validateInput()) return;
 
@@ -57,7 +59,7 @@ const Checkout = () => {
       totalAmount: cart.reduce((acc, item) => acc + item.price * item.quantity, 0),
     };
 
-    const handler = window.PaystackPop && window.PaystackPop.setup({
+    const handler = window.PaystackPop?.setup({
       key: process.env.NEXT_PUBLIC_PAYSTACK_KEY || 'pk_test_1b3a68df76c0e6286eea3c5bdb00596428d3ce7a',
       email: orderDetails.email,
       amount: orderDetails.totalAmount * 100,
@@ -73,7 +75,7 @@ const Checkout = () => {
       },
     });
 
-    handler?.openIframe();
+    handler.openIframe(); // ✅ This is the correct way to open the Paystack iframe
   };
 
   return (
@@ -81,10 +83,8 @@ const Checkout = () => {
       <div className="bg-black text-white p-8 rounded-lg shadow-lg w-full max-w-lg">
         <h1 className="text-3xl font-bold mb-6 text-center">Checkout</h1>
 
-        {/* Error Message */}
         {error && <p className="text-red-500 mb-4">{error}</p>}
 
-        {/* Input Fields */}
         <input
           type="text"
           placeholder="Full Name"
@@ -107,7 +107,6 @@ const Checkout = () => {
           className="w-full mb-6 p-3 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
         />
 
-        {/* Order Summary */}
         <div className="bg-gray-900 p-4 rounded-lg mb-6">
           <h2 className="text-lg font-semibold mb-3">Order Summary</h2>
           {cart.map((item, index) => (
@@ -122,7 +121,6 @@ const Checkout = () => {
           </p>
         </div>
 
-        {/* Payment Buttons */}
         <button
           onClick={handlePaystackPayment}
           className="w-full mb-3 p-3 bg-yellow-400 text-black font-bold rounded-lg hover:bg-yellow-500 transition"
