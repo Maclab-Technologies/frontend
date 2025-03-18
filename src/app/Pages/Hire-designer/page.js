@@ -2,11 +2,7 @@
 
 import { useState } from "react";
 
-// const statesAndLGAs = {
-//   Lagos: ["Ikeja", "Lekki", "Yaba", "Surulere"],
-//   Abuja: ["Gwagwalada", "Kuje", "Maitama", "Wuse"],
-//   Kano: ["Kano Municipal", "Nasarawa", "Fagge", "Gwale"],
-// };
+
 
 const designCategories = [
   { name: "Logo Design", price: 15000 },
