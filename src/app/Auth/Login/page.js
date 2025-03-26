@@ -1,228 +1,317 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";  // Import useRouter
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import logo from "../../../../public/images/brandimage.jpeg";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { auth } from "../../utils/firebaseconfig";
+import { FaEye, FaEyeSlash, FaSpinner } from "react-icons/fa";
 import { 
   signInWithEmailAndPassword, 
   signInWithPopup, 
   GoogleAuthProvider,
   setPersistence,
-  browserLocalPersistence 
+  browserSessionPersistence,
+  browserLocalPersistence,
+  onAuthStateChanged
 } from "firebase/auth";
+import { auth } from "../../utils/firebaseconfig";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const Login = () => {
-  const router = useRouter();  // Initialize router
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
-  // Handle Input Change
+  // Check if user is already logged in
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        redirectUserBasedOnRole(user.uid);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Validate form
+  // Validate form inputs
   const validateForm = () => {
-    // Basic validation
-    if (!formData.email || !formData.password) {
-      toast.error("Please enter both email and password");
-      return false;
-    }
-    
-    // Email format validation
+    const errors = {};
+    if (!formData.email.trim()) errors.email = "Email is required";
+    if (!formData.password) errors.password = "Password is required";
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      toast.error("Please enter a valid email address");
+    if (formData.email && !emailRegex.test(formData.email)) {
+      errors.email = "Please enter a valid email";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      Object.values(errors).forEach(error => toast.error(error));
       return false;
     }
-    
     return true;
   };
 
-  // Handle Email/Password Login
+  // Redirect user based on their role
+  const redirectUserBasedOnRole = async (uid) => {
+    try {
+      // In production, fetch user role from your database
+      const role = "Customer"; // Default role - replace with actual lookup
+      
+      switch(role) {
+        case "Customer":
+          router.push("/Clients/Dashboard");
+          break;
+        case "Vendor":
+          router.push("/Vendor");
+          break;
+        case "Graphics Designer":
+          router.push("/Designer");
+          break;
+       
+        default:
+          router.push("/");
+      }
+    } catch (error) {
+      console.error("Role redirection error:", error);
+      router.push("/");
+    }
+  };
+
+  // Handle email/password login
   const handleLogin = async (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-    
-    setLoading(true);
-    
-    try {
-      // Set persistence for session
-      await setPersistence(auth, browserLocalPersistence);
-      
-      // Sign in
-      await signInWithEmailAndPassword(auth, formData.email, formData.password);
-      toast.success("Login successful!");
-      setFormData({ email: "", password: "" });
+    if (!validateForm()) return;
 
-      // Redirect after login
-      setTimeout(() => {
-        router.push("/Client/Dashboard"); // Updated for consistency
-      }, 1500);
-    } catch (err) {
-      console.error("Login error:", err);
+    setLoading(true);
+    try {
+      // Set session persistence
+      await setPersistence(
+        auth, 
+        rememberMe ? browserLocalPersistence : browserSessionPersistence
+      );
+
+      const userCredential = await signInWithEmailAndPassword(
+        auth, 
+        formData.email, 
+        formData.password
+      );
       
-      // Map Firebase error codes to user-friendly messages
-      const errorMap = {
-        'auth/user-not-found': 'No account found with this email',
-        'auth/wrong-password': 'Incorrect password',
-        'auth/invalid-credential': 'Invalid login credentials',
-        'auth/invalid-email': 'Please enter a valid email address',
-        'auth/user-disabled': 'This account has been disabled',
-        'auth/too-many-requests': 'Too many failed login attempts. Please try again later'
-      };
+      toast.success("Login successful!");
+      redirectUserBasedOnRole(userCredential.user.uid);
       
-      toast.error(errorMap[err.code] || 'Login failed. Please try again.');
+    } catch (error) {
+      handleAuthError(error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle Google Sign-In
+  // Handle Google sign-in
   const handleGoogleSignIn = async () => {
     setLoading(true);
-    
     try {
       const provider = new GoogleAuthProvider();
-      // Add scopes if needed
-      provider.addScope('profile');
       provider.addScope('email');
+      provider.addScope('profile');
       
-      // Set persistence
-      await setPersistence(auth, browserLocalPersistence);
-      
-      // Sign in with popup
-      await signInWithPopup(auth, provider);
-      toast.success("Google Sign-In successful!");
+      await setPersistence(
+        auth, 
+        rememberMe ? browserLocalPersistence : browserSessionPersistence
+      );
 
-      // Redirect after Google login
-      setTimeout(() => {
-        router.push("/Clients/Dashboard"); // Updated for consistency
-      }, 1500);
-    } catch (err) {
-      console.error("Google Sign-In error:", err);
+      const result = await signInWithPopup(auth, provider);
+      toast.success("Google login successful!");
+      redirectUserBasedOnRole(result.user.uid);
       
-      const errorMap = {
-        'auth/account-exists-with-different-credential': 'An account already exists with the same email address but different sign-in credentials',
-        'auth/popup-blocked': 'The popup was blocked by your browser',
-        'auth/popup-closed-by-user': 'The sign-in popup was closed before completing the process',
-        'auth/cancelled-popup-request': 'The operation was canceled',
-        'auth/network-request-failed': 'Network error. Please check your connection'
-      };
-      
-      toast.error(errorMap[err.code] || 'Google Sign-In failed. Please try again.');
+    } catch (error) {
+      handleAuthError(error);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Handle authentication errors
+  const handleAuthError = (error) => {
+    const errorMap = {
+      'auth/invalid-email': 'Invalid email address',
+      'auth/user-disabled': 'Account disabled',
+      'auth/user-not-found': 'Account not found',
+      'auth/wrong-password': 'Incorrect password',
+      'auth/too-many-requests': 'Too many attempts. Try again later',
+      'auth/popup-blocked': 'Popup blocked by browser',
+      'auth/popup-closed-by-user': 'Sign-in popup was closed',
+      'auth/network-request-failed': 'Network error. Check connection',
+      'auth/cancelled-popup-request': 'Sign-in cancelled'
+    };
+
+    toast.error(errorMap[error.code] || 'Login failed. Please try again.');
+    console.error("Authentication error:", error);
   };
 
   return (
-    <div className="min-h-screen flex bg-gray-100">
-      <ToastContainer position="top-right" autoClose={3000} />
+    <div className="min-h-screen flex bg-gray-50">
+      <ToastContainer 
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
 
-      {/* Left Section: Image */}
-      <div className="hidden md:flex md:w-1/2 justify-center items-center bg-[#726002] p-6">
-        <Image src={logo} alt="59 Minutes Print Logo" className="w-3/4 h-[100%] rounded-lg shadow-lg" />
+      {/* Left Section - Brand Image */}
+      <div className="hidden md:flex md:w-1/2 bg-[#726002] items-center justify-center p-8">
+        <div className="relative w-full h-full max-w-md">
+          <Image
+            src={logo}
+            alt="59MinutesPrint Logo"
+            fill
+            className="object-contain rounded-lg"
+            priority
+          />
+        </div>
       </div>
 
-      {/* Right Section: Login Form */}
-      <div className="w-full md:w-1/2 flex flex-col justify-center p-8 bg-white shadow-lg">
-        <h2 className="text-gray-800 text-3xl font-bold mb-2 text-center">Welcome Back</h2>
-        <p className="text-gray-600 mb-6 text-center">Sign in to your 59MinutesPrint account</p>
-
-        {/* Form */}
-        <form className="space-y-4" onSubmit={handleLogin}>
-          <div>
-            <label htmlFor="email" className="block text-gray-700 text-sm font-medium">Email</label>
-            <input
-              id="email"
-              type="email"
-              name="email"
-              placeholder="Enter your email"
-              value={formData.email}
-              onChange={handleInputChange}
-              className="w-full p-3 mt-1 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-              required
-            />
+      {/* Right Section - Login Form */}
+      <div className="w-full md:w-1/2 flex flex-col justify-center p-6 sm:p-12">
+        <div className="max-w-md w-full mx-auto bg-white p-8 rounded-lg shadow-md">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">Welcome Back</h1>
+            <p className="text-gray-600">Sign in to access your 59MinutesPrint account</p>
           </div>
 
-          <div className="relative">
-            <label htmlFor="password" className="block text-gray-700 text-sm font-medium">Password</label>
-            <div className="relative">
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                Email Address
+              </label>
               <input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                name="password"
-                placeholder="Enter your password"
-                value={formData.password}
+                id="email"
+                type="email"
+                name="email"
+                value={formData.email}
                 onChange={handleInputChange}
-                className="w-full p-3 mt-1 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                placeholder="your@email.com"
+                className="w-full px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition"
+                autoComplete="email"
                 required
               />
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  placeholder="••••••••"
+                  className="w-full px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition pr-10"
+                  autoComplete="current-password"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  id="remember-me"
+                  name="remember-me"
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={() => setRememberMe(!rememberMe)}
+                  className="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded"
+                />
+                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+                  Remember me
+                </label>
+              </div>
+
+              <div className="text-sm">
+                <a 
+                  href="/Auth/ForgotPassword" 
+                  className="font-medium text-yellow-600 hover:text-yellow-500"
+                >
+                  Forgot password?
+                </a>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className={`w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+            >
+              {loading ? (
+                <>
+                  <FaSpinner className="animate-spin mr-2" />
+                  Signing in...
+                </>
+              ) : 'Sign in'}
+            </button>
+          </form>
+
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-6 grid grid-cols-1 gap-3">
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600"
-                aria-label={showPassword ? "Hide password" : "Show password"}
+                onClick={handleGoogleSignIn}
+                disabled={loading}
+                className="w-full inline-flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition"
               >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
+                <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                  <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
+                    <path fill="#4285F4" d="M -3.264 51.509 C -3.264 50.719 -3.334 49.969 -3.454 49.239 L -14.754 49.239 L -14.754 53.749 L -8.284 53.749 C -8.574 55.229 -9.424 56.479 -10.684 57.329 L -10.684 60.329 L -6.824 60.329 C -4.564 58.239 -3.264 55.159 -3.264 51.509 Z"/>
+                    <path fill="#34A853" d="M -14.754 63.239 C -11.514 63.239 -8.804 62.159 -6.824 60.329 L -10.684 57.329 C -11.764 58.049 -13.134 58.489 -14.754 58.489 C -17.884 58.489 -20.534 56.379 -21.484 53.529 L -25.464 53.529 L -25.464 56.619 C -23.494 60.539 -19.444 63.239 -14.754 63.239 Z"/>
+                    <path fill="#FBBC05" d="M -21.484 53.529 C -21.734 52.809 -21.864 52.039 -21.864 51.239 C -21.864 50.439 -21.724 49.669 -21.484 48.949 L -21.484 45.859 L -25.464 45.859 C -26.284 47.479 -26.754 49.299 -26.754 51.239 C -26.754 53.179 -26.284 54.999 -25.464 56.619 L -21.484 53.529 Z"/>
+                    <path fill="#EA4335" d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"/>
+                  </g>
+                </svg>
+                Sign in with Google
               </button>
             </div>
           </div>
 
-          {/* Login Button */}
-          <button
-            type="submit"
-            className="w-full bg-yellow-500 text-white py-3 rounded-md font-semibold shadow-md hover:bg-yellow-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={loading}
-          >
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </form>
-
-        {/* Forgot Password & Sign Up Links */}
-        <div className="text-center mt-4">
-          <p className="text-gray-600 text-sm">
-            Forgot your password?{" "}
-            <a href="/Auth/ForgotPassword" className="text-yellow-500 hover:text-yellow-400 underline">
-              Reset it here
-            </a>
-          </p>
-          <p className="text-gray-600 text-sm mt-2">
-            Don't have an account?{" "}
-            <a href="/Auth/Register" className="text-yellow-500 hover:text-yellow-400 underline">
+          <div className="mt-6 text-center text-sm text-gray-600">
+            Don't have an account?{' '}
+            <a href="/Auth/Register" className="font-medium text-yellow-600 hover:text-yellow-500">
               Sign up
             </a>
-          </p>
-        </div>
-
-        {/* Social Login Section */}
-        <div className="mt-6">
-          <p className="text-gray-600 text-center mb-4">Or sign in with</p>
-          <div className="flex justify-center">
-            <button
-              type="button"
-              onClick={handleGoogleSignIn}
-              disabled={loading}
-              className="flex items-center space-x-2 bg-white text-gray-700 border border-gray-300 px-6 py-2 rounded-md font-semibold hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px">
-                <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" />
-                <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z" />
-                <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
-                <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
-              </svg>
-              <span>{loading ? "Processing..." : "Sign in with Google"}</span>
-            </button>
           </div>
         </div>
       </div>

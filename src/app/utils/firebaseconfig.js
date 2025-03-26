@@ -1,27 +1,50 @@
-// firebaseconfig.js 
-import dotenv from "dotenv";
-require("dotenv").config();
-
-
-import { initializeApp, getApps } from "firebase/app";
+// firebaseconfig.js
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-// console.log("Loaded Firebase API Key:", process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
+import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
+
+// Load environment variables (works with both ES modules and CommonJS)
+try {
+  if (typeof window === "undefined") {
+    // Server-side environment
+    const dotenv = await import("dotenv");
+    dotenv.config();
+  }
+} catch (err) {
+  console.warn("Dotenv import failed (client-side), using process.env directly");
+}
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAZBVEdnLI83-Rbe1mquehYigoDgvXqZuU",
-  authDomain: "minutes-prints-local.firebaseapp.com",
-  projectId: "minutes-prints-local",
-  storageBucket: "minutes-prints-local.firebasestorage.app",
-  messagingSenderId: "349577346688",
-  appId: "1:349577346688:web:c6ff2a2b2b5d35015db065",
-  measurementId: "G-P7P40SMF6N"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyAZBVEdnLI83-Rbe1mquehYigoDgvXqZuU",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "minutes-prints-local.firebaseapp.com",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "minutes-prints-local",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "minutes-prints-local.appspot.com",
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "349577346688",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:349577346688:web:c6ff2a2b2b5d35015db065",
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "G-P7P40SMF6N"
 };
-// console.log("FIREBASE API KEY:", process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
 
+// Initialize Firebase (singleton pattern)
+let app;
+try {
+  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+} catch (error) {
+  console.error("Firebase initialization error", error);
+  throw new Error("Failed to initialize Firebase");
+}
 
-// Initialize Firebase only if it's not already initialized
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+// Initialize services
 const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
 
-export { app, auth };
+// Debug logs (only in development)
+if (process.env.NODE_ENV === "development") {
+  console.log("Firebase initialized with config:", {
+    projectId: firebaseConfig.projectId,
+    appName: app.name
+  });
+}
 
+export { app, auth, db, storage };

@@ -10,7 +10,8 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
 } from "firebase/auth";
-import { auth } from "../../utils/firebaseconfig";
+import { auth, db } from "../../utils/firebaseconfig";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -32,134 +33,203 @@ const Register = () => {
     role: "",
   });
 
-  // State for Google sign in role selection modal
+  // Google Sign-In Modal
   const [showRoleSelection, setShowRoleSelection] = useState(false);
   const [googleUserData, setGoogleUserData] = useState(null);
 
-  // Handle form input changes
+  // Handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
+    // Clear error when user types
     if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: null }));
+      setErrors(prev => ({ ...prev, [name]: null }));
     }
   };
 
-  // Validate form data
-  const validateForm = () => {
-    const newErrors = {};
-    if (!formData.firstName.trim()) newErrors.firstName = "First name is required";
-    if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
-    if (!formData.email.trim()) newErrors.email = "Email is required";
-    if (!formData.password) newErrors.password = "Password is required";
-    if (!formData.confirmPassword) newErrors.confirmPassword = "Please confirm your password";
-    if (!formData.role) newErrors.role = "Please select a role";
+  // Phone number formatting
+  const formatPhoneNumber = (value) => {
+    if (!value) return value;
+    const phoneNumber = value.replace(/[^\d]/g, "");
+    const phoneNumberLength = phoneNumber.length;
+    if (phoneNumberLength < 4) return phoneNumber;
+    if (phoneNumberLength < 7) {
+      return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3)}`;
+    }
+    return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
+  };
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (formData.email && !emailRegex.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
+  const handlePhoneChange = (e) => {
+    const formattedPhoneNumber = formatPhoneNumber(e.target.value);
+    setFormData(prev => ({ ...prev, phone: formattedPhoneNumber }));
+    if (errors.phone) {
+      setErrors(prev => ({ ...prev, phone: null }));
     }
-    if (formData.password && formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
+  };
+
+  // Validate form fields onBlur
+  const validateField = (name, value) => {
+    let error = "";
+    switch (name) {
+      case "firstName":
+        if (!value.trim()) error = "First name is required";
+        break;
+      case "lastName":
+        if (!value.trim()) error = "Last name is required";
+        break;
+      case "email":
+        if (!value.trim()) {
+          error = "Email is required";
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          error = "Invalid email format";
+        }
+        break;
+      case "phone":
+        if (value && !/^\(\d{3}\) \d{3}-\d{4}$/.test(value)) {
+          error = "Invalid phone format (e.g., (123) 456-7890)";
+        }
+        break;
+      case "password":
+        if (!value) {
+          error = "Password is required";
+        } else if (value.length < 6) {
+          error = "Password must be at least 6 characters";
+        }
+        break;
+      case "confirmPassword":
+        if (value !== formData.password) {
+          error = "Passwords do not match";
+        }
+        break;
+      case "role":
+        if (!value) error = "Please select a role";
+        break;
     }
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
-    }
-    if (formData.phone && !/^\d{10,15}$/.test(formData.phone.replace(/[-()\s]/g, ""))) {
-      newErrors.phone = "Please enter a valid phone number";
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setErrors(prev => ({ ...prev, [name]: error }));
   };
 
   // Convert Firebase error codes to friendly messages
-  const getReadableErrorMessage = (errorCode) => {
+  const getErrorMessage = (errorCode) => {
     switch (errorCode) {
       case "auth/email-already-in-use":
-        return "This email is already registered. Please log in or use another email.";
+        return "This email is already registered";
       case "auth/invalid-email":
-        return "Please enter a valid email address.";
+        return "Invalid email address";
       case "auth/weak-password":
-        return "Password is too weak. Please use a stronger password.";
+        return "Password should be at least 6 characters";
+      case "auth/operation-not-allowed":
+        return "Email/password accounts are not enabled";
       case "auth/network-request-failed":
-        return "Network error. Please check your connection and try again.";
+        return "Network error. Please check your connection";
       default:
-        return "An error occurred during registration. Please try again.";
+        return "Registration failed. Please try again";
     }
   };
 
-  // Handle registration with email and password
+  // Handle role-based redirection
+  const redirectBasedOnRole = (role) => {
+    switch(role) {
+      case "Customer":
+        router.push("/Clients/Dashboard");
+        break;
+      case "Vendor":
+        router.push("/Vendor");
+        break;
+      case "Graphics Designer":
+        router.push("/Designer");
+        break;
+      default:
+        router.push("/");
+    }
+  };
+
+  // Handle form submission
   const handleSignUp = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
-
+    
+    // Validate all fields before submission
+    Object.keys(formData).forEach(field => {
+      validateField(field, formData[field]);
+    });
+    
+    if (Object.values(errors).some(error => error)) return;
+    
     setIsLoading(true);
+
     try {
-      await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-      toast.success("Registration successful!");
+      // 1. Firebase Auth (Email/Password)
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
 
-      // Redirect based on selected role
-      setTimeout(() => {
-        if (formData.role === "Customer") {
-          router.push("/Clients/Dashboard");
-        } else if (formData.role === "Vendor") {
-          router.push("/Vendor");
-        } else if (formData.role === "Graphics Designer") {
-          router.push("/Designer");
-        } else {
-          router.push("/");
-        }
-      }, 2000);
-
-      // Reset form data
-      setFormData({
-        firstName: "",
-        lastName: "",
-        email: "",
-        phone: "",
-        password: "",
-        confirmPassword: "",
-        role: "",
+      // 2. Save additional user data to Firestore
+      await setDoc(doc(db, "users", userCredential.user.uid), {
+        uid: userCredential.user.uid,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone.replace(/[^\d]/g, ""), // Store as raw digits
+        role: formData.role,
+        createdAt: serverTimestamp(),
       });
+
+      toast.success("Account created successfully!");
+      
+      // 3. Redirect based on role
+      redirectBasedOnRole(formData.role);
+
     } catch (err) {
-      toast.error(getReadableErrorMessage(err.code));
+      toast.error(getErrorMessage(err.code));
       console.error("Registration error:", err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Handle Google sign-in and show role selection container
+  // Google Sign-In + Role Assignment
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
-      toast.success("Google Sign-In successful!");
-      // Store Google user data for later role assignment if needed
       setGoogleUserData(result.user);
-      // Show role selection container
       setShowRoleSelection(true);
+      toast.success("Google Sign-In successful!");
     } catch (err) {
-      toast.error("Google sign-in failed. Please try again.");
+      toast.error(getErrorMessage(err.code));
       console.error("Google sign-in error:", err);
+    } finally {
       setIsLoading(false);
     }
   };
 
-  // Handle role selection after Google sign in
-  const handleRoleSelect = (selectedRole) => {
-    // You could save the role in your backend or Firestore here
-    setShowRoleSelection(false);
-    // Redirect based on selected role
-    if (selectedRole === "Customer") {
-      router.push("/Clients/Dashboard");
-    } else if (selectedRole === "Vendor") {
-      router.push("/Vendor");
-    } else if (selectedRole === "Graphics Designer") {
-      router.push("/Designer");
-    } else {
-      router.push("/");
+  // Save Google user role to Firestore
+  const handleRoleSelect = async (role) => {
+    setIsLoading(true);
+    try {
+      await setDoc(doc(db, "users", googleUserData.uid), {
+        uid: googleUserData.uid,
+        firstName: googleUserData.displayName?.split(" ")[0] || "",
+        lastName: googleUserData.displayName?.split(" ")[1] || "",
+        email: googleUserData.email,
+        phone: "",
+        role: role,
+        createdAt: serverTimestamp(),
+      });
+
+      toast.success(`Registered as ${role}!`);
+      
+      // Redirect based on selected role
+      redirectBasedOnRole(role);
+
+    } catch (err) {
+      toast.error("Failed to save role. Please try again.");
+      console.error("Firestore error:", err);
+    } finally {
+      setIsLoading(false);
+      setShowRoleSelection(false);
     }
   };
 
@@ -167,35 +237,23 @@ const Register = () => {
     <div className="min-h-screen flex">
       <ToastContainer position="top-right" autoClose={3000} />
 
-      {/* Role Selection Modal for Google Sign-In */}
+      {/* Role Selection Modal */}
       {showRoleSelection && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
             <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">
               Select Your Role
             </h2>
-            <p className="text-gray-600 mb-4 text-center">
-              Please choose your role to continue:
-            </p>
             <div className="flex flex-col space-y-3">
-              <button
-                onClick={() => handleRoleSelect("Customer")}
-                className="bg-yellow-400 text-black py-2 rounded hover:bg-yellow-300 transition"
-              >
-                Customer
-              </button>
-              <button
-                onClick={() => handleRoleSelect("Vendor")}
-                className="bg-yellow-400 text-black py-2 rounded hover:bg-yellow-300 transition"
-              >
-                Vendor
-              </button>
-              <button
-                onClick={() => handleRoleSelect("Graphics Designer")}
-                className="bg-yellow-400 text-black py-2 rounded hover:bg-yellow-300 transition"
-              >
-                Graphics Designer
-              </button>
+              {["Customer", "Vendor", "Graphics Designer"].map((role) => (
+                <button
+                  key={role}
+                  onClick={() => handleRoleSelect(role)}
+                  className="bg-yellow-400 text-black py-2 rounded hover:bg-yellow-300 transition"
+                >
+                  {role}
+                </button>
+              ))}
             </div>
           </div>
         </div>
@@ -205,41 +263,39 @@ const Register = () => {
       <div className="w-full md:w-1/2 bg-[#726002] p-8 flex flex-col justify-center">
         <h2 className="text-white text-3xl font-bold mb-4">Sign up</h2>
         <p className="text-white mb-8">
-          To get started enjoying a wide range of printing services at 59MinutesPrint
+          Get started with 59MinutesPrint for seamless printing services.
         </p>
 
         <form className="space-y-4" onSubmit={handleSignUp} noValidate>
-          <div className="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0">
-            <div className="w-full md:w-1/2">
+          {/* Name Fields */}
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="w-full">
               <input
                 type="text"
                 name="firstName"
                 placeholder="First Name"
                 value={formData.firstName}
                 onChange={handleInputChange}
-                className={`w-full p-3 rounded-md border ${
-                  errors.firstName ? "border-red-500" : "border-gray-400"
-                }`}
-                disabled={isLoading}
+                onBlur={(e) => validateField("firstName", e.target.value)}
+                className={`w-full p-3 rounded-md border ${errors.firstName ? "border-red-500" : "border-gray-400"}`}
               />
               {errors.firstName && <p className="text-red-300 text-sm mt-1">{errors.firstName}</p>}
             </div>
-            <div className="w-full md:w-1/2">
+            <div className="w-full">
               <input
                 type="text"
                 name="lastName"
                 placeholder="Last Name"
                 value={formData.lastName}
                 onChange={handleInputChange}
-                className={`w-full p-3 rounded-md border ${
-                  errors.lastName ? "border-red-500" : "border-gray-400"
-                }`}
-                disabled={isLoading}
+                onBlur={(e) => validateField("lastName", e.target.value)}
+                className={`w-full p-3 rounded-md border ${errors.lastName ? "border-red-500" : "border-gray-400"}`}
               />
               {errors.lastName && <p className="text-red-300 text-sm mt-1">{errors.lastName}</p>}
             </div>
           </div>
 
+          {/* Email */}
           <div>
             <input
               type="email"
@@ -247,36 +303,34 @@ const Register = () => {
               placeholder="Email"
               value={formData.email}
               onChange={handleInputChange}
-              className={`w-full p-3 rounded-md border ${
-                errors.email ? "border-red-500" : "border-gray-400"
-              }`}
-              disabled={isLoading}
+              onBlur={(e) => validateField("email", e.target.value)}
+              className={`w-full p-3 rounded-md border ${errors.email ? "border-red-500" : "border-gray-400"}`}
             />
             {errors.email && <p className="text-red-300 text-sm mt-1">{errors.email}</p>}
           </div>
 
+          {/* Phone (Formatted) */}
           <div>
             <input
               type="tel"
               name="phone"
-              placeholder="Phone No.:"
+              placeholder="Phone (e.g., (123) 456-7890)"
               value={formData.phone}
-              onChange={handleInputChange}
-              className={`w-full p-3 rounded-md border ${
-                errors.phone ? "border-red-500" : "border-gray-400"
-              }`}
-              disabled={isLoading}
+              onChange={handlePhoneChange}
+              onBlur={(e) => validateField("phone", e.target.value)}
+              className={`w-full p-3 rounded-md border ${errors.phone ? "border-red-500" : "border-gray-400"}`}
             />
             {errors.phone && <p className="text-red-300 text-sm mt-1">{errors.phone}</p>}
           </div>
 
+          {/* Role Dropdown */}
           <div>
             <select
               name="role"
               value={formData.role}
               onChange={handleInputChange}
+              onBlur={(e) => validateField("role", e.target.value)}
               className={`w-full p-3 rounded-md border ${errors.role ? "border-red-500" : "border-gray-400"}`}
-              disabled={isLoading}
             >
               <option value="">Select Role</option>
               <option value="Customer">Customer</option>
@@ -286,130 +340,94 @@ const Register = () => {
             {errors.role && <p className="text-red-300 text-sm mt-1">{errors.role}</p>}
           </div>
 
-          <div>
-            <div className="flex items-center relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleInputChange}
-                className={`w-full p-3 rounded-md border ${
-                  errors.password ? "border-red-500" : "border-gray-400"
-                }`}
-                disabled={isLoading}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 text-gray-600"
-                disabled={isLoading}
-              >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
-              </button>
-            </div>
+          {/* Password */}
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Password (min. 6 characters)"
+              value={formData.password}
+              onChange={handleInputChange}
+              onBlur={(e) => validateField("password", e.target.value)}
+              className={`w-full p-3 rounded-md border ${errors.password ? "border-red-500" : "border-gray-400"}`}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-3.5 text-gray-600"
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </button>
             {errors.password && <p className="text-red-300 text-sm mt-1">{errors.password}</p>}
           </div>
 
-          <div>
-            <div className="flex items-center relative">
-              <input
-                type={showConfirmPassword ? "text" : "password"}
-                name="confirmPassword"
-                placeholder="Confirm Password"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                className={`w-full p-3 rounded-md border ${
-                  errors.confirmPassword ? "border-red-500" : "border-gray-400"
-                }`}
-                disabled={isLoading}
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 text-gray-600"
-                disabled={isLoading}
-              >
-                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-              </button>
-            </div>
+          {/* Confirm Password */}
+          <div className="relative">
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              name="confirmPassword"
+              placeholder="Confirm Password"
+              value={formData.confirmPassword}
+              onChange={handleInputChange}
+              onBlur={(e) => validateField("confirmPassword", e.target.value)}
+              className={`w-full p-3 rounded-md border ${errors.confirmPassword ? "border-red-500" : "border-gray-400"}`}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-3 top-3.5 text-gray-600"
+            >
+              {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+            </button>
             {errors.confirmPassword && <p className="text-red-300 text-sm mt-1">{errors.confirmPassword}</p>}
           </div>
 
-          {/* Sign Up Button */}
+          {/* Submit Button */}
           <button
             type="submit"
+            disabled={isLoading}
             className={`w-full bg-yellow-400 text-black py-3 rounded-md font-semibold shadow-md ${
               isLoading ? "opacity-70 cursor-not-allowed" : "hover:bg-yellow-300"
-            } transition-all`}
-            disabled={isLoading}
+            } transition`}
           >
-            {isLoading ? "Processing..." : "Sign up"}
+            {isLoading ? "Creating account..." : "Sign Up"}
           </button>
 
-          {/* Google Sign In */}
+          {/* Google Sign-In */}
           <button
             type="button"
             onClick={handleGoogleSignIn}
-            className={`w-full mt-2 bg-white text-gray-700 py-3 rounded-md font-semibold shadow-md ${
-              isLoading ? "opacity-70 cursor-not-allowed" : "hover:bg-gray-100"
-            } transition-all flex justify-center items-center gap-2`}
             disabled={isLoading}
+            className={`w-full bg-white text-gray-700 py-3 rounded-md font-semibold shadow-md flex items-center justify-center gap-2 ${
+              isLoading ? "opacity-70 cursor-not-allowed" : "hover:bg-gray-100"
+            } transition`}
           >
             <svg width="20" height="20" viewBox="0 0 48 48">
-              <path
-                fill="#FFC107"
-                d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8
-                c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12
-                c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657
-                C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24
-                c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20
-                C44,22.659,43.862,21.35,43.611,20.083z"
-              />
-              <path
-                fill="#FF3D00"
-                d="M6.306,14.691l6.571,4.819
-                C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039
-                l5.657-5.657C34.046,6.053,29.268,4,24,4
-                C16.318,4,9.656,8.337,6.306,14.691z"
-              />
-              <path
-                fill="#4CAF50"
-                d="M24,44c5.166,0,9.86-1.977,13.409-5.192
-                l-6.19-5.238C29.211,35.091,26.715,36,24,36
-                c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025
-                C9.505,39.556,16.227,44,24,44z"
-              />
-              <path
-                fill="#1976D2"
-                d="M43.611,20.083H42V20H24v8h11.303
-                c-0.792,2.237-2.231,4.166-4.087,5.571
-                c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238
-                C36.971,39.205,44,34,44,24
-                C44,22.659,43.862,21.35,43.611,20.083z"
-              />
+              <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" />
+              <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z" />
+              <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
+              <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
             </svg>
             Sign up with Google
           </button>
 
-          <p className="text-white mt-4 text-center">
-            If you have an account before,{" "}
-            <a
-              href="/Auth/Login"
-              className="text-yellow-400 font-semibold hover:underline ml-1"
-            >
-              Login
+          {/* Login Link */}
+          <p className="text-white text-center mt-4">
+            Already have an account?{" "}
+            <a href="/Auth/Login" className="text-yellow-400 font-semibold hover:underline">
+              Log in
             </a>
           </p>
         </form>
       </div>
 
-      {/* Right Section: Image */}
-      <div className="hidden md:flex md:w-1/2 justify-center items-center bg-[#726002]">
+      {/* Right Section: Brand Image */}
+      <div className="hidden md:flex md:w-1/2 bg-[#726002] items-center justify-center p-8">
         <Image
           src={logo}
-          alt="59 Minutes Print Logo"
-          className="w-3/4 h-[90%] rounded-lg shadow-lg"
+          alt="59MinutesPrint Logo"
+          className="w-full max-w-md rounded-lg shadow-xl"
+          priority
         />
       </div>
     </div>
