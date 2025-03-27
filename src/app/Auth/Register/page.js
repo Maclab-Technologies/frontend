@@ -1,3 +1,4 @@
+// Auth/Register/Page.js
 "use client";
 
 import { useState } from "react";
@@ -422,7 +423,7 @@ const Register = () => {
       </div>
 
       {/* Right Section: Brand Image */}
-      <div className="hidden md:flex md:w-1/2 bg-[#726002] items-center justify-center p-8">
+      <div className="hidden  w-full md:flex md:w-1/2 bg-[#726002] items-center justify-center p-4">
         <Image
           src={logo}
           alt="59MinutesPrint Logo"
