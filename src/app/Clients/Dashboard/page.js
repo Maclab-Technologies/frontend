@@ -2,10 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { FaHome, FaBox, FaUpload, FaEdit, FaCog, FaSignOutAlt, FaBars, FaTimes, FaUser } from "react-icons/fa";
+import { 
+  FaHome, FaBox, FaUpload, FaEdit, FaCog, 
+  FaSignOutAlt, FaBars, FaTimes, FaUser, 
+  FaFile, FaPlus, FaShoppingCart, FaHistory,
+  FaCreditCard, FaAddressCard, FaLock
+} from "react-icons/fa";
 import { signOut } from "firebase/auth";
 import { auth } from "../../utils/firebaseconfig";
 import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function CustomerDashboard() {
   const router = useRouter();
@@ -14,101 +20,134 @@ export default function CustomerDashboard() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("Dashboard");
 
-
-  // CUSTOMER CANVASS JAVASCRIPT CODE STARTS
-
-
-  // State
-  const [showDesigner, setShowDesigner] = useState(false);
+  // Design Editor State
   const [designFiles, setDesignFiles] = useState([]);
   const [selectedDesign, setSelectedDesign] = useState(null);
   const [exportFormat, setExportFormat] = useState('png');
+  const [showDesigner, setShowDesigner] = useState(false);
 
-  // API Integration Functions
-  const loadDesignFiles = async () => {
-    try {
-      const response = await fetch('/api/designs');
-      const data = await response.json();
-      setDesignFiles(data);
-    } catch (error) {
-      console.error('Error loading designs:', error);
-    }
+  // Mock order data
+  const [orders, setOrders] = useState([]);
+  const [recentActivity, setRecentActivity] = useState([]);
+
+  // Load user data and initial content
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (!user) {
+        router.push("/Auth/Login");
+      } else {
+        setUser(user);
+        // Load mock data
+        loadMockData();
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [router]);
+
+  const loadMockData = () => {
+    // Mock design files
+    setDesignFiles([
+      { id: 1, name: "Business Card Design", date: "2023-05-15", type: "psd" },
+      { id: 2, name: "Flyer Template", date: "2023-06-02", type: "ai" },
+      { id: 3, name: "Logo Concept", date: "2023-06-10", type: "png" }
+    ]);
+
+    // Mock orders
+    setOrders([
+      {
+        id: "ORD-1001",
+        date: "2023-06-15",
+        status: "Completed",
+        total: "$45.99",
+        items: ["Business Cards (100)"]
+      },
+      {
+        id: "ORD-1002",
+        date: "2023-06-20",
+        status: "Processing",
+        total: "$89.50",
+        items: ["Flyers (500)", "Posters (50)"]
+      }
+    ]);
+
+    // Mock recent activity
+    setRecentActivity([
+      { type: "order", id: "ORD-1002", date: "2023-06-20", action: "Order placed" },
+      { type: "upload", id: "DSN-003", date: "2023-06-10", action: "Design uploaded" },
+      { type: "order", id: "ORD-1001", date: "2023-06-15", action: "Order completed" }
+    ]);
   };
 
+  // Design Editor Functions
   const loadDesign = async (file) => {
     setSelectedDesign(file.id);
-    // Initialize Customers Canvas with the selected design
-    const iframe = document.getElementById('cc-frame');
-    iframe.src = `https://your-customerscanvas-instance.com/editor?designId=${file.id}`;
+    // In a real implementation, this would initialize the Customers Canvas editor
+    toast.info(`Loading design: ${file.name}`);
   };
 
-  const saveDesign = async () => {
-    // Implement save functionality with Customers Canvas API
-  };
-
-  const exportDesign = async () => {
-    // Implement export functionality
-  };
-
-  const executeEditorCommand = (command) => {
-    // Send commands to Customers Canvas iframe
-    const iframe = document.getElementById('cc-frame');
-    iframe.contentWindow.postMessage({
-      action: command
-    }, 'https://your-customerscanvas-instance.com');
-  };
-
-  // Load designs on component mount
-  useEffect(() => {
-    loadDesignFiles();
-  }, []);
-
-  // Add this with your other API Integration Functions
   const uploadNewDesign = async () => {
     try {
-      // Create a file input element programmatically
       const input = document.createElement('input');
       input.type = 'file';
-      input.accept = 'image/*,.psd,.ai,.pdf'; // Accept common design file formats
-
+      input.accept = 'image/*,.psd,.ai,.pdf';
+      
       input.onchange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
-        // Create FormData to send the file
-        const formData = new FormData();
-        formData.append('design', file);
-
-        // Upload the file to your API
-        const response = await fetch('/api/designs/upload', {
-          method: 'POST',
-          body: formData
-        });
-
-        if (response.ok) {
-          // Refresh the design files list
-          await loadDesignFiles();
-        } else {
-          console.error('Upload failed');
-        }
+        
+        toast.info(`Uploading ${file.name}...`);
+        // Simulate upload delay
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Add to design files
+        const newDesign = {
+          id: Math.max(0, ...designFiles.map(d => d.id)) + 1,
+          name: file.name,
+          date: new Date().toISOString().split('T')[0],
+          type: file.name.split('.').pop()
+        };
+        
+        setDesignFiles([newDesign, ...designFiles]);
+        setRecentActivity([
+          { 
+            type: "upload", 
+            id: `DSN-${newDesign.id}`, 
+            date: newDesign.date, 
+            action: "Design uploaded" 
+          },
+          ...recentActivity
+        ]);
+        
+        toast.success(`${file.name} uploaded successfully!`);
       };
-
-      // Trigger the file selection dialog
+      
       input.click();
     } catch (error) {
-      console.error('Error uploading design:', error);
+      toast.error("Error uploading design");
+      console.error(error);
     }
   };
 
+  const createNewOrder = () => {
+    toast.info("Redirecting to order creation...");
+    // In a real implementation, this would navigate to order creation
+  };
 
-
-  // CUSTOMER CANVASS CODE ENDS HERE   
-
-
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      toast.success("Logged out successfully");
+      router.push("/Auth/Login");
+    } catch (error) {
+      toast.error("Error signing out");
+      console.error("Logout error:", error);
+    }
+  };
 
   // Tab components
   const tabs = {
-    // DASHBAORD
     Dashboard: (
       <div className="space-y-6">
         <div className="bg-gray-800 rounded-lg p-6 text-white">
@@ -127,7 +166,9 @@ export default function CustomerDashboard() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-300">Active Orders</p>
-                  <p className="text-xl font-bold text-white">0</p>
+                  <p className="text-xl font-bold text-white">
+                    {orders.filter(o => o.status === "Processing").length}
+                  </p>
                 </div>
               </div>
             </div>
@@ -139,7 +180,7 @@ export default function CustomerDashboard() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-300">Designs</p>
-                  <p className="text-xl font-bold text-white">0</p>
+                  <p className="text-xl font-bold text-white">{designFiles.length}</p>
                 </div>
               </div>
             </div>
@@ -152,7 +193,9 @@ export default function CustomerDashboard() {
                 <div>
                   <p className="text-sm text-gray-300">Member Since</p>
                   <p className="text-sm font-medium text-white">
-                    {new Date(user?.metadata?.creationTime).toLocaleDateString()}
+                    {user?.metadata?.creationTime 
+                      ? new Date(user.metadata.creationTime).toLocaleDateString() 
+                      : "N/A"}
                   </p>
                 </div>
               </div>
@@ -165,58 +208,110 @@ export default function CustomerDashboard() {
             <h2 className="text-lg font-bold">Recent Activity</h2>
             <button className="text-sm text-yellow-400 hover:underline">View All</button>
           </div>
-          <div className="bg-black bg-opacity-30 rounded-lg p-4 text-center border border-gray-700">
-            <p className="text-gray-400 py-6">No recent activity</p>
-          </div>
+          
+          {recentActivity.length > 0 ? (
+            <div className="space-y-3">
+              {recentActivity.map((activity, index) => (
+                <div 
+                  key={index} 
+                  className="bg-black bg-opacity-30 rounded-lg p-3 border border-gray-700 flex items-center"
+                >
+                  <div className="bg-yellow-400 bg-opacity-20 p-2 rounded-full mr-3">
+                    {activity.type === "order" ? (
+                      <FaShoppingCart className="text-yellow-400 text-sm" />
+                    ) : (
+                      <FaFile className="text-yellow-400 text-sm" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{activity.action}</p>
+                    <p className="text-xs text-gray-400">
+                      {activity.id} • {activity.date}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-black bg-opacity-30 rounded-lg p-4 text-center border border-gray-700">
+              <p className="text-gray-400 py-6">No recent activity</p>
+            </div>
+          )}
         </div>
       </div>
     ),
-
-    //MY ORDERS  
-
-
 
     "My Orders": (
       <div className="bg-gray-800 rounded-lg p-6 text-white">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Your Orders</h1>
-          <button className="bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded-lg text-sm font-medium transition flex items-center">
-            <FaUpload className="mr-2" /> New Order
+          <button 
+            onClick={createNewOrder}
+            className="bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded-lg text-sm font-medium transition flex items-center"
+          >
+            <FaPlus className="mr-2" /> New Order
           </button>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-700">
-            <thead className="bg-black bg-opacity-30">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Order #</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Date</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Total</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-700">
-              <tr>
-                <td colSpan="5" className="px-4 py-6 text-center text-sm text-gray-400">
-                  You haven't placed any orders yet
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        {orders.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-700">
+              <thead className="bg-black bg-opacity-30">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Order #</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Date</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Items</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Total</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-700">
+                {orders.map(order => (
+                  <tr key={order.id} className="hover:bg-gray-700 cursor-pointer">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">{order.id}</td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">{order.date}</td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 text-xs rounded-full ${
+                        order.status === "Completed" 
+                          ? "bg-green-500 bg-opacity-20 text-green-400" 
+                          : "bg-yellow-500 bg-opacity-20 text-yellow-400"
+                      }`}>
+                        {order.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 text-sm text-gray-300">
+                      {order.items.join(", ")}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">{order.total}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="bg-black bg-opacity-30 rounded-lg p-8 text-center border border-gray-700">
+            <FaBox className="mx-auto text-4xl text-gray-500 mb-3" />
+            <h3 className="text-lg font-medium text-gray-300 mb-1">No orders yet</h3>
+            <p className="text-gray-400 mb-4">Get started by placing your first order</p>
+            <button 
+              onClick={createNewOrder}
+              className="bg-yellow-400 hover:bg-yellow-500 text-black px-6 py-2 rounded-lg font-medium"
+            >
+              Create New Order
+            </button>
+          </div>
+        )}
       </div>
     ),
-
-
-    // UPLOAD DESIGNS
-
 
     "Upload Design": (
       <div className="bg-gray-800 rounded-lg p-6 text-white">
         <h1 className="text-2xl font-bold mb-6">Upload Design</h1>
 
-        <div className="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-yellow-400 transition">
+        <div 
+          className="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-yellow-400 transition cursor-pointer"
+          onClick={uploadNewDesign}
+        >
           <div className="flex flex-col items-center justify-center space-y-4">
             <div className="bg-yellow-400 bg-opacity-20 p-4 rounded-full">
               <FaUpload className="text-2xl text-yellow-400" />
@@ -231,128 +326,143 @@ export default function CustomerDashboard() {
 
         <div className="mt-8">
           <h3 className="text-lg font-medium mb-4">Recent Uploads</h3>
-          <div className="bg-black bg-opacity-30 rounded-lg p-4 text-center border border-gray-700">
-            <p className="text-gray-400 py-4">No recent uploads</p>
-          </div>
+          {designFiles.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {designFiles.map(file => (
+                <div 
+                  key={file.id} 
+                  className="bg-black bg-opacity-30 p-4 rounded-lg border border-gray-700 hover:border-yellow-400 transition cursor-pointer"
+                  onClick={() => loadDesign(file)}
+                >
+                  <div className="flex items-center">
+                    <div className="bg-yellow-400 bg-opacity-20 p-3 rounded-full mr-3">
+                      <FaFile className="text-yellow-400" />
+                    </div>
+                    <div>
+                      <p className="font-medium truncate">{file.name}</p>
+                      <p className="text-xs text-gray-400">{file.date}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-black bg-opacity-30 rounded-lg p-4 text-center border border-gray-700">
+              <p className="text-gray-400 py-4">No recent uploads</p>
+            </div>
+          )}
         </div>
       </div>
     ),
 
-    // EDIT DESIGNS
     "Edit Design": (
       <div className="bg-gray-800 rounded-lg p-6 text-white">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Design Editor</h1>
           <button
-            onClick={() => setShowDesigner(true)}
+            onClick={() => setShowDesigner(!showDesigner)}
             className="bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded-lg text-sm font-medium transition flex items-center"
           >
-            <FaEdit className="mr-2" /> Open Editor
+            <FaEdit className="mr-2" /> {showDesigner ? "Close Editor" : "Open Editor"}
           </button>
         </div>
 
-        {/* Customers Canvas Container */}
-        <div className="relative" style={{ paddingBottom: '56.25%', height: 0 }}>
-          <iframe
-            id="cc-frame"
-            className="absolute top-0 left-0 w-full h-full bg-gray-900 rounded-lg border border-gray-700"
-            src=""
-            title="Customers Canvas Editor"
-            allowFullScreen
-          ></iframe>
-        </div>
-
-        {/* Design Actions Panel */}
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-black bg-opacity-30 p-4 rounded-lg border border-gray-700">
-            <h3 className="font-medium mb-3">Design Files</h3>
-            <div className="space-y-3 max-h-60 overflow-y-auto">
-              {designFiles.length > 0 ? (
-                designFiles.map(file => (
-                  <div
-                    key={file.id}
-                    className={`p-2 rounded-md cursor-pointer ${selectedDesign === file.id ? 'bg-yellow-400 text-black' : 'bg-gray-700 hover:bg-gray-600'}`}
-                    onClick={() => loadDesign(file)}
-                  >
-                    <div className="flex items-center">
-                      <FaFile className="mr-2" />
-                      <span className="truncate">{file.name}</span>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-400 text-center py-4">No designs available</p>
-              )}
+        {showDesigner ? (
+          <>
+            <div className="relative" style={{ paddingBottom: '56.25%', height: 0 }}>
+              <div className="absolute top-0 left-0 w-full h-full bg-gray-900 rounded-lg border border-gray-700 flex items-center justify-center">
+                <p className="text-gray-400">
+                  {selectedDesign 
+                    ? `Editing: ${designFiles.find(d => d.id === selectedDesign)?.name || "Design"}`
+                    : "Select a design to edit"}
+                </p>
+              </div>
             </div>
+
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-black bg-opacity-30 p-4 rounded-lg border border-gray-700">
+                <h3 className="font-medium mb-3">Design Files</h3>
+                <div className="space-y-3 max-h-60 overflow-y-auto">
+                  {designFiles.map(file => (
+                    <div
+                      key={file.id}
+                      className={`p-2 rounded-md cursor-pointer ${
+                        selectedDesign === file.id 
+                          ? 'bg-yellow-400 text-black' 
+                          : 'bg-gray-700 hover:bg-gray-600'
+                      }`}
+                      onClick={() => loadDesign(file)}
+                    >
+                      <div className="flex items-center">
+                        <FaFile className="mr-2" />
+                        <span className="truncate">{file.name}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={uploadNewDesign}
+                  className="mt-3 w-full bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-md text-sm"
+                >
+                  Upload New
+                </button>
+              </div>
+
+              <div className="bg-black bg-opacity-30 p-4 rounded-lg border border-gray-700">
+                <h3 className="font-medium mb-3">Editor Tools</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  <button className="p-2 bg-gray-700 hover:bg-gray-600 rounded-md text-sm">
+                    Undo
+                  </button>
+                  <button className="p-2 bg-gray-700 hover:bg-gray-600 rounded-md text-sm">
+                    Redo
+                  </button>
+                  <button className="p-2 bg-gray-700 hover:bg-gray-600 rounded-md text-sm">
+                    Add Text
+                  </button>
+                  <button className="p-2 bg-gray-700 hover:bg-gray-600 rounded-md text-sm">
+                    Add Image
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-black bg-opacity-30 p-4 rounded-lg border border-gray-700">
+                <h3 className="font-medium mb-3">Save & Export</h3>
+                <div className="space-y-3">
+                  <button className="w-full bg-yellow-400 hover:bg-yellow-500 text-black px-3 py-2 rounded-md text-sm font-medium">
+                    Save Design
+                  </button>
+                  <select
+                    value={exportFormat}
+                    onChange={(e) => setExportFormat(e.target.value)}
+                    className="w-full bg-gray-700 border border-gray-600 rounded-md text-sm p-2"
+                  >
+                    <option value="png">PNG</option>
+                    <option value="jpg">JPG</option>
+                    <option value="pdf">PDF</option>
+                  </select>
+                  <button className="w-full bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md text-sm">
+                    Export
+                  </button>
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="bg-black bg-opacity-30 rounded-lg p-8 text-center border border-gray-700">
+            <FaEdit className="mx-auto text-4xl text-gray-500 mb-3" />
+            <h3 className="text-lg font-medium text-gray-300 mb-1">Editor is closed</h3>
+            <p className="text-gray-400 mb-4">Open the editor to modify your designs</p>
             <button
-              onClick={uploadNewDesign}
-              className="mt-3 w-full bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-md text-sm"
+              onClick={() => setShowDesigner(true)}
+              className="bg-yellow-400 hover:bg-yellow-500 text-black px-6 py-2 rounded-lg font-medium"
             >
-              Upload New
+              Open Editor
             </button>
           </div>
-
-          <div className="bg-black bg-opacity-30 p-4 rounded-lg border border-gray-700">
-            <h3 className="font-medium mb-3">Editor Tools</h3>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => executeEditorCommand('undo')}
-                className="p-2 bg-gray-700 hover:bg-gray-600 rounded-md text-sm"
-              >
-                Undo
-              </button>
-              <button
-                onClick={() => executeEditorCommand('redo')}
-                className="p-2 bg-gray-700 hover:bg-gray-600 rounded-md text-sm"
-              >
-                Redo
-              </button>
-              <button
-                onClick={() => executeEditorCommand('addText')}
-                className="p-2 bg-gray-700 hover:bg-gray-600 rounded-md text-sm"
-              >
-                Add Text
-              </button>
-              <button
-                onClick={() => executeEditorCommand('addImage')}
-                className="p-2 bg-gray-700 hover:bg-gray-600 rounded-md text-sm"
-              >
-                Add Image
-              </button>
-            </div>
-          </div>
-
-          <div className="bg-black bg-opacity-30 p-4 rounded-lg border border-gray-700">
-            <h3 className="font-medium mb-3">Save & Export</h3>
-            <div className="space-y-3">
-              <button
-                onClick={saveDesign}
-                className="w-full bg-yellow-400 hover:bg-yellow-500 text-black px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Save Design
-              </button>
-              <select
-                onChange={(e) => setExportFormat(e.target.value)}
-                className="w-full bg-gray-700 border border-gray-600 rounded-md text-sm p-2"
-              >
-                <option value="png">PNG</option>
-                <option value="jpg">JPG</option>
-                <option value="pdf">PDF</option>
-              </select>
-              <button
-                onClick={exportDesign}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md text-sm"
-              >
-                Export
-              </button>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
     ),
-
-    // SETTINGS
-
 
     Settings: (
       <div className="bg-gray-800 rounded-lg p-6 text-white">
@@ -391,15 +501,33 @@ export default function CustomerDashboard() {
               </div>
             </div>
 
-            <div>
+            <div className="border-b border-gray-700 pb-6">
               <h2 className="text-lg font-medium mb-4">Security</h2>
-              <button className="bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded-md text-sm font-medium transition">
-                Change Password
+              <button className="bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded-md text-sm font-medium transition flex items-center">
+                <FaLock className="mr-2" /> Change Password
               </button>
+            </div>
+
+            <div>
+              <h2 className="text-lg font-medium mb-4">Payment Methods</h2>
+              <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-gray-700">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <FaCreditCard className="text-xl mr-3 text-gray-400" />
+                    <div>
+                      <p className="font-medium">Visa •••• 4242</p>
+                      <p className="text-xs text-gray-400">Expires 04/2025</p>
+                    </div>
+                  </div>
+                  <button className="text-sm text-yellow-400 hover:text-yellow-300">
+                    Edit
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div>
+          <div className="space-y-6">
             <div className="bg-black bg-opacity-30 p-4 rounded-lg border border-gray-700">
               <div className="flex flex-col items-center text-center space-y-4">
                 <div className="w-20 h-20 rounded-full bg-yellow-400 bg-opacity-20 flex items-center justify-center">
@@ -410,36 +538,24 @@ export default function CustomerDashboard() {
                 </button>
               </div>
             </div>
+
+            <div className="bg-black bg-opacity-30 p-4 rounded-lg border border-gray-700">
+              <h3 className="font-medium mb-3">Shipping Address</h3>
+              <div className="flex items-center">
+                <FaAddressCard className="text-xl mr-3 text-gray-400" />
+                <div>
+                  <p className="text-sm">123 Main St, Apt 4B</p>
+                  <p className="text-sm">New York, NY 10001</p>
+                </div>
+              </div>
+              <button className="mt-3 w-full text-sm text-yellow-400 hover:text-yellow-300">
+                Edit Address
+              </button>
+            </div>
           </div>
         </div>
       </div>
     )
-  };
-
-  // Check auth state
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (!user) {
-        router.push("/Auth/Login");
-      } else {
-        setUser(user);
-      }
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [router]);
-
-  // Handle logout
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      toast.success("Logged out successfully");
-      router.push("/Auth/Login");
-    } catch (error) {
-      toast.error("Error signing out");
-      console.error("Logout error:", error);
-    }
   };
 
   if (loading) {
@@ -451,9 +567,9 @@ export default function CustomerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-900">
       {/* Top Navigation Bar */}
-      <nav className="bg-black text-white shadow-lg">
+      <nav className="bg-black text-white shadow-lg sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             <div className="flex items-center">
@@ -463,7 +579,9 @@ export default function CustomerDashboard() {
               >
                 {mobileNavOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
               </button>
-              <h1 className="text-xl font-bold ">Customers<span className="text-yellow-400 px-3">Dashboard</span></h1>
+              <h1 className="text-xl font-bold">
+                <span className="text-yellow-400">59Minutes</span>Print
+              </h1>
             </div>
             <div className="flex items-center space-x-4">
               <button
@@ -479,17 +597,15 @@ export default function CustomerDashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col lg:flex-row gap-6">
-
-
-          {/* Mobile-Responsive Side Navigation */}
+          {/* Side Navigation */}
           <aside className={`
-  fixed inset-y-0 left-0 z-40 
-  w-64 bg-gray-800 shadow-lg 
-  transform transition-transform duration-300 ease-in-out rounded
-  ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full'} 
-  lg:relative lg:translate-x-0 lg:w-64
-  mt-16 lg:mt-0  /* Added margin-top for mobile */
-`}>
+            fixed inset-y-0 left-0 z-40 
+            w-64 bg-gray-800 shadow-lg 
+            transform transition-transform duration-300 ease-in-out rounded
+            ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full'} 
+            lg:relative lg:translate-x-0 lg:w-64
+            mt-16 lg:mt-0
+          `}>
             {/* Close button for mobile */}
             <div className="lg:hidden absolute top-2 right-2">
               <button
@@ -514,7 +630,7 @@ export default function CustomerDashboard() {
             </div>
 
             {/* Navigation Links */}
-            <nav className="p-2 h-[calc(100%-72px-4rem)] overflow-y-auto"> {/* Adjusted height calculation */}
+            <nav className="p-2 h-[calc(100%-72px-4rem)] overflow-y-auto">
               {Object.keys(tabs).map((tabName) => (
                 <button
                   key={tabName}
@@ -523,13 +639,13 @@ export default function CustomerDashboard() {
                     setMobileNavOpen(false);
                   }}
                   className={`
-          w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
-          transition-all duration-200
-          ${activeTab === tabName
+                    w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
+                    transition-all duration-200
+                    ${activeTab === tabName
                       ? 'bg-yellow-400 text-black font-bold shadow-md'
                       : 'text-gray-300 hover:bg-gray-700 hover:text-white'
                     }
-        `}
+                  `}
                 >
                   <span className="mr-3 text-base">
                     {tabName === "Dashboard" && <FaHome />}

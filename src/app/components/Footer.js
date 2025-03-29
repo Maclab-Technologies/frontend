@@ -79,7 +79,7 @@ const Footer = () => {
           <h4 className="font-bold text-lg uppercase mb-4">Monetize</h4>
           <ul className="space-y-2">
             {[
-              { href: "/vendor", label: "Become a Vendor" },
+              { href: "/Vendor", label: "Become a Vendor" },
               { href: "/sell-creativity", label: "Sell your Creativity" },
               { href: "/referral", label: "N1,000 Referral Bonus" },
             ].map((link) => (

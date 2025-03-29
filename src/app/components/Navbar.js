@@ -9,13 +9,14 @@ import { FaShoppingCart, FaUserCircle } from "react-icons/fa";
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import { app } from "../utils/firebaseconfig";
 import logo from "../../../public/images/brandimage.jpeg";
+import { useSelector } from "react-redux";
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
   { label: "Products", href: "/Products" },
   { label: "Categories", href: "/Pages/Categories" },
   { label: "Features", href: "/Pages/Features" },
-  { label: "Orders", href: "/orders" },
+  { label: "Become a Vendor", href: "/Vendor" },
   { label: "Track Orders", href: "/track-orders" },
 ];
 
@@ -25,6 +26,7 @@ const Navbar = () => {
   const [cartCount, setCartCount] = useState(0);
   const pathname = usePathname();
   const auth = getAuth(app);
+  const cartItems = useSelector((state) => state.cart.cartItems || []);
 
   // Listen for Firebase auth state changes
   useEffect(() => {
@@ -36,26 +38,41 @@ const Navbar = () => {
     }
   }, [auth]);
 
-  // Update cart count from localStorage
+  // Update cart count from Redux and localStorage
   useEffect(() => {
     const updateCartCount = () => {
-      if (typeof window !== "undefined") {
-        const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
-        setCartCount(storedCart.length);
+      try {
+        // First try to get from Redux (more reliable)
+        if (cartItems && cartItems.length > 0) {
+          const count = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+          setCartCount(count);
+        } else {
+          // Fallback to localStorage if Redux is empty
+          const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
+          const count = storedCart.reduce((acc, item) => acc + (item.quantity || 1), 0);
+          setCartCount(count);
+        }
+      } catch (error) {
+        console.error("Error updating cart count:", error);
+        setCartCount(0);
       }
     };
 
     updateCartCount();
 
-    if (typeof window !== "undefined") {
-      window.addEventListener("cartUpdated", updateCartCount);
-      window.addEventListener("storage", updateCartCount);
-      return () => {
-        window.removeEventListener("cartUpdated", updateCartCount);
-        window.removeEventListener("storage", updateCartCount);
-      };
-    }
-  }, []);
+    // Listen for custom events and storage changes
+    const handleStorageChange = () => {
+      updateCartCount();
+    };
+
+    window.addEventListener("cartUpdated", updateCartCount);
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("cartUpdated", updateCartCount);
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, [cartItems]);
 
   const handleLogout = async () => {
     try {
@@ -104,7 +121,9 @@ const Navbar = () => {
               <li key={href}>
                 <Link
                   href={href}
-                  className="text-white hover:text-yellow-400 block py-2"
+                  className={`text-white hover:text-yellow-400 block py-2 ${
+                    pathname === href ? "text-yellow-400 font-bold" : ""
+                  }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {label.toUpperCase()}
@@ -137,11 +156,14 @@ const Navbar = () => {
                 <Link
                   href="/Clients/Cart"
                   className="relative text-yellow-400 text-lg hover:text-yellow-300"
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
                   <FaShoppingCart size={40} />
-                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                    {cartCount}
-                  </span>
+                  {cartCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                      {cartCount}
+                    </span>
+                  )}
                 </Link>
                 <div className="relative group">
                   <FaUserCircle size={40} className="text-yellow-400 cursor-pointer" />
@@ -149,30 +171,37 @@ const Navbar = () => {
                     <Link
                       href="/profile"
                       className="block px-4 py-2 hover:bg-gray-800"
+                      onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Profile
                     </Link>
                     <Link
                       href="/Clients/Dashboard"
                       className="block px-4 py-2 hover:bg-gray-800"
+                      onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Dashboard
                     </Link>
                     <Link
                       href="/Inbox"
                       className="block px-4 py-2 hover:bg-gray-800"
+                      onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Inbox
                     </Link>
                     <Link
                       href="/Help"
                       className="block px-4 py-2 hover:bg-gray-800"
+                      onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Help
                     </Link>
                     <button
                       className="block w-full text-left px-4 py-2 hover:bg-gray-800"
-                      onClick={handleLogout}
+                      onClick={() => {
+                        handleLogout();
+                        setIsMobileMenuOpen(false);
+                      }}
                     >
                       Logout
                     </button>
@@ -189,7 +218,9 @@ const Navbar = () => {
             <Link
               key={href}
               href={href}
-              className="text-white hover:text-yellow-400 block py-2"
+              className={`text-white hover:text-yellow-400 block py-2 ${
+                pathname === href ? "text-yellow-400 font-bold" : ""
+              }`}
             >
               {label.toUpperCase()}
             </Link>
@@ -220,9 +251,11 @@ const Navbar = () => {
                 className="relative text-yellow-400 text-lg hover:text-yellow-300"
               >
                 <FaShoppingCart size={40} />
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                  {cartCount}
-                </span>
+                {cartCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                    {cartCount}
+                  </span>
+                )}
               </Link>
               <div className="relative group">
                 <FaUserCircle size={40} className="text-yellow-400 cursor-pointer" />

@@ -13,22 +13,24 @@ export default function Cart() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
 
-  // ✅ Load Cart from localStorage when page loads
+  // Load Cart from localStorage when page loads
   useEffect(() => {
     const savedCart = JSON.parse(localStorage.getItem("cart")) || [];
     dispatch(setCart(savedCart));
     setIsLoading(false);
   }, [dispatch]);
 
-  // ✅ Save to localStorage when cart updates
+  // Save to localStorage when cart updates
   useEffect(() => {
     if (!isLoading) {
       localStorage.setItem("cart", JSON.stringify(cartItems));
+      // Dispatch an event to notify Navbar about cart update
+      window.dispatchEvent(new Event('cartUpdated'));
     }
   }, [cartItems, isLoading]);
 
   const handleQuantityChange = (id, newQuantity) => {
-    const quantity = Math.max(1, parseInt(newQuantity) || 1); // Prevents negative or empty input
+    const quantity = Math.max(1, parseInt(newQuantity) || 1);
     dispatch(updateQuantity({ id, quantity }));
   };
 
@@ -72,7 +74,6 @@ export default function Cart() {
         <FiShoppingCart className="text-yellow-400" /> Cart ({totalItems} items)
       </h1>
 
-      {/* 🚫 Empty Cart */}
       {cartItems.length === 0 ? (
         <div className="text-center py-20">
           <p className="text-gray-400 text-lg mb-6">Your cart is empty 😢.</p>
@@ -85,7 +86,6 @@ export default function Cart() {
         </div>
       ) : (
         <>
-          {/* 🛒 Cart Items */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
             {cartItems.map((item) => (
               <div key={item.id} className="flex items-center bg-gray-800 p-5 rounded-lg">
@@ -100,7 +100,10 @@ export default function Cart() {
                   <h2 className="text-xl font-semibold mb-2">{item.name}</h2>
                   <p className="text-yellow-400 mb-2">{formatCurrency(item.price)}</p>
                   <div className="flex items-center gap-4">
-                    <button onClick={() => handleQuantityChange(item.id, item.quantity - 1)} className="bg-gray-700 px-3 py-1 rounded-md">
+                    <button 
+                      onClick={() => handleQuantityChange(item.id, item.quantity - 1)} 
+                      className="bg-gray-700 px-3 py-1 rounded-md hover:bg-gray-600 transition"
+                    >
                       -
                     </button>
                     <input
@@ -108,15 +111,18 @@ export default function Cart() {
                       value={item.quantity}
                       min="1"
                       onChange={(e) => handleQuantityChange(item.id, e.target.value)}
-                      className="w-14 text-center bg-black border border-gray-600 rounded-md"
+                      className="w-14 text-center bg-black border border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-yellow-400"
                     />
-                    <button onClick={() => handleQuantityChange(item.id, item.quantity + 1)} className="bg-gray-700 px-3 py-1 rounded-md">
+                    <button 
+                      onClick={() => handleQuantityChange(item.id, item.quantity + 1)} 
+                      className="bg-gray-700 px-3 py-1 rounded-md hover:bg-gray-600 transition"
+                    >
                       +
                     </button>
                   </div>
                   <button
                     onClick={() => handleRemoveItem(item.id)}
-                    className="text-red-500 mt-4 flex items-center gap-2"
+                    className="text-red-500 mt-4 flex items-center gap-2 hover:text-red-400 transition"
                   >
                     <FiTrash /> Remove
                   </button>
@@ -125,12 +131,11 @@ export default function Cart() {
             ))}
           </div>
 
-          {/* 🛍️ Cart Summary Section */}
-          <div className="flex justify-between items-center border-t pt-6">
+          <div className="flex flex-col md:flex-row justify-between items-center border-t border-gray-700 pt-6 gap-4">
             <h2 className="text-2xl font-bold">Total: {formatCurrency(totalPrice)}</h2>
             <button
               onClick={handleCheckout}
-              className="bg-yellow-400 text-black px-8 py-3 rounded-md hover:bg-yellow-500 transition duration-300"
+              className="bg-yellow-400 text-black px-8 py-3 rounded-md hover:bg-yellow-500 transition duration-300 w-full md:w-auto text-center"
             >
               Proceed to Checkout 🚀
             </button>

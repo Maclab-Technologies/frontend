@@ -1,7 +1,6 @@
-// Auth/Register/Page.js
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import logo from "../../../../public/images/brandimage.jpeg";
@@ -10,9 +9,9 @@ import {
   createUserWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
+  updateProfile,
 } from "firebase/auth";
-import { auth, db } from "../../utils/firebaseconfig";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { auth } from "../../utils/firebaseconfig";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -31,45 +30,53 @@ const Register = () => {
     phone: "",
     password: "",
     confirmPassword: "",
-    role: "",
   });
 
-  // Google Sign-In Modal
-  const [showRoleSelection, setShowRoleSelection] = useState(false);
-  const [googleUserData, setGoogleUserData] = useState(null);
-
-  // Handle input changes
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear error when user types
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: null }));
-    }
-  };
-
   // Phone number formatting
-  const formatPhoneNumber = (value) => {
+  const formatPhoneNumber = useCallback((value) => {
     if (!value) return value;
+    
     const phoneNumber = value.replace(/[^\d]/g, "");
+    
+    // Nigerian number formatting
+    if (phoneNumber.startsWith('234')) {
+      const remainingDigits = phoneNumber.slice(3);
+      if (remainingDigits.length <= 3) return `+234 ${remainingDigits}`;
+      if (remainingDigits.length <= 6) return `+234 ${remainingDigits.slice(0, 3)} ${remainingDigits.slice(3)}`;
+      return `+234 ${remainingDigits.slice(0, 3)} ${remainingDigits.slice(3, 6)} ${remainingDigits.slice(6, 10)}`;
+    } else if (phoneNumber.startsWith('0')) {
+      const remainingDigits = phoneNumber.slice(1);
+      if (remainingDigits.length <= 3) return `0${remainingDigits}`;
+      if (remainingDigits.length <= 6) return `0${remainingDigits.slice(0, 3)} ${remainingDigits.slice(3)}`;
+      return `0${remainingDigits.slice(0, 3)} ${remainingDigits.slice(3, 6)} ${remainingDigits.slice(6, 10)}`;
+    }
+    
+    // Default formatting
     const phoneNumberLength = phoneNumber.length;
     if (phoneNumberLength < 4) return phoneNumber;
-    if (phoneNumberLength < 7) {
-      return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3)}`;
-    }
+    if (phoneNumberLength < 7) return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3)}`;
     return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
-  };
+  }, []);
 
-  const handlePhoneChange = (e) => {
+  const handlePhoneChange = useCallback((e) => {
     const formattedPhoneNumber = formatPhoneNumber(e.target.value);
     setFormData(prev => ({ ...prev, phone: formattedPhoneNumber }));
     if (errors.phone) {
       setErrors(prev => ({ ...prev, phone: null }));
     }
-  };
+  }, [errors.phone, formatPhoneNumber]);
 
-  // Validate form fields onBlur
-  const validateField = (name, value) => {
+  // Handle input changes
+  const handleInputChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: null }));
+    }
+  }, [errors]);
+
+  // Validate form fields
+  const validateField = useCallback((name, value) => {
     let error = "";
     switch (name) {
       case "firstName":
@@ -86,8 +93,11 @@ const Register = () => {
         }
         break;
       case "phone":
-        if (value && !/^\(\d{3}\) \d{3}-\d{4}$/.test(value)) {
-          error = "Invalid phone format (e.g., (123) 456-7890)";
+        if (value) {
+          const phoneRegex = /^(?:\+234\s?\d{3}\s?\d{3}\s?\d{4}|0\d{3}\s?\d{3}\s?\d{4}|\(\d{3}\)\s?\d{3}-\d{4})$/;
+          if (!phoneRegex.test(value)) {
+            error = "Use 0814 643 8621 or +234 814 643 8621 format";
+          }
         }
         break;
       case "password":
@@ -102,163 +112,79 @@ const Register = () => {
           error = "Passwords do not match";
         }
         break;
-      case "role":
-        if (!value) error = "Please select a role";
-        break;
     }
     setErrors(prev => ({ ...prev, [name]: error }));
-  };
+  }, [formData.password]);
 
-  // Convert Firebase error codes to friendly messages
-  const getErrorMessage = (errorCode) => {
-    switch (errorCode) {
-      case "auth/email-already-in-use":
-        return "This email is already registered";
-      case "auth/invalid-email":
-        return "Invalid email address";
-      case "auth/weak-password":
-        return "Password should be at least 6 characters";
-      case "auth/operation-not-allowed":
-        return "Email/password accounts are not enabled";
-      case "auth/network-request-failed":
-        return "Network error. Please check your connection";
-      default:
-        return "Registration failed. Please try again";
-    }
-  };
-
-  // Handle role-based redirection
-  const redirectBasedOnRole = (role) => {
-    switch(role) {
-      case "Customer":
-        router.push("/Clients/Dashboard");
-        break;
-      case "Vendor":
-        router.push("/Vendor");
-        break;
-      case "Graphics Designer":
-        router.push("/Designer");
-        break;
-      default:
-        router.push("/");
-    }
-  };
+  // Error message mapping
+  const getErrorMessage = useCallback((errorCode) => {
+    const errorMap = {
+      "auth/email-already-in-use": "This email is already registered",
+      "auth/invalid-email": "Invalid email address",
+      "auth/weak-password": "Password should be at least 6 characters",
+      "auth/operation-not-allowed": "Email/password accounts are not enabled",
+      "auth/network-request-failed": "Network error. Please check your connection",
+    };
+    return errorMap[errorCode] || "Registration failed. Please try again";
+  }, []);
 
   // Handle form submission
-  const handleSignUp = async (e) => {
+  const handleSignUp = useCallback(async (e) => {
     e.preventDefault();
     
-    // Validate all fields before submission
-    Object.keys(formData).forEach(field => {
-      validateField(field, formData[field]);
+    // Validate all fields
+    const newErrors = {};
+    Object.entries(formData).forEach(([field, value]) => {
+      validateField(field, value);
+      if (errors[field]) newErrors[field] = errors[field];
     });
     
-    if (Object.values(errors).some(error => error)) return;
+    if (Object.values(newErrors).some(error => error)) return;
     
     setIsLoading(true);
 
     try {
-      // 1. Firebase Auth (Email/Password)
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         formData.email,
         formData.password
       );
 
-      // 2. Save additional user data to Firestore
-      await setDoc(doc(db, "users", userCredential.user.uid), {
-        uid: userCredential.user.uid,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        phone: formData.phone.replace(/[^\d]/g, ""), // Store as raw digits
-        role: formData.role,
-        createdAt: serverTimestamp(),
+      // Update user display name with first and last name
+      await updateProfile(userCredential.user, {
+        displayName: `${formData.firstName} ${formData.lastName}`
       });
 
       toast.success("Account created successfully!");
-      
-      // 3. Redirect based on role
-      redirectBasedOnRole(formData.role);
-
+      router.push('/Clients/Dashboard');
     } catch (err) {
       toast.error(getErrorMessage(err.code));
       console.error("Registration error:", err);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [formData, errors, validateField, getErrorMessage, router]);
 
-  // Google Sign-In + Role Assignment
-  const handleGoogleSignIn = async () => {
+  // Google Sign-In
+  const handleGoogleSignIn = useCallback(async () => {
     setIsLoading(true);
-    const provider = new GoogleAuthProvider();
     try {
+      const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
-      setGoogleUserData(result.user);
-      setShowRoleSelection(true);
+      
       toast.success("Google Sign-In successful!");
+      router.push('/Clients/Dashboard');
     } catch (err) {
       toast.error(getErrorMessage(err.code));
       console.error("Google sign-in error:", err);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Save Google user role to Firestore
-  const handleRoleSelect = async (role) => {
-    setIsLoading(true);
-    try {
-      await setDoc(doc(db, "users", googleUserData.uid), {
-        uid: googleUserData.uid,
-        firstName: googleUserData.displayName?.split(" ")[0] || "",
-        lastName: googleUserData.displayName?.split(" ")[1] || "",
-        email: googleUserData.email,
-        phone: "",
-        role: role,
-        createdAt: serverTimestamp(),
-      });
-
-      toast.success(`Registered as ${role}!`);
-      
-      // Redirect based on selected role
-      redirectBasedOnRole(role);
-
-    } catch (err) {
-      toast.error("Failed to save role. Please try again.");
-      console.error("Firestore error:", err);
-    } finally {
-      setIsLoading(false);
-      setShowRoleSelection(false);
-    }
-  };
+  }, [getErrorMessage, router]);
 
   return (
     <div className="min-h-screen flex">
       <ToastContainer position="top-right" autoClose={3000} />
-
-      {/* Role Selection Modal */}
-      {showRoleSelection && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">
-              Select Your Role
-            </h2>
-            <div className="flex flex-col space-y-3">
-              {["Customer", "Vendor", "Graphics Designer"].map((role) => (
-                <button
-                  key={role}
-                  onClick={() => handleRoleSelect(role)}
-                  className="bg-yellow-400 text-black py-2 rounded hover:bg-yellow-300 transition"
-                >
-                  {role}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Left Section: Registration Form */}
       <div className="w-full md:w-1/2 bg-[#726002] p-8 flex flex-col justify-center">
@@ -315,30 +241,13 @@ const Register = () => {
             <input
               type="tel"
               name="phone"
-              placeholder="Phone (e.g., (123) 456-7890)"
+              placeholder="Phone (e.g., 0814 643 8621 or +234 814 643 8621)"
               value={formData.phone}
               onChange={handlePhoneChange}
               onBlur={(e) => validateField("phone", e.target.value)}
               className={`w-full p-3 rounded-md border ${errors.phone ? "border-red-500" : "border-gray-400"}`}
             />
             {errors.phone && <p className="text-red-300 text-sm mt-1">{errors.phone}</p>}
-          </div>
-
-          {/* Role Dropdown */}
-          <div>
-            <select
-              name="role"
-              value={formData.role}
-              onChange={handleInputChange}
-              onBlur={(e) => validateField("role", e.target.value)}
-              className={`w-full p-3 rounded-md border ${errors.role ? "border-red-500" : "border-gray-400"}`}
-            >
-              <option value="">Select Role</option>
-              <option value="Customer">Customer</option>
-              <option value="Vendor">Vendor</option>
-              <option value="Graphics Designer">Graphics Designer</option>
-            </select>
-            {errors.role && <p className="text-red-300 text-sm mt-1">{errors.role}</p>}
           </div>
 
           {/* Password */}
@@ -423,7 +332,7 @@ const Register = () => {
       </div>
 
       {/* Right Section: Brand Image */}
-      <div className="hidden  w-full md:flex md:w-1/2 bg-[#726002] items-center justify-center p-4">
+      <div className="hidden w-full md:flex md:w-1/2 bg-[#726002] items-center justify-center p-4">
         <Image
           src={logo}
           alt="59MinutesPrint Logo"
