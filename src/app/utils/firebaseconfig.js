@@ -30,7 +30,6 @@ let app;
 try {
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 } catch (error) {
-  console.error("Firebase initialization error", error);
   throw new Error("Failed to initialize Firebase");
 }
 
@@ -41,13 +40,5 @@ const storage = getStorage(app);
 
 // Google sign-in configuration
 const googleProvider = new GoogleAuthProvider();
-
-// Debug logs (only in development)
-if (process.env.NODE_ENV === "development") {
-  console.log("Firebase initialized with config:", {
-    projectId: firebaseConfig.projectId,
-    appName: app.name
-  });
-}
 
 export { app, auth, db, storage, googleProvider };
