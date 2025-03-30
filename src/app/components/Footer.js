@@ -9,20 +9,22 @@ import GIGlogo from "../../../public/images/GIG_Logistics_logo.png";
 import { FaFacebookF, FaInstagram, FaTwitter, FaEnvelope } from "react-icons/fa";
 
 const Footer = () => {
+  const currentYear = new Date().getFullYear(); // Get the current year
+
   return (
-    <footer className="bg-[#171301] text-white p-8 border-t-4 border-t-yellow-400">
+    <footer className="bg-[#171301] text-white p-8 border-t-4 border-yellow-400">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* Logo and Copyright */}
         <div>
           <Image
             src={logo}
-            alt="59 Minutes Print"
+            alt="59 Minutes Print Logo"
             width={96}
             height={96}
             className="mb-4 rounded shadow-lg"
           />
-          <p className="text-base">
-            Copyright © 2025 59MinutesPrint.<br />
+          <p className="text-base text-center md:text-left">
+            Copyright © {currentYear} 59MinutesPrint.<br />
             All Rights Reserved.
           </p>
         </div>
@@ -43,6 +45,7 @@ const Footer = () => {
                 <Link
                   href={link.href}
                   className="hover:text-yellow-500 transition-colors duration-200"
+                  aria-label={link.label}
                 >
                   {link.label}
                 </Link>
@@ -51,10 +54,9 @@ const Footer = () => {
           </ul>
         </div>
 
+        {/* Help and Information Links */}
         <div>
-          <h4 className="font-bold text-lg uppercase mb-4">
-            Help and Information
-          </h4>
+          <h4 className="font-bold text-lg uppercase mb-4">Help and Information</h4>
           <ul className="space-y-2">
             {[
               { href: "/material-quality", label: "Material Quality" },
@@ -67,6 +69,7 @@ const Footer = () => {
                 <Link
                   href={link.href}
                   className="hover:text-yellow-500 transition-colors duration-200"
+                  aria-label={link.label}
                 >
                   {link.label}
                 </Link>
@@ -75,18 +78,20 @@ const Footer = () => {
           </ul>
         </div>
 
+        {/* Monetization Links */}
         <div>
           <h4 className="font-bold text-lg uppercase mb-4">Monetize</h4>
           <ul className="space-y-2">
             {[
               { href: "/Vendor", label: "Become a Vendor" },
-              { href: "/sell-creativity", label: "Sell your Creativity" },
+              { href: "/sell-creativity", label: "Sell Your Creativity" },
               { href: "/referral", label: "N1,000 Referral Bonus" },
             ].map((link) => (
               <li key={link.href}>
                 <Link
                   href={link.href}
                   className="hover:text-yellow-500 transition-colors duration-200"
+                  aria-label={link.label}
                 >
                   {link.label}
                 </Link>
@@ -95,11 +100,11 @@ const Footer = () => {
           </ul>
         </div>
       </div>
-      
+
       {/* Social Media Section */}
       <div className="max-w-7xl mx-auto mt-10">
-        <h4 className="font-bold text-lg uppercase mb-4 text-center md:text-left">Follow us on social Media</h4>
-        
+        <h4 className="font-bold text-lg uppercase mb-4 text-center md:text-left">Follow Us on Social Media</h4>
+
         {/* Social Media and Payment Info */}
         <div className="flex flex-col md:flex-row justify-between items-center mt-4">
           {/* Social Media Icons */}
@@ -126,7 +131,7 @@ const Footer = () => {
                 <div className="p-2 bg-gray-800 rounded-lg inline-block">
                   <Image
                     src={paystacklogo}
-                    alt="Paystack"
+                    alt="Paystack Payment Logo"
                     width={100}
                     height={50}
                     className="h-8 w-auto"
@@ -135,7 +140,7 @@ const Footer = () => {
                 <div className="p-2 bg-gray-800 rounded-lg inline-block">
                   <Image
                     src={Flutterwavelogo}
-                    alt="Flutterwave"
+                    alt="Flutterwave Payment Logo"
                     width={100}
                     height={50}
                     className="h-8 w-auto"

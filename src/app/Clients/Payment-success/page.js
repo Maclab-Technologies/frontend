@@ -13,24 +13,23 @@ export default function PaymentSuccess() {
   useEffect(() => {
     const fetchOrderDetails = () => {
       setIsLoading(true);
-      
+
       try {
         // Get reference from URL
         const urlParams = new URLSearchParams(window.location.search);
         const ref = urlParams.get("reference") || urlParams.get("ref");
 
-        
         if (!ref) {
           setError("Invalid payment reference. Please contact support.");
           setIsLoading(false);
           return;
         }
-        
+
         setReference(ref);
 
         // Get order details from localStorage
-        const storedOrder = localStorage.getItem("lastOrder");
-        
+        const storedOrder = localStorage.getItem("orderDetails");
+
         if (!storedOrder) {
           setError("Order details not found. Please contact support.");
           setIsLoading(false);
@@ -39,7 +38,7 @@ export default function PaymentSuccess() {
 
         try {
           const parsedOrder = JSON.parse(storedOrder);
-          
+
           // Validate that the reference matches
           if (parsedOrder.reference !== ref) {
             console.warn("Reference mismatch:", parsedOrder.reference, ref);
@@ -47,11 +46,11 @@ export default function PaymentSuccess() {
             setIsLoading(false);
             return;
           }
-          
+
           setOrderDetails(parsedOrder);
-          
+
           // Clear localStorage after successful fetch
-          localStorage.removeItem("lastOrder");
+          localStorage.removeItem("orderDetails");
         } catch (parseError) {
           console.error("Error parsing order details:", parseError);
           setError("Unable to process order information. Please contact support.");
@@ -68,8 +67,7 @@ export default function PaymentSuccess() {
     if (typeof window !== "undefined") {
       fetchOrderDetails();
     }
-    
-    // Cleanup function
+
     return () => {
       // Any cleanup if needed
     };
@@ -82,7 +80,7 @@ export default function PaymentSuccess() {
   };
 
   const handleReturnToShop = () => {
-    router.push("/Clients/Products/");  // Redirect to homepage or shop page
+    router.push("/Clients/Products/"); // Redirect to homepage or shop page
   };
 
   // Show loading state
@@ -127,20 +125,26 @@ export default function PaymentSuccess() {
               <span className="font-medium text-gray-400">Order Reference:</span> {reference || "N/A"}
             </p>
             <p className="text-lg mb-2">
-              <span className="font-medium text-gray-400">Date:</span> {orderDetails?.date || "N/A"}
+              <span className="font-medium text-gray-400">Date:</span> {new Date().toLocaleString() || "N/A"}
             </p>
           </div>
-          
+
           <div className="mb-6 border-b border-gray-700 pb-4">
             <h2 className="text-2xl font-semibold mb-4">Customer Details</h2>
             <p className="text-lg mb-2">
-              <span className="font-medium text-gray-400">Name:</span> {orderDetails?.name || "N/A"}
+              <span className="font-medium text-gray-400">Name:</span> {orderDetails.fullName || "N/A"}
             </p>
             <p className="text-lg mb-2">
-              <span className="font-medium text-gray-400">Email:</span> {orderDetails?.email || "N/A"}
+              <span className="font-medium text-gray-400">Email:</span> {orderDetails.email || "N/A"}
             </p>
             <p className="text-lg mb-2">
-              <span className="font-medium text-gray-400">Shipping Address:</span> {orderDetails?.address || "N/A"}
+              <span className="font-medium text-gray-400">Phone:</span> {orderDetails.phone || "N/A"}
+            </p>
+            <p className="text-lg mb-2">
+              <span className="font-medium text-gray-400">Address:</span> {orderDetails.address || "N/A"}
+            </p>
+            <p className="text-lg mb-2">
+              <span className="font-medium text-gray-400">City:</span> {orderDetails.city || "N/A"}
             </p>
           </div>
 
@@ -156,7 +160,7 @@ export default function PaymentSuccess() {
                   </tr>
                 </thead>
                 <tbody>
-                  {orderDetails.items.map((item, index) => (
+                  {orderDetails.cartItems.map((item, index) => (
                     <tr key={index} className="border-b border-gray-800">
                       <td className="py-3">{item.name}</td>
                       <td className="text-center py-3">{item.quantity}</td>
@@ -169,7 +173,7 @@ export default function PaymentSuccess() {
 
             <div className="text-right">
               <h2 className="text-xl font-bold mb-6">
-                Total: ₦{orderDetails?.total?.toLocaleString() || "0"}
+                Total: ₦{orderDetails.totalAmount.toLocaleString() || "0"}
               </h2>
             </div>
           </div>

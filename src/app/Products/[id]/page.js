@@ -22,27 +22,34 @@ export default function ProductDetail() {
     }
 
     fetch("/Products/products.json")
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch product details.");
+        return res.json();
+      })
       .then((data) => {
         const foundProduct = data.find((p) => p.id === id);
         if (foundProduct) {
           setProduct(foundProduct);
           setSelectedImage(foundProduct.images[0]);
         } else {
+          toast.error("Product not found!");
           router.push("/Products");
         }
       })
-      .catch(() => {
-        toast.error("Failed to fetch product details.");
+      .catch((error) => {
+        toast.error(error.message || "Failed to fetch product details.");
+        router.push("/Products");
       })
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, router]);
 
   const handleQuantityChange = (action) => {
     setQuantity((prev) => (action === "increase" ? prev + 1 : Math.max(1, prev - 1)));
   };
 
   const handleAddToCart = () => {
+    if (!product) return;
+
     const cartItem = {
       id: product.id,
       name: product.name,
@@ -63,7 +70,6 @@ export default function ProductDetail() {
 
     localStorage.setItem("cart", JSON.stringify(existingCart));
     window.dispatchEvent(new Event("cartUpdated"));
-
     toast.success(`${product.name} added to cart!`, {
       position: "top-right",
       autoClose: 3000,
@@ -79,15 +85,29 @@ export default function ProductDetail() {
     );
   }
 
+  if (!product) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-black">
+        <p className="text-white text-lg">Product not found.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto p-8 text-white bg-black min-h-screen">
       <ToastContainer />
 
-      <div className="flex flex-col md:flex-row gap-12 max-w-7xl mx-auto p-10 rounded-lg bg-black shadow-md">
+      <div className="flex flex-col md:flex-row gap-12 max-w-7xl mx-auto p-10 rounded-lg bg-gray-800 shadow-md">
 
         {/* Left Side: Product Images */}
         <div className="md:w-1/2 flex flex-col items-center">
-          <Image src={selectedImage} alt={product?.name} width={450} height={450} className="rounded-xl" />
+          <Image 
+            src={selectedImage} 
+            alt={product?.name} 
+            width={450} 
+            height={450} 
+            className="rounded-xl" 
+          />
 
           <div className="flex gap-4 mt-6 overflow-x-auto">
             {product?.images?.map((img, index) => (
@@ -99,6 +119,8 @@ export default function ProductDetail() {
                 height={80}
                 className={`rounded-lg cursor-pointer ${selectedImage === img ? 'border-2 border-yellow-400' : ''}`}
                 onClick={() => setSelectedImage(img)}
+                role="button"
+                aria-label={`View image ${index + 1}`}
               />
             ))}
           </div>
@@ -106,7 +128,6 @@ export default function ProductDetail() {
 
         {/* Right Side: Product Details */}
         <div className="md:w-1/2 space-y-6">
-
           <h1 className="text-5xl font-bold">{product?.name}</h1>
           <p className="text-white text-lg">{product?.description}</p>
           <p className="text-yellow-400 text-3xl font-semibold">₦{product?.price}</p>
@@ -121,9 +142,19 @@ export default function ProductDetail() {
 
           {/* Quantity Control */}
           <div className="flex items-center gap-6">
-            <button className="bg-gray-800 px-5 py-2 rounded-md" onClick={() => handleQuantityChange("decrease")}>-</button>
+            <button 
+              className="bg-gray-800 px-5 py-2 rounded-md hover:bg-gray-700 transition" 
+              onClick={() => handleQuantityChange("decrease")}
+            >
+              -
+            </button>
             <span className="text-lg font-semibold">{quantity}</span>
-            <button className="bg-gray-800 px-5 py-2 rounded-md" onClick={() => handleQuantityChange("increase")}>+</button>
+            <button 
+              className="bg-gray-800 px-5 py-2 rounded-md hover:bg-gray-700 transition" 
+              onClick={() => handleQuantityChange("increase")}
+            >
+              +
+            </button>
           </div>
 
           {/* Design Options */}
@@ -158,7 +189,6 @@ export default function ProductDetail() {
 
             {/* 📤 Upload Design */}
             <button
-              utton
               onClick={() => {
                 setDesignOption("Upload Your Own Design");
                 router.push("/pages/upload-design");
@@ -173,14 +203,14 @@ export default function ProductDetail() {
 
           {/* Add to Cart */}
           <button
-            className="bg-yellow-400 text-black px-8 py-4 rounded-md font-bold w-full hover:bg-yellow-500"
+            className="bg-yellow-400 text-black px-8 py-4 rounded-md font-bold w-full hover:bg-yellow-500 transition"
             onClick={handleAddToCart}
           >
             Add to Cart
           </button>
 
           <button
-            className="mt-4 bg-white text-black px-8 py-2 rounded-md w-full hover:bg-gray-300"
+            className="mt-4 bg-white text-black px-8 py-2 rounded-md w-full hover:bg-gray-300 transition"
             onClick={() => router.push("/Products")}
           >
             Back to Products

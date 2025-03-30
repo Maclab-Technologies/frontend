@@ -7,13 +7,27 @@ import Link from "next/link";
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
   const [filters, setFilters] = useState({ search: "", category: "", vendor: "" });
+  const [loading, setLoading] = useState(true); // Loading state
+  const [error, setError] = useState(null); // Error state
 
   useEffect(() => {
     // Fetch product data from public/Products/products.json
-    fetch("/Products/products.json")
-      .then((res) => res.json())
-      .then((data) => setProducts(data))
-      .catch((error) => console.error("Error fetching products:", error));
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch("/Products/products.json");
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data = await response.json();
+        setProducts(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
   }, []);
 
   // Filter products based on search, category, and vendor
@@ -30,6 +44,13 @@ export default function ProductsPage() {
   const vendors = [
     ...new Set(products.map((product) => product.vendor).filter((vendor) => vendor !== "N/A")),
   ];
+
+  const resetFilters = () => {
+    setFilters({ search: "", category: "", vendor: "" });
+  };
+
+  if (loading) return <div className="p-6 text-center">Loading products...</div>;
+  if (error) return <div className="p-6 text-red-600 text-center">{`Error: ${error}`}</div>;
 
   return (
     <div className="bg-black w-full min-h-screen p-6">
@@ -69,16 +90,20 @@ export default function ProductsPage() {
             </option>
           ))}
         </select>
+        <button 
+          onClick={resetFilters} 
+          className="p-2 border rounded bg-red-500 text-white hover:bg-red-600 transition"
+        >
+          Reset Filters
+        </button>
       </div>
 
       {/* Product Listing */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
         {filteredProducts.map((product) => {
           // Ensure product.images is an array; if not, wrap it in an array.
-          const imagesArray = Array.isArray(product.images)
-            ? product.images
-            : [product.images];
-          const mainImage = imagesArray[0]; // Use the first image as main
+          const imagesArray = Array.isArray(product.images) ? product.images : [product.images];
+          const mainImage = imagesArray[0] || "/fallback-image.png"; // Fallback image
 
           return (
             <div
@@ -93,6 +118,8 @@ export default function ProductsPage() {
                   width={200}
                   height={200}
                   className="rounded-md object-cover"
+                  placeholder="blur" // Use blur-up while loading
+                  blurDataURL="/placeholder.png" // Placeholder image to display while loading
                 />
               </div>
               {/* Product Details */}

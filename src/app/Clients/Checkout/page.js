@@ -11,9 +11,11 @@ const Checkout = () => {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState(''); // New address state
+  const [city, setCity] = useState(''); // New city state
   const [error, setError] = useState('');
 
-  // ✅ Paystack script added correctly
+  // Paystack script for payment
   useEffect(() => {
     const script = document.createElement('script');
     script.src = 'https://js.paystack.co/v1/inline.js';
@@ -25,9 +27,9 @@ const Checkout = () => {
     };
   }, []);
 
-  // ✅ Input Validation
+  // Input Validation
   const validateInput = () => {
-    if (!fullName || !email || !phone) {
+    if (!fullName || !email || !phone || !address || !city) {
       setError('All fields are required');
       return false;
     }
@@ -47,7 +49,7 @@ const Checkout = () => {
     return true;
   };
 
-  // ✅ Handle Paystack Payment
+  // Handle Paystack Payment
   const handlePaystackPayment = async () => {
     if (!validateInput()) return;
 
@@ -55,6 +57,8 @@ const Checkout = () => {
       fullName,
       email,
       phone,
+      address,
+      city,
       cartItems: cart,
       totalAmount: cart.reduce((acc, item) => acc + item.price * item.quantity, 0),
     };
@@ -68,14 +72,14 @@ const Checkout = () => {
         const paymentReference = response.reference;
         localStorage.setItem('orderDetails', JSON.stringify(orderDetails));
         dispatch(clearCart());
-        window.location.href = '/Clients/Payment-success';
+        window.location.href = '/Clients/Payment-success'; // Redirect after success
       },
       onClose: () => {
         alert('Payment was not completed');
       },
     });
 
-    handler.openIframe(); // ✅ This is the correct way to open the Paystack iframe
+    handler.openIframe(); // Opens the payment iframe
   };
 
   return (
@@ -104,6 +108,20 @@ const Checkout = () => {
           placeholder="Phone Number"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
+          className="w-full mb-4 p-3 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
+        />
+        <input
+          type="text"
+          placeholder="Address"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+          className="w-full mb-4 p-3 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
+        />
+        <input
+          type="text"
+          placeholder="City"
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
           className="w-full mb-6 p-3 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
         />
 

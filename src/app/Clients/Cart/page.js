@@ -3,7 +3,7 @@
 import { useSelector, useDispatch } from "react-redux";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { updateQuantity, removeFromCart, setCart } from "../../Redux/CartSlice";
+import { updateQuantity, removeFromCart, setCart, clearCart } from "../../Redux/CartSlice"; 
 import { useRouter } from "next/navigation";
 import { FiTrash, FiShoppingCart } from "react-icons/fi";
 
@@ -25,7 +25,7 @@ export default function Cart() {
     if (!isLoading) {
       localStorage.setItem("cart", JSON.stringify(cartItems));
       // Dispatch an event to notify Navbar about cart update
-      window.dispatchEvent(new Event('cartUpdated'));
+      window.dispatchEvent(new Event("cartUpdated"));
     }
   }, [cartItems, isLoading]);
 
@@ -36,6 +36,14 @@ export default function Cart() {
 
   const handleRemoveItem = (id) => {
     dispatch(removeFromCart(id));
+  };
+
+  const handleClearCart = () => {
+    const confirmClear = window.confirm("Are you sure you want to clear your cart?");
+    if (confirmClear) {
+      dispatch(clearCart());
+      localStorage.removeItem("cart");
+    }
   };
 
   const handleCheckout = () => {
@@ -103,6 +111,8 @@ export default function Cart() {
                     <button 
                       onClick={() => handleQuantityChange(item.id, item.quantity - 1)} 
                       className="bg-gray-700 px-3 py-1 rounded-md hover:bg-gray-600 transition"
+                      aria-label={`Decrease ${item.name} quantity`}
+                      disabled={item.quantity <= 1} // Disable if quantity is 1
                     >
                       -
                     </button>
@@ -112,10 +122,12 @@ export default function Cart() {
                       min="1"
                       onChange={(e) => handleQuantityChange(item.id, e.target.value)}
                       className="w-14 text-center bg-black border border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                      aria-label={`Quantity for ${item.name}`}
                     />
                     <button 
                       onClick={() => handleQuantityChange(item.id, item.quantity + 1)} 
                       className="bg-gray-700 px-3 py-1 rounded-md hover:bg-gray-600 transition"
+                      aria-label={`Increase ${item.name} quantity`}
                     >
                       +
                     </button>
@@ -123,6 +135,7 @@ export default function Cart() {
                   <button
                     onClick={() => handleRemoveItem(item.id)}
                     className="text-red-500 mt-4 flex items-center gap-2 hover:text-red-400 transition"
+                    aria-label={`Remove ${item.name} from cart`}
                   >
                     <FiTrash /> Remove
                   </button>
@@ -133,12 +146,20 @@ export default function Cart() {
 
           <div className="flex flex-col md:flex-row justify-between items-center border-t border-gray-700 pt-6 gap-4">
             <h2 className="text-2xl font-bold">Total: {formatCurrency(totalPrice)}</h2>
-            <button
-              onClick={handleCheckout}
-              className="bg-yellow-400 text-black px-8 py-3 rounded-md hover:bg-yellow-500 transition duration-300 w-full md:w-auto text-center"
-            >
-              Proceed to Checkout 🚀
-            </button>
+            <div className="flex gap-4">
+              <button
+                onClick={handleClearCart} // Clear cart button
+                className="bg-red-600 text-white px-4 py-3 rounded-md hover:bg-red-700 transition duration-300"
+              >
+                Clear Cart
+              </button>
+              <button
+                onClick={handleCheckout}
+                className="bg-yellow-400 text-black px-8 py-3 rounded-md hover:bg-yellow-500 transition duration-300 w-full md:w-auto text-center"
+              >
+                Proceed to Checkout 🚀
+              </button>
+            </div>
           </div>
         </>
       )}

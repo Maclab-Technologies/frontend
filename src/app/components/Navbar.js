@@ -28,30 +28,18 @@ const Navbar = () => {
   const auth = getAuth(app);
   const cartItems = useSelector((state) => state.cart.cartItems || []);
 
-  // Listen for Firebase auth state changes
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-        setUser(currentUser);
-      });
-      return () => unsubscribe();
-    }
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
   }, [auth]);
 
-  // Update cart count from Redux and localStorage
   useEffect(() => {
     const updateCartCount = () => {
       try {
-        // First try to get from Redux (more reliable)
-        if (cartItems && cartItems.length > 0) {
-          const count = cartItems.reduce((acc, item) => acc + item.quantity, 0);
-          setCartCount(count);
-        } else {
-          // Fallback to localStorage if Redux is empty
-          const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
-          const count = storedCart.reduce((acc, item) => acc + (item.quantity || 1), 0);
-          setCartCount(count);
-        }
+        const count = cartItems.reduce((acc, item) => acc + item.quantity, 0) || 0;
+        setCartCount(count);
       } catch (error) {
         console.error("Error updating cart count:", error);
         setCartCount(0);
@@ -60,18 +48,10 @@ const Navbar = () => {
 
     updateCartCount();
 
-    // Listen for custom events and storage changes
-    const handleStorageChange = () => {
-      updateCartCount();
-    };
+    const handleStorageChange = () => updateCartCount();
 
-    window.addEventListener("cartUpdated", updateCartCount);
     window.addEventListener("storage", handleStorageChange);
-
-    return () => {
-      window.removeEventListener("cartUpdated", updateCartCount);
-      window.removeEventListener("storage", handleStorageChange);
-    };
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, [cartItems]);
 
   const handleLogout = async () => {
@@ -86,7 +66,7 @@ const Navbar = () => {
     <nav className="bg-black text-white py-4 border-b-4 border-yellow-400">
       <div className="container mx-auto flex items-center justify-between px-4">
         {/* Logo */}
-        <Link href="/" className="flex items-center">
+        <Link href="/" className="flex items-center" aria-label="Go to homepage">
           <Image
             src={logo}
             alt="Brand Logo"
@@ -98,8 +78,9 @@ const Navbar = () => {
 
         {/* Mobile Menu Button */}
         <button
+          aria-label="Toggle mobile menu"
           className="md:hidden text-white focus:outline-none"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          onClick={() => setIsMobileMenuOpen((prev) => !prev)}
         >
           {isMobileMenuOpen ? <FiX size={32} /> : <FiMenu size={32} />}
         </button>
@@ -109,10 +90,13 @@ const Navbar = () => {
           className={`fixed top-0 right-0 h-full w-64 bg-black shadow-md z-20 transition-transform duration-300 ease-in-out md:hidden ${
             isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
           }`}
+          role="navigation"
+          aria-hidden={!isMobileMenuOpen}
         >
           <button
             className="absolute top-4 right-4 text-white"
             onClick={() => setIsMobileMenuOpen(false)}
+            aria-label="Close mobile menu"
           >
             <FiX size={32} />
           </button>
