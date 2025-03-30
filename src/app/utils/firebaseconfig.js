@@ -1,6 +1,6 @@
 // firebaseconfig.js
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
@@ -39,6 +39,9 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
+// Google sign-in configuration
+const googleProvider = new GoogleAuthProvider();
+
 // Debug logs (only in development)
 if (process.env.NODE_ENV === "development") {
   console.log("Firebase initialized with config:", {
@@ -47,4 +50,4 @@ if (process.env.NODE_ENV === "development") {
   });
 }
 
-export { app, auth, db, storage };
+export { app, auth, db, storage, googleProvider };
