@@ -15,6 +15,7 @@ export default function VendorLogin() {
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false); // New state for showing/hiding password
   const router = useRouter();
 
   const validateForm = () => {
@@ -140,7 +141,7 @@ export default function VendorLogin() {
   };
 
   return (
-    <div className="min-h-screen  flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <ToastContainer
         position="top-center"
         autoClose={5000}
@@ -188,20 +189,29 @@ export default function VendorLogin() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Password <span className="text-red-500">*</span>
               </label>
-              <input
-                type="password"
-                name="password"
-                className={`w-full px-3 py-2 border ${errors.password ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500`}
-                placeholder="Enter your password"
-                value={formData.password}
-                onChange={handleInputChange}
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"} // Toggle password visibility
+                  name="password"
+                  className={`w-full px-3 py-2 border ${errors.password ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500`}
+                  placeholder="Enter your password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)} // Toggle state
+                  className="absolute inset-y-0 right-0 px-3 flex items-center text-sm text-gray-600"
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
               {errors.password && (
                 <p className="mt-1 text-sm text-red-600">{errors.password}</p>
               )}
               <div className="text-right mt-1">
                 <Link
-                  href="/Vendor/Forgot-password"
+                  href="/Vendor/Forgot-Password"
                   className="text-xs text-yellow-600 hover:text-yellow-500 hover:underline"
                 >
                   Forgot password?

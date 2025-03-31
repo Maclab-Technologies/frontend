@@ -17,6 +17,7 @@ export default function VendorRegister() {
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false); // State for showing/hiding password
   const router = useRouter();
 
   useEffect(() => {
@@ -84,7 +85,6 @@ export default function VendorRegister() {
         formData.password
       );
 
-      // Store business name in localStorage before redirecting
       localStorage.setItem("businessName", formData.businessName);
 
       toast.success(
@@ -188,14 +188,23 @@ export default function VendorRegister() {
               <label className="block text-sm font-medium text-black mb-1">
                 Password <span className="text-red-500">*</span>
               </label>
-              <input
-                type="password"
-                name="password"
-                className={`w-full px-3 py-2 border ${errors.password ? "border-red-500" : "border-black"} rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400`}
-                placeholder="At least 6 characters"
-                value={formData.password}
-                onChange={handleInputChange}
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"} // Toggle password visibility
+                  name="password"
+                  className={`w-full px-3 py-2 border ${errors.password ? "border-red-500" : "border-black"} rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400`}
+                  placeholder="At least 6 characters"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)} // Toggle state
+                  className="absolute inset-y-0 right-0 px-3 flex items-center text-sm text-gray-600"
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
               {errors.password && (
                 <p className="mt-1 text-sm text-red-600">{errors.password}</p>
               )}
@@ -217,7 +226,7 @@ export default function VendorRegister() {
                 <label htmlFor="agreeToTerms" className="font-medium text-black">
                   I agree to the{" "}
                   <Link
-                    href="/Vendor/terms"
+                    href="/Vendor/Terms"
                     className="text-yellow-600 hover:underline"
                   >
                     Terms & Conditions
@@ -289,8 +298,6 @@ export default function VendorRegister() {
             </svg>
             Continue with Google
           </button>
-
-
 
           <div className="mt-6 text-center text-sm">
             <p className="text-black">
