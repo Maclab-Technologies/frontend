@@ -21,7 +21,7 @@ const AdminDashboard = () => {
         <h1 className="text-2xl font-bold">Admin Dashboard</h1>
         <button
           onClick={handleLogout}
-          className="mt-2 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded"
+          className="mt-2 bg-blue-500 text-white font-semibold py-2 px-4 rounded"
         >
           Logout
         </button>
