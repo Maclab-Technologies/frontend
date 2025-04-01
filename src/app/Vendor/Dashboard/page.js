@@ -15,7 +15,7 @@ export default function VendorDashboard() {
     totalSales: 0,
     pendingOrders: 0,
     completedOrders: 0,
-    earnings: 0,
+    earnings: 1000,
   });
   const [businessName, setBusinessName] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -24,6 +24,14 @@ export default function VendorDashboard() {
     newPassword: "",
     confirmPassword: ""
   });
+  const [withdrawal, setWithdrawal] = useState({
+    accountName: "",
+    accountNumber: "",
+    bank: "",
+    mode: "daily",
+  });
+  const [savedEarningsDuration, setSavedEarningsDuration] = useState("2 months");
+  
   const router = useRouter();
 
   // Sample orders data
@@ -47,10 +55,7 @@ export default function VendorDashboard() {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         setUser(user);
-        const storedBusinessName = 
-          user.displayName || 
-          localStorage.getItem("businessName") || 
-          "Your Business";
+        const storedBusinessName = user.displayName || localStorage.getItem("businessName") || "Your Business";
         setBusinessName(storedBusinessName);
         fetchVendorData(user.uid);
       } else {
@@ -78,6 +83,16 @@ export default function VendorDashboard() {
     }
   };
 
+  const handleWithdrawalSubmit = (e) => {
+    e.preventDefault();
+    toast.success(`Withdrawal submitted: Account Name: ${withdrawal.accountName}, Account Number: ${withdrawal.accountNumber}, Bank: ${withdrawal.bank}, Mode: ${withdrawal.mode}`);
+    setWithdrawal({ accountName: "", accountNumber: "", bank: "", mode: "daily" });
+  };
+
+  const handleSaveEarnings = () => {
+    toast.success(`Earnings saved for: ${savedEarningsDuration}`);
+  };
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -93,7 +108,7 @@ export default function VendorDashboard() {
   const handleSaveProfile = async () => {
     try {
       await updateProfile(auth.currentUser, {
-        displayName: businessName
+        displayName: businessName,
       });
       localStorage.setItem("businessName", businessName);
       toast.success("Profile updated successfully");
@@ -103,24 +118,119 @@ export default function VendorDashboard() {
     }
   };
 
-  const handlePasswordChange = async (e) => {
-    e.preventDefault();
-    toast.success("Password changed successfully");
-    setPasswordForm({
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: ""
-    });
+  const renderWithdrawalTab = () => {
+    const banks = [
+      "Access Bank", "First Bank", "GTBank", "Zenith Bank", "UBA", "Ecobank",
+      "FCMB", "Stanbic IBTC", "Union Bank", "Wema Bank", "Sterling Bank",
+      "Jaiz Bank", "Rubber Bank", "Heritage Bank", "Keystone Bank", "Polaris Bank",
+    ];
+
+    return (
+      <div className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200">
+        <h3 className="text-lg font-bold text-gray-800">Submit Withdrawal</h3>
+        <form onSubmit={handleWithdrawalSubmit} className="space-y-4 mt-4">
+          <div>
+            <label htmlFor="accountName" className="block text-sm font-medium text-gray-700">Account Name</label>
+            <input
+              type="text"
+              id="accountName"
+              value={withdrawal.accountName}
+              onChange={(e) => setWithdrawal({ ...withdrawal, accountName: e.target.value })}
+              required
+              className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+            />
+          </div>
+          <div>
+            <label htmlFor="accountNumber" className="block text-sm font-medium text-gray-700">Account Number</label>
+            <input
+              type="text"
+              id="accountNumber"
+              value={withdrawal.accountNumber}
+              onChange={(e) => setWithdrawal({ ...withdrawal, accountNumber: e.target.value })}
+              required
+              className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+            />
+          </div>
+          <div>
+            <label htmlFor="bank" className="block text-sm font-medium text-gray-700">Select Bank</label>
+            <select
+              id="bank"
+              value={withdrawal.bank}
+              onChange={(e) => setWithdrawal({ ...withdrawal, bank: e.target.value })}
+              className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+              required
+            >
+              <option value="">Select Bank</option>
+              {banks.map((bank, index) => (
+                <option key={index} value={bank}>{bank}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="withdrawalMode" className="block text-sm font-medium text-gray-700">Withdrawal Mode</label>
+            <select
+              id="withdrawalMode"
+              value={withdrawal.mode}
+              onChange={(e) => setWithdrawal({ ...withdrawal, mode: e.target.value })}
+              className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+            >
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+            </select>
+          </div>
+          <button type="submit" className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md py-2">
+            Submit Withdrawal
+          </button>
+        </form>
+      </div>
+    );
   };
 
-  const handleProductAction = (action, productId) => {
-    if (action === "delete") {
-      setProducts(products.filter(product => product.id !== productId));
-      toast.success("Product deleted successfully");
-    } else {
-      toast.info("Edit product functionality coming soon");
-    }
-  };
+  const renderSavedEarningsTab = () => (
+    <div className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200">
+      <h3 className="text-lg font-bold text-gray-800">Save Earnings</h3>
+      <div className="mt-4">
+        <select
+          value={savedEarningsDuration}
+          onChange={(e) => setSavedEarningsDuration(e.target.value)}
+          className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+        >
+          <option value="2 months">2 months</option>
+          <option value="4 months">4 months</option>
+          <option value="6 months">6 months</option>
+          <option value="full year">Full year</option>
+        </select>
+      </div>
+      <button 
+        onClick={handleSaveEarnings} 
+        className="mt-4 w-full bg-green-500 hover:bg-green-600 text-white font-medium rounded-md py-2"
+      >
+        Save Earnings
+      </button>
+    </div>
+  );
+
+  const renderEarningsReportTab = () => (
+    <div className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200">
+      <h3 className="text-lg font-bold text-gray-800">Earnings Report</h3>
+      <div className="mt-4">
+        <h4 className="text-md font-medium text-gray-700">Total Earnings for This Month:</h4>
+        <p className="text-xl font-bold text-gray-800">{`${stats.earnings}`}</p>
+        <div className="mt-3">
+          <select className="mt-1 block w-full border border-gray-300 rounded-md p-2">
+            <option value="daily">Today</option>
+            <option value="weekly">This Week</option>
+            <option value="monthly">This Month</option>
+          </select>
+        </div>
+      </div>
+      {/* Placeholder for Chart */}
+      <div className="mt-4 h-48 bg-gray-200 rounded-md flex items-center justify-center">
+        <p className="text-gray-500">Earnings chart will appear here.</p>
+      </div>
+    </div>
+  );
 
   const renderStatsCards = () => (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
@@ -309,7 +419,7 @@ export default function VendorDashboard() {
 
           <nav className="p-4">
             <ul className="space-y-1">
-              {["dashboard", "products", "orders", "earnings", "settings"].map((tab) => (
+              {["dashboard", "products", "orders", "withdrawal", "earnings", "save-earnings", "settings"].map((tab) => (
                 <li key={tab}>
                   <button
                     onClick={() => setActiveTab(tab)}
@@ -319,7 +429,7 @@ export default function VendorDashboard() {
                         : "text-gray-700 hover:bg-gray-100"
                     }`}
                   >
-                    {tab}
+                    {tab.replace('-', ' ')}
                   </button>
                 </li>
               ))}
@@ -371,23 +481,20 @@ export default function VendorDashboard() {
           {activeTab === "orders" && (
             <div className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200 mb-6 md:mb-8">
               <h3 className="text-lg font-bold text-gray-800">All Orders</h3>
-              {/* All order details can be rendered here */}
               <p className="text-gray-500">All order details will be shown here.</p>
             </div>
           )}
 
-          {activeTab === "earnings" && (
-            <div className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200">
-              <h3 className="text-lg font-bold text-gray-800">Earnings Report</h3>
-              {/* Add your earnings report logic here */}
-              <p className="text-gray-500">Earnings data will be shown here.</p>
-            </div>
-          )}
+          {activeTab === "withdrawal" && renderWithdrawalTab()}
+
+          {activeTab === "earnings" && renderEarningsReportTab()}
+
+          {activeTab === "save-earnings" && renderSavedEarningsTab()}
 
           {activeTab === "settings" && (
             <div className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200">
               <h3 className="text-lg font-bold text-gray-800">Account Settings</h3>
-              <form onSubmit={handlePasswordChange} className="space-y-4 mt-4">
+              <form onSubmit={(e) => { e.preventDefault(); toast.success("Password changed successfully"); setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" }); }} className="space-y-4 mt-4">
                 <div>
                   <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700">Current Password</label>
                   <input

@@ -9,6 +9,7 @@ import WhatWeOffer from "../app/components/WhatWeOffer";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { FaChevronDown } from "react-icons/fa";
+import Feedback from "../app/components/Feedback"
 
 export default function Home() {
   const router = useRouter();
@@ -173,106 +174,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Feedback */}
-      <section className="bg-black text-white px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
-          {/* Feedback Section */}
-          <div>
-            <h2 className="bg-yellow-500 text-black font-bold text-center py-2 rounded-md mb-8">Feedback</h2>
-            <form className="space-y-6">
-              {/* First Name and Last Name Row */}
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1">
-                  <label className="block mb-2 font-semibold">Firstname</label>
-                  <input
-                    type="text"
-                    placeholder="First Name"
-                    className="w-full px-4 py-2  rounded-lg text-white"
-                  />
-                </div>
-                <div className="flex-1">
-                  <label className="block mb-2 font-semibold">Lastname</label>
-                  <input
-                    type="text"
-                    placeholder="Last Name "
-                    className="w-full px-4 py-2  rounded-lg text-white"
-                  />
-                </div>
-              </div>
 
-              {/* Email Input */}
-              <div>
-                <label className="block mb-2 font-semibold">Email</label>
-                <input
-                  type="email"
-                  placeholder="Email Address"
-                  className="w-full px-4 py-2  rounded-lg text-white"
-                />
-              </div>
-
-              {/* Label Text Area */}
-              <div>
-                <label className="block mb-2 font-semibold">Message</label>
-                <textarea
-                  placeholder="Message"
-                  className="w-full px-4 py-2  rounded-lg text-white h-32"
-                ></textarea>
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                className="w-full py-3 bg-yellow-500 text-black font-bold rounded-full hover:bg-yellow-600"
-              >
-                Send Feedback
-              </button>
-            </form>
-          </div>
-
-          {/* FAQ Section */}
-          <section className="py-16 bg-gray-900 text-white">
-            <div className="max-w-4xl mx-auto px-6">
-              <h2 className="text-4xl font-bold text-center mb-8 text-yellow-400">Frequently Asked Questions</h2>
-              <div className="space-y-4">
-                {faqs.map((faq, index) => (
-                  <motion.div
-                    key={index}
-                    className="bg-gray-800 rounded-lg p-4 shadow-lg"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.1 }}
-                  >
-                    <button
-                      onClick={() => toggleFAQ(index)}
-                      className="flex justify-between items-center w-full text-left text-lg font-semibold text-yellow-400"
-                    >
-                      {faq.question}
-                      <motion.div
-                        animate={{ rotate: openIndex === index ? 180 : 0 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <FaChevronDown className="text-yellow-400" />
-                      </motion.div>
-                    </button>
-                    {openIndex === index && (
-                      <motion.p
-                        className="mt-2 text-gray-300 text-sm"
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        {faq.answer}
-                      </motion.p>
-                    )}
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </section>
-        </div>
-      </section>
-
+<section>
+  <Feedback />
+</section>
+      
 
       {/* Why You Choose Us Section */}
       <section className="bg-black text-white px-8 py-16">

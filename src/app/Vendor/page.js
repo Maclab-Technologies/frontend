@@ -185,10 +185,10 @@ export default function VendorLandingPage() {
             </div>
             <div className="flex flex-col items-center md:items-end">
               <div className="flex space-x-6 mb-4">
-                <Link href="/vendor/terms" className="hover:text-amber-400 transition-colors">
+                <Link href="/Vendor/Terms" className="hover:text-amber-400 transition-colors">
                   Terms
                 </Link>
-                <Link href="/vendor/privacy" className="hover:text-amber-400 transition-colors">
+                <Link href="/Vendor/Privacy" className="hover:text-amber-400 transition-colors">
                   Privacy
                 </Link>
                 <Link href="/vendor/contact" className="hover:text-amber-400 transition-colors">

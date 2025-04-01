@@ -211,7 +211,7 @@ export default function VendorLogin() {
               )}
               <div className="text-right mt-1">
                 <Link
-                  href="/Vendor/Forgot-Password"
+                  href="/Vendor/Forget"
                   className="text-xs text-yellow-600 hover:text-yellow-500 hover:underline"
                 >
                   Forgot password?

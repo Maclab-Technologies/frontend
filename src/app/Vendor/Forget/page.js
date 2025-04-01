@@ -1,16 +1,14 @@
-// pages/Vendor/ForgotPassword.js
-
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { auth } from "../../utils/firebaseconfig"; // adjust path as needed
+import { auth } from "../../utils/firebaseconfig"; // Adjust path as needed
 import { sendPasswordResetEmail } from "firebase/auth";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
 
-export default function ForgotPassword() {
+export default function Forgot() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -22,21 +20,24 @@ export default function ForgotPassword() {
   const handlePasswordReset = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
       await sendPasswordResetEmail(auth, email);
       toast.success("Check your email for the password reset link.", {
         autoClose: 5000,
       });
-      setTimeout(() => router.push("/Vendor/Login"), 2000); // Redirect after a short delay
+
+      setTimeout(() => router.push("/Vendor/Login"), 2000); // Redirect after delay
     } catch (error) {
       console.error("Error sending password reset email", error);
+
       const errorMessages = {
         "auth/invalid-email": "Invalid email address.",
         "auth/user-not-found": "No user found with this email.",
         "auth/network-request-failed": "Network error. Please try again.",
         default: "Error sending password reset email. Please try again.",
       };
+
       toast.error(errorMessages[error.code] || errorMessages.default, {
         autoClose: 5000,
       });
@@ -50,7 +51,9 @@ export default function ForgotPassword() {
       <ToastContainer position="top-center" />
 
       <div className="w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden p-6">
-        <h1 className="text-2xl font-bold text-gray-800 text-center">Forgot Password</h1>
+        <h1 className="text-2xl font-bold text-gray-800 text-center">
+          Forgot Password
+        </h1>
         <p className="text-gray-600 mt-2 text-center">
           Enter your email to receive a password reset link.
         </p>
@@ -82,7 +85,10 @@ export default function ForgotPassword() {
         </form>
 
         <div className="mt-4 text-center">
-          <Link href="/Vendor/Login" className="text-sm text-yellow-600 hover:text-yellow-500 hover:underline">
+          <Link
+            href="/Vendor/Login"
+            className="text-sm text-yellow-600 hover:text-yellow-500 hover:underline"
+          >
             Back to Login
           </Link>
         </div>
