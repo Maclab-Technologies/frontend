@@ -31,6 +31,7 @@ const Register = () => {
     password: "",
     confirmPassword: "",
   });
+  const [token, setToken] = useState('');
 
   // Phone number formatting
   const formatPhoneNumber = useCallback((value) => {
@@ -150,6 +151,10 @@ const Register = () => {
         formData.password
       );
 
+      const idToken = userCredential.user.accessToken
+      setToken(idToken), 
+      localStorage.setItem('userToken', idToken)
+
       // Update user display name with first and last name
       await updateProfile(userCredential.user, {
         displayName: `${formData.firstName} ${formData.lastName}`
@@ -171,9 +176,11 @@ const Register = () => {
     try {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
-      
-      toast.success("Google Sign-In successful!");
-      router.push('/Clients/Dashboard');
+
+      const idToken = result.user.accessToken
+      setToken(idToken), 
+      localStorage.setItem('userToken', idToken)
+
     } catch (err) {
       toast.error(getErrorMessage(err.code));
       console.error("Google sign-in error:", err);
