@@ -120,6 +120,8 @@ const Login = () => {
         formData.email, 
         formData.password
       );
+
+      console.log(userCredential)
       
       const idToken = userCredential.user.accessToken
       setToken(idToken), 
@@ -149,6 +151,8 @@ const Login = () => {
       );
 
       const result = await signInWithPopup(auth, provider);
+
+      console.log(result)
 
       const idToken = result.user.accessToken
       setToken(idToken), 
