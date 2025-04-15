@@ -333,18 +333,29 @@ export default function VendorDashboard() {
       <ToastContainer position="top-right" autoClose={5000} theme="colored" />
 
       <div className="flex flex-col lg:flex-row">
-        <div className={`fixed lg:relative w-64 bg-white shadow-md h-screen sticky top-0 border-r border-gray-200 transition-transform transform ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
-          <div className="p-4 border-b border-gray-200">
+        <div
+          className={`fixed lg:relative w-64 bg-white shadow-md h-screen sticky top-0 border-r border-gray-200 transition-transform transform ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
+        >
+          <div className="flex justify-between items-center p-4 border-b border-gray-200">
             <h1 className="text-xl font-bold text-gray-800">59Minutes Vendor</h1>
-            <p className="text-sm text-gray-500">{businessName || user?.email}</p>
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-gray-600 hover:text-gray-900"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
-
           <nav className="p-4">
             <ul className="space-y-1">
               {["dashboard", "products", "orders", "withdrawal", "earnings", "settings"].map((tab) => (
                 <li key={tab}>
                   <button
-                    onClick={() => setActiveTab(tab)}
+                    onClick={() => {
+                      setActiveTab(tab);
+                      setMobileMenuOpen(false); // Close mobile menu after tab selection
+                    }}
                     className={`w-full text-left px-4 py-3 rounded-md capitalize font-medium ${
                       activeTab === tab 
                         ? "bg-yellow-400 text-black shadow-sm" 
@@ -356,7 +367,6 @@ export default function VendorDashboard() {
                 </li>
               ))}
             </ul>
-
             <div className="mt-8 pt-4 border-t border-gray-200">
               <button
                 onClick={handleLogout}
