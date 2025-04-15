@@ -329,12 +329,13 @@ export default function VendorDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`min-h-screen bg-gray-50 ${mobileMenuOpen ? 'overflow-hidden' : ''}`}>
       <ToastContainer position="top-right" autoClose={5000} theme="colored" />
 
       <div className="flex flex-col lg:flex-row">
+        {/* Sidebar */}
         <div
-          className={`fixed lg:relative w-64 bg-white shadow-md h-screen sticky top-0 border-r border-gray-200 transition-transform transform ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
+          className={`fixed lg:relative w-64 bg-white shadow-md h-screen sticky top-0 border-r border-gray-200 transition-transform transform ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 z-50`}
         >
           <div className="flex justify-between items-center p-4 border-b border-gray-200">
             <h1 className="text-xl font-bold text-gray-800">59Minutes Vendor</h1>
@@ -378,7 +379,8 @@ export default function VendorDashboard() {
           </nav>
         </div>
 
-        <div className="flex-1 p-4 md:p-6 lg:p-8">
+        {/* Content Area */}
+        <div className={`flex-1 p-4 md:p-6 lg:p-8 transition-transform duration-300 ${mobileMenuOpen ? 'ml-64' : ''}`}>
           <div className="mb-6 md:mb-8 flex justify-between items-center">
             <h2 className="text-xl md:text-2xl font-bold text-gray-800 capitalize">
               {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Area
