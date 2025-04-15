@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { auth } from "../../utils/firebaseconfig";
-import { onAuthStateChanged, signOut, updateProfile } from "firebase/auth";
+import { onAuthStateChanged, signOut, updateProfile, updateEmail } from "firebase/auth";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -15,18 +15,17 @@ export default function VendorDashboard() {
     totalSales: 0,
     pendingOrders: 0,
     completedOrders: 0,
-    earnings: 1000,
+    earnings: 0,
   });
   const [businessName, setBusinessName] = useState("");
+  const [email, setEmail] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [withdrawal, setWithdrawal] = useState({
+  const [withdrawalInfo, setWithdrawalInfo] = useState({
     accountName: "",
     accountNumber: "",
-    bank: "",
-    mode: "daily",
+    bankName: "",
+    frequency: "daily",
   });
-  const [savedEarningsDuration, setSavedEarningsDuration] = useState("2 months");
-
   const [newProduct, setNewProduct] = useState({
     name: "",
     description: "",
@@ -34,34 +33,30 @@ export default function VendorDashboard() {
     price: "",
     stock: "",
     material: "",
-    color: ""
+    color: "",
+  });
+
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
 
   const router = useRouter();
 
   // Sample orders data
-  const [orders, setOrders] = useState([
-    { id: "#12345", customer: "John Doe", date: "2023-05-15", amount: "$45.99", status: "Completed" },
-    { id: "#12346", customer: "Jane Smith", date: "2023-05-14", amount: "$29.99", status: "Processing" },
-    { id: "#12347", customer: "Robert Johnson", date: "2023-05-14", amount: "$89.99", status: "Shipped" },
-    { id: "#12348", customer: "Emily Davis", date: "2023-05-13", amount: "$15.99", status: "Completed" },
-    { id: "#12349", customer: "Michael Wilson", date: "2023-05-12", amount: "$120.99", status: "Completed" },
-  ]);
-
+  const [orders, setOrders] = useState([]);
   // Sample products data
-  const [products, setProducts] = useState([
-    { id: "PRD-001", name: "Premium T-Shirt", price: "$24.99", stock: 142, status: "Active", image: "/placeholder-product.jpg" },
-    { id: "PRD-002", name: "Art Print", price: "$19.99", stock: 87, status: "Active", image: "/placeholder-product.jpg" },
-    { id: "PRD-003", name: "Mug", price: "$12.99", stock: 0, status: "Out of Stock", image: "/placeholder-product.jpg" }
-  ]);
+  const [products, setProducts] = useState([]);
 
-  // Check auth state
+  // Check authentication state
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         setUser(user);
-        const storedBusinessName = user.displayName || localStorage.getItem("businessName") || "Your Business";
+        const storedBusinessName = user.displayName || localStorage.getItem("businessName") || "Your Business Name";
         setBusinessName(storedBusinessName);
+        setEmail(user.email); // Set user email
         fetchVendorData(user.uid);
       } else {
         router.push("/Vendor/Login");
@@ -74,28 +69,24 @@ export default function VendorDashboard() {
 
   const fetchVendorData = async (vendorId) => {
     try {
-      setTimeout(() => {
-        setStats({
-          totalSales: 1245,
-          pendingOrders: 8,
-          completedOrders: 42,
-          earnings: 8960,
-        });
-      }, 500);
+      setStats({
+        totalSales: 2000,
+        pendingOrders: 3,
+        completedOrders: 10,
+        earnings: 16000,
+      });
     } catch (error) {
       console.error("Error fetching vendor data:", error);
-      toast.error("Failed to load dashboard data");
+      toast.error("Unable to load dashboard data.");
     }
   };
 
   const handleAddProduct = (e) => {
     e.preventDefault();
-
     if (newProduct.images.length > 5) {
-      toast.error("Please upload a maximum of 5 images.");
+      toast.error("You can upload a maximum of 5 images.");
       return;
     }
-
     const product = {
       id: `PRD-${new Date().getTime()}`,
       name: newProduct.name,
@@ -106,8 +97,12 @@ export default function VendorDashboard() {
       material: newProduct.material,
       color: newProduct.color,
     };
-
     setProducts([...products, product]);
+    resetNewProductForm();
+    toast.success("Product added successfully!");
+  };
+
+  const resetNewProductForm = () => {
     setNewProduct({
       name: "",
       description: "",
@@ -115,27 +110,25 @@ export default function VendorDashboard() {
       price: "",
       stock: "",
       material: "",
-      color: ""
+      color: "",
     });
-
-    toast.success("Product added successfully!");
   };
 
-  const handleWithdrawalSubmit = (e) => {
+  const handleWithdrawSubmit = (e) => {
     e.preventDefault();
-    toast.success(`Withdrawal submitted: Account Name: ${withdrawal.accountName}, Account Number: ${withdrawal.accountNumber}, Bank: ${withdrawal.bank}, Mode: ${withdrawal.mode}`);
-    setWithdrawal({ accountName: "", accountNumber: "", bank: "", mode: "daily" });
+    toast.success(`Withdrawal request submitted for ${withdrawalInfo.accountName}`);
+    resetWithdrawalInfo();
   };
 
-  const handleSaveEarnings = () => {
-    toast.success(`Earnings saved for: ${savedEarningsDuration}`);
+  const resetWithdrawalInfo = () => {
+    setWithdrawalInfo({ accountName: "", accountNumber: "", bankName: "", frequency: "daily" });
   };
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
       localStorage.removeItem("businessName");
-      toast.success("Logged out successfully");
+      toast.success("You've been logged out successfully.");
       router.push("/Vendor/Login");
     } catch (error) {
       console.error("Logout error:", error);
@@ -145,21 +138,54 @@ export default function VendorDashboard() {
 
   const handleSaveProfile = async () => {
     try {
-      await updateProfile(auth.currentUser, {
-        displayName: businessName,
-      });
-      localStorage.setItem("businessName", businessName);
-      toast.success("Profile updated successfully");
+      if (businessName) {
+        await updateProfile(auth.currentUser, { displayName: businessName });
+        localStorage.setItem("businessName", businessName);
+        toast.success("Business name updated successfully.");
+      }
+
+      if (email) {
+        await updateEmail(auth.currentUser, email);
+        toast.success("Email updated successfully.");
+      }
     } catch (error) {
       console.error("Error updating profile:", error);
-      toast.error("Failed to update profile");
+      if (error.code === 'auth/email-already-in-use') {
+        toast.error("This email is already in use.");
+      } else {
+        toast.error("Failed to update profile.");
+      }
     }
+  };
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    try {
+      if (passwordForm.newPassword === passwordForm.confirmPassword) {
+        const userCredential = await auth.signInWithEmailAndPassword(user.email, passwordForm.currentPassword);
+        await userCredential.user.updatePassword(passwordForm.newPassword);
+        resetPasswordForm();
+        toast.success("Password updated successfully.");
+      } else {
+        toast.error("New passwords do not match.");
+      }
+    } catch (error) {
+      console.error("Error updating password:", error);
+      toast.error("Failed to update password. Check your current password.");
+    }
+  };
+
+  const resetPasswordForm = () => {
+    setPasswordForm({
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
   };
 
   const renderCreateProductForm = () => (
     <form onSubmit={handleAddProduct} className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200 mb-6 md:mb-8">
-      <h3 className="text-lg font-bold text-gray-800 mb-4">Create New Product</h3>
-      {/* Product Name */}
+      <h3 className="text-lg font-bold text-gray-800 mb-4">Add New Product</h3>
       <div>
         <label htmlFor="productName" className="block text-sm font-medium text-gray-700">Product Name</label>
         <input
@@ -171,8 +197,6 @@ export default function VendorDashboard() {
           className="mt-1 block w-full border border-gray-300 rounded-md p-2"
         />
       </div>
-
-      {/* Description */}
       <div className="mt-4">
         <label htmlFor="productDescription" className="block text-sm font-medium text-gray-700">Description</label>
         <textarea
@@ -183,10 +207,8 @@ export default function VendorDashboard() {
           className="mt-1 block w-full border border-gray-300 rounded-md p-2"
         />
       </div>
-
-      {/* Image Upload */}
       <div className="mt-4">
-        <label className="block text-sm font-medium text-gray-700">Images (max 5)</label>
+        <label className="block text-sm font-medium text-gray-700">Upload Images (max 5)</label>
         <input
           type="file"
           accept="image/*"
@@ -198,10 +220,8 @@ export default function VendorDashboard() {
           className="mt-1 block w-full border border-gray-300 rounded-md p-2"
         />
       </div>
-
-      {/* Price */}
       <div className="mt-4">
-        <label htmlFor="productPrice" className="block text-sm font-medium text-gray-700">Price</label>
+        <label htmlFor="productPrice" className="block text-sm font-medium text-gray-700">Price (in Naira)</label>
         <input
           type="number"
           id="productPrice"
@@ -211,10 +231,8 @@ export default function VendorDashboard() {
           className="mt-1 block w-full border border-gray-300 rounded-md p-2"
         />
       </div>
-
-      {/* Stock */}
       <div className="mt-4">
-        <label htmlFor="productStock" className="block text-sm font-medium text-gray-700">Stock</label>
+        <label htmlFor="productStock" className="block text-sm font-medium text-gray-700">Stock Quantity</label>
         <input
           type="number"
           id="productStock"
@@ -224,10 +242,8 @@ export default function VendorDashboard() {
           className="mt-1 block w-full border border-gray-300 rounded-md p-2"
         />
       </div>
-
-      {/* Material */}
       <div className="mt-4">
-        <label htmlFor="productMaterial" className="block text-sm font-medium text-gray-700">Material</label>
+        <label htmlFor="productMaterial" className="block text-sm font-medium text-gray-700">Material Type</label>
         <input
           type="text"
           id="productMaterial"
@@ -237,10 +253,8 @@ export default function VendorDashboard() {
           className="mt-1 block w-full border border-gray-300 rounded-md p-2"
         />
       </div>
-
-      {/* Color */}
       <div className="mt-4">
-        <label htmlFor="productColor" className="block text-sm font-medium text-gray-700">Color</label>
+        <label htmlFor="productColor" className="block text-sm font-medium text-gray-700">Color Options</label>
         <input
           type="text"
           id="productColor"
@@ -250,57 +264,17 @@ export default function VendorDashboard() {
           className="mt-1 block w-full border border-gray-300 rounded-md p-2"
         />
       </div>
-
-      {/* Submit Button */}
       <button type="submit" className="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md py-2">
         Add Product
       </button>
     </form>
   );
 
-  const renderStatsCards = () => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
-      {[
-        { title: "Total Sales", value: stats.totalSales, icon: "💰", trend: "↑ 12% from last month", trendColor: "text-green-600" },
-        { title: "Pending Orders", value: stats.pendingOrders, icon: "🔄", trend: "↓ 5% from last month", trendColor: "text-red-600" },
-        { title: "Completed Orders", value: stats.completedOrders, icon: "✅", trend: "↑ 24% from last month", trendColor: "text-green-600" },
-        { title: "Total Earnings", value: `$${stats.earnings.toLocaleString()}`, icon: "💳", trend: "↑ 18% from last month", trendColor: "text-green-600" }
-      ].map((stat, index) => (
-        <div key={index} className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200">
-          <div className="flex justify-between">
-            <div>
-              <p className="text-xs md:text-sm font-medium text-gray-500">{stat.title}</p>
-              <p className="text-xl md:text-2xl font-bold text-gray-800 mt-1">{stat.value}</p>
-            </div>
-            <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-yellow-400 flex items-center justify-center text-xl md:text-2xl text-black">
-              {stat.icon}
-            </div>
-          </div>
-          <div className={`mt-2 md:mt-4 text-xs md:text-sm ${stat.trendColor}`}>
-            {stat.trend}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-
-  const renderSalesChart = () => (
-    <div className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200 mb-6 md:mb-8">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-bold text-gray-800">Sales Overview</h3>
-        <span className="px-3 py-1 bg-yellow-400 text-black text-xs font-medium rounded-full">This Month</span>
-      </div>
-      <div className="h-48 md:h-64 bg-gray-50 rounded-md flex items-center justify-center">
-        <p className="text-gray-500">Sales chart will appear here</p>
-      </div>
-    </div>
-  );
-
   const renderRecentOrders = () => (
     <div className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-bold text-gray-800">Recent Orders</h3>
-        <button 
+        <button
           onClick={() => setActiveTab("orders")}
           className="bg-yellow-400 hover:bg-yellow-500 text-black px-3 py-1 rounded text-sm font-medium transition-colors"
         >
@@ -342,6 +316,7 @@ export default function VendorDashboard() {
     </div>
   );
 
+  // Check if loading
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -357,57 +332,8 @@ export default function VendorDashboard() {
     <div className="min-h-screen bg-gray-50">
       <ToastContainer position="top-right" autoClose={5000} theme="colored" />
 
-      {/* Mobile Header */}
-      <div className="lg:hidden bg-white shadow-sm p-4 flex justify-between items-center border-b border-gray-200">
-        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 rounded-md text-gray-700">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-        <h1 className="text-lg font-bold text-gray-800">59Minutes Vendor</h1>
-        <div className="h-8 w-8 rounded-full bg-yellow-400 flex items-center justify-center text-black font-bold">
-          {user?.email?.charAt(0).toUpperCase()}
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden bg-white shadow-md border-b border-gray-200 p-4">
-          <nav>
-            <ul className="space-y-1">
-              {["dashboard", "products", "orders", "withdrawal", "earnings", "save-earnings", "settings"].map((tab) => (
-                <li key={tab}>
-                  <button
-                    onClick={() => {
-                      setActiveTab(tab);
-                      setMobileMenuOpen(false); // Close menu after selection
-                    }}
-                    className={`w-full text-left px-4 py-3 rounded-md capitalize font-medium ${
-                      activeTab === tab 
-                        ? "bg-yellow-400 text-black shadow-sm" 
-                        : "text-gray-700 hover:bg-gray-100"
-                    }`}
-                  >
-                    {tab.replace('-', ' ')}
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <div className="mt-8 pt-4 border-t border-gray-200">
-              <button
-                onClick={handleLogout}
-                className="w-full text-left px-4 py-2 rounded-md text-red-600 hover:bg-red-50 font-medium"
-              >
-                Logout
-              </button>
-            </div>
-          </nav>
-        </div>
-      )}
-
       <div className="flex flex-col lg:flex-row">
-        {/* Sidebar - Desktop */}
-        <div className="hidden lg:block w-64 bg-white shadow-md h-screen sticky top-0 border-r border-gray-200">
+        <div className={`fixed lg:relative w-64 bg-white shadow-md h-screen sticky top-0 border-r border-gray-200 transition-transform transform ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
           <div className="p-4 border-b border-gray-200">
             <h1 className="text-xl font-bold text-gray-800">59Minutes Vendor</h1>
             <p className="text-sm text-gray-500">{businessName || user?.email}</p>
@@ -415,7 +341,7 @@ export default function VendorDashboard() {
 
           <nav className="p-4">
             <ul className="space-y-1">
-              {["dashboard", "products", "orders", "withdrawal", "earnings", "save-earnings", "settings"].map((tab) => (
+              {["dashboard", "products", "orders", "withdrawal", "earnings", "settings"].map((tab) => (
                 <li key={tab}>
                   <button
                     onClick={() => setActiveTab(tab)}
@@ -425,7 +351,7 @@ export default function VendorDashboard() {
                         : "text-gray-700 hover:bg-gray-100"
                     }`}
                   >
-                    {tab.replace('-', ' ')}
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
                   </button>
                 </li>
               ))}
@@ -442,55 +368,139 @@ export default function VendorDashboard() {
           </nav>
         </div>
 
-        {/* Main Content */}
         <div className="flex-1 p-4 md:p-6 lg:p-8">
           <div className="mb-6 md:mb-8 flex justify-between items-center">
             <h2 className="text-xl md:text-2xl font-bold text-gray-800 capitalize">
-              {activeTab === "dashboard" ? "Vendor Dashboard" : activeTab}
+              {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Area
             </h2>
-            <div className="flex items-center space-x-4">
-              <button className="p-2 rounded-full bg-gray-100 hover:bg-gray-200">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-              </button>
-              <button 
-                onClick={handleLogout} 
-                className="p-2 rounded-full bg-red-500 hover:bg-red-600 text-white"
-              >
-                Logout
-              </button>
-            </div>
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="lg:hidden p-2 rounded-full bg-gray-100 hover:bg-gray-200"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+              </svg>
+            </button>
           </div>
 
-          {/* Render content based on active tab */}
+          {/* Overview Section */}
           {activeTab === "dashboard" && (
-            <>
-              {renderStatsCards()}
-              {renderSalesChart()}
-              {renderRecentOrders()}
-            </>
-          )}
-          
-          {activeTab === "products" && renderProductsTab()}
-
-          {activeTab === "orders" && (
             <div className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200 mb-6 md:mb-8">
-              <h3 className="text-lg font-bold text-gray-800">All Orders</h3>
-              <p className="text-gray-500">All order details will be shown here.</p>
+              <h3 className="text-lg font-bold text-gray-800">Overview</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                <div className="bg-blue-100 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-gray-600">Total Sales</h4>
+                  <p className="text-lg font-bold text-gray-800">{stats.totalSales}</p>
+                </div>
+                <div className="bg-green-100 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-gray-600">Pending Orders</h4>
+                  <p className="text-lg font-bold text-gray-800">{stats.pendingOrders}</p>
+                </div>
+                <div className="bg-yellow-100 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-gray-600">Completed Orders</h4>
+                  <p className="text-lg font-bold text-gray-800">{stats.completedOrders}</p>
+                </div>
+                <div className="bg-red-100 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-gray-600">Earnings</h4>
+                  <p className="text-lg font-bold text-gray-800">{stats.earnings}</p>
+                </div>
+              </div>
             </div>
           )}
 
-          {activeTab === "withdrawal" && renderWithdrawalTab()}
+          {/* Render content based on active tab */}
+          {activeTab === "products" && renderCreateProductForm()}
 
-          {activeTab === "earnings" && renderEarningsReportTab()}
+          {activeTab === "orders" && renderRecentOrders()}
 
-          {activeTab === "save-earnings" && renderSavedEarningsTab()}
+          {activeTab === "withdrawal" && (
+            <form onSubmit={handleWithdrawSubmit} className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200 mb-6 md:mb-8">
+              <h3 className="text-lg font-bold text-gray-800">Withdrawal Information</h3>
+              <div>
+                <label htmlFor="accountName" className="block text-sm font-medium text-gray-700">Account Name</label>
+                <input 
+                  type="text"
+                  id="accountName"
+                  value={withdrawalInfo.accountName}
+                  onChange={(e) => setWithdrawalInfo({ ...withdrawalInfo, accountName: e.target.value })}
+                  required
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                />
+              </div>
+              <div className="mt-4">
+                <label htmlFor="accountNumber" className="block text-sm font-medium text-gray-700">Account Number</label>
+                <input 
+                  type="text"
+                  id="accountNumber"
+                  value={withdrawalInfo.accountNumber}
+                  onChange={(e) => setWithdrawalInfo({ ...withdrawalInfo, accountNumber: e.target.value })}
+                  required
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                />
+              </div>
+              <div className="mt-4">
+                <label htmlFor="bankName" className="block text-sm font-medium text-gray-700">Bank Name</label>
+                <input 
+                  type="text"
+                  id="bankName"
+                  value={withdrawalInfo.bankName}
+                  onChange={(e) => setWithdrawalInfo({ ...withdrawalInfo, bankName: e.target.value })}
+                  required
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                />
+              </div>
+              <div className="mt-4">
+                <label htmlFor="frequency" className="block text-sm font-medium text-gray-700">Withdrawal Frequency</label>
+                <select 
+                  id="frequency"
+                  value={withdrawalInfo.frequency}
+                  onChange={(e) => setWithdrawalInfo({ ...withdrawalInfo, frequency: e.target.value })}
+                  required
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                >
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly">Monthly</option>
+                </select>
+              </div>
+              <button type="submit" className="mt-4 w-full bg-green-500 hover:bg-green-600 text-white font-medium rounded-md py-2">
+                Submit Withdrawal Request
+              </button>
+            </form>
+          )}
 
           {activeTab === "settings" && (
             <div className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200">
               <h3 className="text-lg font-bold text-gray-800">Account Settings</h3>
-              <form onSubmit={(e) => { e.preventDefault(); toast.success("Password changed successfully"); setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" }); }} className="space-y-4 mt-4">
+              <form onSubmit={(e) => { e.preventDefault(); handleSaveProfile(); }} className="space-y-4 mt-4">
+                <div>
+                  <label htmlFor="businessName" className="block text-sm font-medium text-gray-700">Business Name</label>
+                  <input
+                    type="text"
+                    id="businessName"
+                    value={businessName}
+                    onChange={(e) => setBusinessName(e.target.value)}
+                    required
+                    className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+                  <input
+                    type="email"
+                    id="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                  />
+                </div>
+                <button type="submit" className="w-full bg-green-500 hover:bg-green-600 text-white font-medium rounded-md py-2">
+                  Update Profile
+                </button>
+              </form>
+              <form onSubmit={handlePasswordChange} className="space-y-4 mt-8">
+                <h3 className="text-lg font-bold text-gray-800">Change Password</h3>
                 <div>
                   <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700">Current Password</label>
                   <input
@@ -524,18 +534,10 @@ export default function VendorDashboard() {
                     className="mt-1 block w-full border border-gray-300 rounded-md p-2"
                   />
                 </div>
-                <button type="submit" className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-medium rounded-md py-2">
+                <button type="submit" className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md py-2">
                   Change Password
                 </button>
               </form>
-              <div className="mt-4">
-                <button 
-                  onClick={handleSaveProfile} 
-                  className="w-full bg-green-500 hover:bg-green-600 text-white font-medium rounded-md py-2"
-                >
-                  Update Business Name
-                </button>
-              </div>
             </div>
           )}
         </div>
