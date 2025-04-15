@@ -29,6 +29,7 @@ const Login = () => {
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
   const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
   const emailInputRef = useRef(null);
+  const [token, setToken] = useState('');
 
   // Auto-focus email input on mount
   useEffect(() => {
@@ -120,6 +121,10 @@ const Login = () => {
         formData.password
       );
       
+      const idToken = userCredential.user.accessToken
+      setToken(idToken), 
+      localStorage.setItem('userToken', idToken)
+
       toast.success("Login successful!");
       redirectUserBasedOnRole(userCredential.user.uid);
       
@@ -144,6 +149,12 @@ const Login = () => {
       );
 
       const result = await signInWithPopup(auth, provider);
+
+      const idToken = result.user.accessToken
+      setToken(idToken), 
+      localStorage.setItem('userToken', idToken)
+
+
       toast.success("Google login successful!");
       redirectUserBasedOnRole(result.user.uid);
       
