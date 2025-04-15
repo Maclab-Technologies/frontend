@@ -49,8 +49,8 @@ const WhatWeOffer = () => {
             transition={{ duration: 0.6, delay: index * 0.2, ease: "easeOut" }}
           >
             <div className="mb-4">{service.icon}</div>
-            <h3 className="text-xl font-semibold mb-3">{service.title}</h3>
-            <p className="text-gray-400 text-sm text-center">{service.description}</p>
+            <h3 className="text-xl font-semibold mb-3 text-center text-white">{service.title}</h3>
+            <p className="text-white text-sm text-center">{service.description}</p>
           </motion.div>
         ))}
       </div>

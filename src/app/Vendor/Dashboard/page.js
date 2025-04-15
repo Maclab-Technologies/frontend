@@ -19,11 +19,6 @@ export default function VendorDashboard() {
   });
   const [businessName, setBusinessName] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [passwordForm, setPasswordForm] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: ""
-  });
   const [withdrawal, setWithdrawal] = useState({
     accountName: "",
     accountNumber: "",
@@ -31,7 +26,17 @@ export default function VendorDashboard() {
     mode: "daily",
   });
   const [savedEarningsDuration, setSavedEarningsDuration] = useState("2 months");
-  
+
+  const [newProduct, setNewProduct] = useState({
+    name: "",
+    description: "",
+    images: [],
+    price: "",
+    stock: "",
+    material: "",
+    color: ""
+  });
+
   const router = useRouter();
 
   // Sample orders data
@@ -83,6 +88,39 @@ export default function VendorDashboard() {
     }
   };
 
+  const handleAddProduct = (e) => {
+    e.preventDefault();
+
+    if (newProduct.images.length > 5) {
+      toast.error("Please upload a maximum of 5 images.");
+      return;
+    }
+
+    const product = {
+      id: `PRD-${new Date().getTime()}`,
+      name: newProduct.name,
+      description: newProduct.description,
+      images: newProduct.images,
+      price: newProduct.price,
+      stock: newProduct.stock,
+      material: newProduct.material,
+      color: newProduct.color,
+    };
+
+    setProducts([...products, product]);
+    setNewProduct({
+      name: "",
+      description: "",
+      images: [],
+      price: "",
+      stock: "",
+      material: "",
+      color: ""
+    });
+
+    toast.success("Product added successfully!");
+  };
+
   const handleWithdrawalSubmit = (e) => {
     e.preventDefault();
     toast.success(`Withdrawal submitted: Account Name: ${withdrawal.accountName}, Account Number: ${withdrawal.accountNumber}, Bank: ${withdrawal.bank}, Mode: ${withdrawal.mode}`);
@@ -118,118 +156,106 @@ export default function VendorDashboard() {
     }
   };
 
-  const renderWithdrawalTab = () => {
-    const banks = [
-      "Access Bank", "First Bank", "GTBank", "Zenith Bank", "UBA", "Ecobank",
-      "FCMB", "Stanbic IBTC", "Union Bank", "Wema Bank", "Sterling Bank",
-      "Jaiz Bank", "Rubber Bank", "Heritage Bank", "Keystone Bank", "Polaris Bank",
-    ];
-
-    return (
-      <div className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200">
-        <h3 className="text-lg font-bold text-gray-800">Submit Withdrawal</h3>
-        <form onSubmit={handleWithdrawalSubmit} className="space-y-4 mt-4">
-          <div>
-            <label htmlFor="accountName" className="block text-sm font-medium text-gray-700">Account Name</label>
-            <input
-              type="text"
-              id="accountName"
-              value={withdrawal.accountName}
-              onChange={(e) => setWithdrawal({ ...withdrawal, accountName: e.target.value })}
-              required
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-            />
-          </div>
-          <div>
-            <label htmlFor="accountNumber" className="block text-sm font-medium text-gray-700">Account Number</label>
-            <input
-              type="text"
-              id="accountNumber"
-              value={withdrawal.accountNumber}
-              onChange={(e) => setWithdrawal({ ...withdrawal, accountNumber: e.target.value })}
-              required
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-            />
-          </div>
-          <div>
-            <label htmlFor="bank" className="block text-sm font-medium text-gray-700">Select Bank</label>
-            <select
-              id="bank"
-              value={withdrawal.bank}
-              onChange={(e) => setWithdrawal({ ...withdrawal, bank: e.target.value })}
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-              required
-            >
-              <option value="">Select Bank</option>
-              {banks.map((bank, index) => (
-                <option key={index} value={bank}>{bank}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label htmlFor="withdrawalMode" className="block text-sm font-medium text-gray-700">Withdrawal Mode</label>
-            <select
-              id="withdrawalMode"
-              value={withdrawal.mode}
-              onChange={(e) => setWithdrawal({ ...withdrawal, mode: e.target.value })}
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-            >
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-            </select>
-          </div>
-          <button type="submit" className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md py-2">
-            Submit Withdrawal
-          </button>
-        </form>
-      </div>
-    );
-  };
-
-  const renderSavedEarningsTab = () => (
-    <div className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200">
-      <h3 className="text-lg font-bold text-gray-800">Save Earnings</h3>
-      <div className="mt-4">
-        <select
-          value={savedEarningsDuration}
-          onChange={(e) => setSavedEarningsDuration(e.target.value)}
+  const renderCreateProductForm = () => (
+    <form onSubmit={handleAddProduct} className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200 mb-6 md:mb-8">
+      <h3 className="text-lg font-bold text-gray-800 mb-4">Create New Product</h3>
+      {/* Product Name */}
+      <div>
+        <label htmlFor="productName" className="block text-sm font-medium text-gray-700">Product Name</label>
+        <input
+          type="text"
+          id="productName"
+          value={newProduct.name}
+          onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+          required
           className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-        >
-          <option value="2 months">2 months</option>
-          <option value="4 months">4 months</option>
-          <option value="6 months">6 months</option>
-          <option value="full year">Full year</option>
-        </select>
+        />
       </div>
-      <button 
-        onClick={handleSaveEarnings} 
-        className="mt-4 w-full bg-green-500 hover:bg-green-600 text-white font-medium rounded-md py-2"
-      >
-        Save Earnings
-      </button>
-    </div>
-  );
 
-  const renderEarningsReportTab = () => (
-    <div className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200">
-      <h3 className="text-lg font-bold text-gray-800">Earnings Report</h3>
+      {/* Description */}
       <div className="mt-4">
-        <h4 className="text-md font-medium text-gray-700">Total Earnings for This Month:</h4>
-        <p className="text-xl font-bold text-gray-800">{`${stats.earnings}`}</p>
-        <div className="mt-3">
-          <select className="mt-1 block w-full border border-gray-300 rounded-md p-2">
-            <option value="daily">Today</option>
-            <option value="weekly">This Week</option>
-            <option value="monthly">This Month</option>
-          </select>
-        </div>
+        <label htmlFor="productDescription" className="block text-sm font-medium text-gray-700">Description</label>
+        <textarea
+          id="productDescription"
+          value={newProduct.description}
+          onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
+          required
+          className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+        />
       </div>
-      {/* Placeholder for Chart */}
-      <div className="mt-4 h-48 bg-gray-200 rounded-md flex items-center justify-center">
-        <p className="text-gray-500">Earnings chart will appear here.</p>
+
+      {/* Image Upload */}
+      <div className="mt-4">
+        <label className="block text-sm font-medium text-gray-700">Images (max 5)</label>
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={(e) => {
+            const files = Array.from(e.target.files).slice(0, 5);
+            setNewProduct({ ...newProduct, images: files });
+          }}
+          className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+        />
       </div>
-    </div>
+
+      {/* Price */}
+      <div className="mt-4">
+        <label htmlFor="productPrice" className="block text-sm font-medium text-gray-700">Price</label>
+        <input
+          type="number"
+          id="productPrice"
+          value={newProduct.price}
+          onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+          required
+          className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+        />
+      </div>
+
+      {/* Stock */}
+      <div className="mt-4">
+        <label htmlFor="productStock" className="block text-sm font-medium text-gray-700">Stock</label>
+        <input
+          type="number"
+          id="productStock"
+          value={newProduct.stock}
+          onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
+          required
+          className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+        />
+      </div>
+
+      {/* Material */}
+      <div className="mt-4">
+        <label htmlFor="productMaterial" className="block text-sm font-medium text-gray-700">Material</label>
+        <input
+          type="text"
+          id="productMaterial"
+          value={newProduct.material}
+          onChange={(e) => setNewProduct({ ...newProduct, material: e.target.value })}
+          required
+          className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+        />
+      </div>
+
+      {/* Color */}
+      <div className="mt-4">
+        <label htmlFor="productColor" className="block text-sm font-medium text-gray-700">Color</label>
+        <input
+          type="text"
+          id="productColor"
+          value={newProduct.color}
+          onChange={(e) => setNewProduct({ ...newProduct, color: e.target.value })}
+          required
+          className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+        />
+      </div>
+
+      {/* Submit Button */}
+      <button type="submit" className="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md py-2">
+        Add Product
+      </button>
+    </form>
   );
 
   const renderStatsCards = () => (
@@ -316,71 +342,6 @@ export default function VendorDashboard() {
     </div>
   );
 
-  const renderProductsTab = () => (
-    <div className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-bold text-gray-800">Your Products</h3>
-        <button className="bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded-md text-sm font-medium transition-colors shadow-sm">
-          + Add New Product
-        </button>
-      </div>
-      <div className="border border-gray-200 rounded-lg overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-3 py-2 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-              <th className="px-3 py-2 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-              <th className="px-3 py-2 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
-              <th className="px-3 py-2 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-3 py-2 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {products.map((product) => (
-              <tr key={product.id}>
-                <td className="px-3 py-2 md:px-6 md:py-4 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 h-8 w-8 md:h-10 md:w-10">
-                      <img className="rounded-md" src={product.image} alt={product.name} />
-                    </div>
-                    <div className="ml-2 md:ml-4">
-                      <div className="text-xs md:text-sm font-medium text-gray-900">{product.name}</div>
-                      <div className="text-xs md:text-sm text-gray-500">#{product.id}</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-3 py-2 md:px-6 md:py-4 whitespace-nowrap text-xs md:text-sm text-gray-500">{product.price}</td>
-                <td className="px-3 py-2 md:px-6 md:py-4 whitespace-nowrap text-xs md:text-sm text-gray-500">{product.stock}</td>
-                <td className="px-3 py-2 md:px-6 md:py-4 whitespace-nowrap">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    product.status === "Active" ? "bg-yellow-400 text-black" :
-                    "bg-red-100 text-red-800"
-                  }`}>
-                    {product.status}
-                  </span>
-                </td>
-                <td className="px-3 py-2 md:px-6 md:py-4 whitespace-nowrap text-xs md:text-sm font-medium">
-                  <button 
-                    onClick={() => handleProductAction("edit", product.id)}
-                    className="text-yellow-600 hover:text-yellow-800 mr-2 md:mr-3"
-                  >
-                    Edit
-                  </button>
-                  <button 
-                    onClick={() => handleProductAction("delete", product.id)}
-                    className="text-red-600 hover:text-red-800"
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -408,6 +369,41 @@ export default function VendorDashboard() {
           {user?.email?.charAt(0).toUpperCase()}
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden bg-white shadow-md border-b border-gray-200 p-4">
+          <nav>
+            <ul className="space-y-1">
+              {["dashboard", "products", "orders", "withdrawal", "earnings", "save-earnings", "settings"].map((tab) => (
+                <li key={tab}>
+                  <button
+                    onClick={() => {
+                      setActiveTab(tab);
+                      setMobileMenuOpen(false); // Close menu after selection
+                    }}
+                    className={`w-full text-left px-4 py-3 rounded-md capitalize font-medium ${
+                      activeTab === tab 
+                        ? "bg-yellow-400 text-black shadow-sm" 
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    {tab.replace('-', ' ')}
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-8 pt-4 border-t border-gray-200">
+              <button
+                onClick={handleLogout}
+                className="w-full text-left px-4 py-2 rounded-md text-red-600 hover:bg-red-50 font-medium"
+              >
+                Logout
+              </button>
+            </div>
+          </nav>
+        </div>
+      )}
 
       <div className="flex flex-col lg:flex-row">
         {/* Sidebar - Desktop */}
@@ -477,7 +473,7 @@ export default function VendorDashboard() {
           )}
           
           {activeTab === "products" && renderProductsTab()}
-          
+
           {activeTab === "orders" && (
             <div className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200 mb-6 md:mb-8">
               <h3 className="text-lg font-bold text-gray-800">All Orders</h3>

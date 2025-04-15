@@ -54,35 +54,12 @@ export default function Home() {
   const CategoryItem = ({ name }) => (
     <Link
       href={`/categories/${name.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and')}`}
-      className="bg-[#726002] hover:bg-yellow-600 text-center py-8 rounded-lg text-black font-semibold text-lg flex items-center justify-center shadow-lg transition-colors duration-300 h-48"
+      className="bg-yellow-400 hover:bg-yellow-600 text-center py-8 rounded-lg text-black font-semibold text-lg flex items-center justify-center shadow-lg transition-colors duration-300 h-48"
     >
       {name}
     </Link>
   );
-  const faqs = [
-    {
-      question: "How long does it take to print and deliver?",
-      answer: "We print and deliver within 59 minutes in select locations. Standard shipping times vary based on your location.",
-    },
-    {
-      question: "Can I upload my own design?",
-      answer: "Yes! You can upload your custom design, or use our online editor to make adjustments before printing.",
-    },
-    {
-      question: "What payment methods do you accept?",
-      answer: "We accept payments via Paystack and Flutterwave. You can pay using Debit/Credit Cards, USSD, Bank Transfers, and Mobile Money.",
-    },
-    {
-      question: "Do you offer bulk printing discounts?",
-      answer: "Absolutely! We provide special discounts for bulk orders. Contact us for a customized quote.",
-    },
-  ];
-
-  const [openIndex, setOpenIndex] = useState(null);
-
-  const toggleFAQ = (index) => {
-    setOpenIndex(openIndex === index ? null : index);
-  };
+  
 
   return (
     <div className="bg-black text-white min-h-screen">
