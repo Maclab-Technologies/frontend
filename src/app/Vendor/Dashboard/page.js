@@ -2,64 +2,32 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { FaHome, FaBox, FaUpload, FaCog, FaSignOutAlt, FaBars, FaTimes, FaUser, FaFile, FaShoppingCart } from "react-icons/fa";
+import { signOut } from "firebase/auth";
 import { auth } from "../../utils/firebaseconfig";
-import { onAuthStateChanged, signOut, updateProfile, updateEmail } from "firebase/auth";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function VendorDashboard() {
+  const router = useRouter();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("dashboard");
-  const [stats, setStats] = useState({
-    totalSales: 0,
-    pendingOrders: 0,
-    completedOrders: 0,
-    earnings: 0,
-  });
-  const [businessName, setBusinessName] = useState("");
-  const [email, setEmail] = useState("");
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [withdrawalInfo, setWithdrawalInfo] = useState({
-    accountName: "",
-    accountNumber: "",
-    bankName: "",
-    frequency: "daily",
-  });
-  const [newProduct, setNewProduct] = useState({
-    name: "",
-    description: "",
-    images: [],
-    price: "",
-    stock: "",
-    material: "",
-    color: "",
-  });
-
-  const [passwordForm, setPasswordForm] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  });
-
-  const router = useRouter();
-
-  // Sample orders data
-  const [orders, setOrders] = useState([]);
-  // Sample products data
+  const [activeTab, setActiveTab] = useState("Dashboard");
+  
+  // Mock Data
   const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
 
-  // Check authentication state
+  // Load user data and initial content
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-        const storedBusinessName = user.displayName || localStorage.getItem("businessName") || "Your Business Name";
-        setBusinessName(storedBusinessName);
-        setEmail(user.email); // Set user email
-        fetchVendorData(user.uid);
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (!user) {
+        router.push("/Auth/Login");
       } else {
-        router.push("/Vendor/Login");
+        setUser(user);
+        // Load mock data
+        loadMockData();
       }
       setLoading(false);
     });
@@ -67,491 +35,227 @@ export default function VendorDashboard() {
     return () => unsubscribe();
   }, [router]);
 
-  const fetchVendorData = async (vendorId) => {
-    try {
-      setStats({
-        totalSales: 2000,
-        pendingOrders: 3,
-        completedOrders: 10,
-        earnings: 16000,
-      });
-    } catch (error) {
-      console.error("Error fetching vendor data:", error);
-      toast.error("Unable to load dashboard data.");
-    }
-  };
-
-  const handleAddProduct = (e) => {
-    e.preventDefault();
-    if (newProduct.images.length > 5) {
-      toast.error("You can upload a maximum of 5 images.");
-      return;
-    }
-    const product = {
-      id: `PRD-${new Date().getTime()}`,
-      name: newProduct.name,
-      description: newProduct.description,
-      images: newProduct.images,
-      price: newProduct.price,
-      stock: newProduct.stock,
-      material: newProduct.material,
-      color: newProduct.color,
-    };
-    setProducts([...products, product]);
-    resetNewProductForm();
-    toast.success("Product added successfully!");
-  };
-
-  const resetNewProductForm = () => {
-    setNewProduct({
-      name: "",
-      description: "",
-      images: [],
-      price: "",
-      stock: "",
-      material: "",
-      color: "",
-    });
-  };
-
-  const handleWithdrawSubmit = (e) => {
-    e.preventDefault();
-    toast.success(`Withdrawal request submitted for ${withdrawalInfo.accountName}`);
-    resetWithdrawalInfo();
-  };
-
-  const resetWithdrawalInfo = () => {
-    setWithdrawalInfo({ accountName: "", accountNumber: "", bankName: "", frequency: "daily" });
+  const loadMockData = () => {
+    setProducts([
+      { id: 1, name: "Business Cards", stock: 100, price: 45.99 },
+      { id: 2, name: "Flyers", stock: 250, price: 75.00 },
+      { id: 3, name: "Posters", stock: 50, price: 150.00 },
+    ]);
+    setOrders([
+      { id: "ORD-1001", date: "2023-06-15", status: "Completed", total: "$125.99" },
+      { id: "ORD-1002", date: "2023-06-20", status: "Processing", total: "$89.50" }
+    ]);
   };
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      localStorage.removeItem("businessName");
-      toast.success("You've been logged out successfully.");
-      router.push("/Vendor/Login");
+      toast.success("Logged out successfully");
+      router.push("/Auth/Login");
     } catch (error) {
+      toast.error("Error signing out");
       console.error("Logout error:", error);
-      toast.error("Logout failed. Please try again.");
     }
   };
 
-  const handleSaveProfile = async () => {
-    try {
-      if (businessName) {
-        await updateProfile(auth.currentUser, { displayName: businessName });
-        localStorage.setItem("businessName", businessName);
-        toast.success("Business name updated successfully.");
-      }
+  // Tab components
+  const tabs = {
+    Dashboard: (
+      <div className="space-y-6">
+        <div className="bg-gray-800 rounded-lg p-6 text-white">
+          <h1 className="text-2xl font-bold mb-2">
+            Welcome back, <span className="text-yellow-400">{user?.displayName || "Vendor"}</span>
+          </h1>
+          <p className="text-gray-300 mb-6">Quick overview of your products and orders</p>
 
-      if (email) {
-        await updateEmail(auth.currentUser, email);
-        toast.success("Email updated successfully.");
-      }
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      if (error.code === 'auth/email-already-in-use') {
-        toast.error("This email is already in use.");
-      } else {
-        toast.error("Failed to update profile.");
-      }
-    }
-  };
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-gray-700">
+              <div className="flex items-center">
+                <div className="bg-yellow-400 bg-opacity-20 p-3 rounded-full mr-3">
+                  <FaBox className="text-yellow-400" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-300">Total Products</p>
+                  <p className="text-xl font-bold text-white">{products.length}</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-gray-700">
+              <div className="flex items-center">
+                <div className="bg-yellow-400 bg-opacity-20 p-3 rounded-full mr-3">
+                  <FaShoppingCart className="text-yellow-400" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-300">Total Orders</p>
+                  <p className="text-xl font-bold text-white">{orders.length}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-  const handlePasswordChange = async (e) => {
-    e.preventDefault();
-    try {
-      if (passwordForm.newPassword === passwordForm.confirmPassword) {
-        const userCredential = await auth.signInWithEmailAndPassword(user.email, passwordForm.currentPassword);
-        await userCredential.user.updatePassword(passwordForm.newPassword);
-        resetPasswordForm();
-        toast.success("Password updated successfully.");
-      } else {
-        toast.error("New passwords do not match.");
-      }
-    } catch (error) {
-      console.error("Error updating password:", error);
-      toast.error("Failed to update password. Check your current password.");
-    }
-  };
-
-  const resetPasswordForm = () => {
-    setPasswordForm({
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    });
-  };
-
-  const renderCreateProductForm = () => (
-    <form onSubmit={handleAddProduct} className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200 mb-6 md:mb-8">
-      <h3 className="text-lg font-bold text-gray-800 mb-4">Add New Product</h3>
-      <div>
-        <label htmlFor="productName" className="block text-sm font-medium text-gray-700">Product Name</label>
-        <input
-          type="text"
-          id="productName"
-          value={newProduct.name}
-          onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-          required
-          className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-        />
-      </div>
-      <div className="mt-4">
-        <label htmlFor="productDescription" className="block text-sm font-medium text-gray-700">Description</label>
-        <textarea
-          id="productDescription"
-          value={newProduct.description}
-          onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
-          required
-          className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-        />
-      </div>
-      <div className="mt-4">
-        <label className="block text-sm font-medium text-gray-700">Upload Images (max 5)</label>
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={(e) => {
-            const files = Array.from(e.target.files).slice(0, 5);
-            setNewProduct({ ...newProduct, images: files });
-          }}
-          className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-        />
-      </div>
-      <div className="mt-4">
-        <label htmlFor="productPrice" className="block text-sm font-medium text-gray-700">Price (in Naira)</label>
-        <input
-          type="number"
-          id="productPrice"
-          value={newProduct.price}
-          onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
-          required
-          className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-        />
-      </div>
-      <div className="mt-4">
-        <label htmlFor="productStock" className="block text-sm font-medium text-gray-700">Stock Quantity</label>
-        <input
-          type="number"
-          id="productStock"
-          value={newProduct.stock}
-          onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
-          required
-          className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-        />
-      </div>
-      <div className="mt-4">
-        <label htmlFor="productMaterial" className="block text-sm font-medium text-gray-700">Material Type</label>
-        <input
-          type="text"
-          id="productMaterial"
-          value={newProduct.material}
-          onChange={(e) => setNewProduct({ ...newProduct, material: e.target.value })}
-          required
-          className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-        />
-      </div>
-      <div className="mt-4">
-        <label htmlFor="productColor" className="block text-sm font-medium text-gray-700">Color Options</label>
-        <input
-          type="text"
-          id="productColor"
-          value={newProduct.color}
-          onChange={(e) => setNewProduct({ ...newProduct, color: e.target.value })}
-          required
-          className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-        />
-      </div>
-      <button type="submit" className="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md py-2">
-        Add Product
-      </button>
-    </form>
-  );
-
-  const renderRecentOrders = () => (
-    <div className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-bold text-gray-800">Recent Orders</h3>
-        <button
-          onClick={() => setActiveTab("orders")}
-          className="bg-yellow-400 hover:bg-yellow-500 text-black px-3 py-1 rounded text-sm font-medium transition-colors"
-        >
-          View All
-        </button>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-3 py-2 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
-              <th className="px-3 py-2 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-              <th className="px-3 py-2 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-              <th className="px-3 py-2 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-              <th className="px-3 py-2 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+        {/* Order History Section */}
+        <div className="bg-gray-800 rounded-lg p-6 text-white">
+          <h2 className="text-lg font-bold mb-4">Recent Orders</h2>
+          <div className="space-y-3">
             {orders.map((order) => (
-              <tr key={order.id}>
-                <td className="px-3 py-2 md:px-6 md:py-4 whitespace-nowrap text-xs md:text-sm font-medium text-gray-900">{order.id}</td>
-                <td className="px-3 py-2 md:px-6 md:py-4 whitespace-nowrap text-xs md:text-sm text-gray-500">{order.customer}</td>
-                <td className="px-3 py-2 md:px-6 md:py-4 whitespace-nowrap text-xs md:text-sm text-gray-500">{order.date}</td>
-                <td className="px-3 py-2 md:px-6 md:py-4 whitespace-nowrap text-xs md:text-sm text-gray-500">{order.amount}</td>
-                <td className="px-3 py-2 md:px-6 md:py-4 whitespace-nowrap">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    order.status === "Completed" ? "bg-green-100 text-green-800" :
-                    order.status === "Processing" ? "bg-yellow-400 text-black" :
-                    "bg-blue-100 text-blue-800"
-                  }`}>
-                    {order.status}
-                  </span>
-                </td>
-              </tr>
+              <div key={order.id} className="bg-black bg-opacity-30 rounded-lg p-4 border border-gray-700 flex justify-between items-center">
+                <div>
+                  <p className="text-sm font-medium">{order.id}</p>
+                  <p className="text-xs text-gray-400">{order.date}</p>
+                </div>
+                <p className={`font-bold ${order.status === "Completed" ? "text-green-400" : "text-yellow-400"}`}>{order.status}</p>
+                <p className="text-sm">{order.total}</p>
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+        </div>
       </div>
-    </div>
-  );
+    ),
+    
+    // Placeholder for other tabs: My Products, Create Order, Settings
+    "My Products": (
+      <div className="bg-gray-800 rounded-lg p-6 text-white">
+        <h1 className="text-2xl font-bold mb-6">Manage Your Products</h1>
+        {/* Placeholder content for products */}
+        {/* Logic to list / manage products goes here */}
+      </div>
+    ),
 
-  // Check if loading
+    "Create Order": (
+      <div className="bg-gray-800 rounded-lg p-6 text-white">
+        <h1 className="text-2xl font-bold mb-6">Create New Order</h1>
+        {/* Placeholder content for creating orders */}
+        {/* Logic for order creation goes here */}
+      </div>
+    ),
+
+    "Settings": (
+      <div className="bg-gray-800 rounded-lg p-6 text-white">
+        <h1 className="text-2xl font-bold mb-6">Account Settings</h1>
+        {/* Placeholder content for settings */}
+        {/* Logic for account settings goes here */}
+      </div>
+    )
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading dashboard...</p>
-        </div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400"></div>
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen bg-gray-50 ${mobileMenuOpen ? 'overflow-hidden' : ''}`}>
-      <ToastContainer position="top-right" autoClose={5000} theme="colored" />
-
-      <div className="flex flex-col lg:flex-row">
-        {/* Sidebar */}
-        <div
-          className={`fixed lg:relative w-64 bg-white shadow-md h-screen sticky top-0 border-r border-gray-200 transition-transform transform ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 z-50`}
-        >
-          <div className="flex justify-between items-center p-4 border-b border-gray-200">
-            <h1 className="text-xl font-bold text-gray-800">59Minutes Vendor</h1>
-            <button
-              onClick={() => setMobileMenuOpen(false)}
-              className="text-gray-600 hover:text-gray-900"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <nav className="p-4">
-            <ul className="space-y-1">
-              {["dashboard", "products", "orders", "withdrawal", "earnings", "settings"].map((tab) => (
-                <li key={tab}>
-                  <button
-                    onClick={() => {
-                      setActiveTab(tab);
-                      setMobileMenuOpen(false); // Close mobile menu after tab selection
-                    }}
-                    className={`w-full text-left px-4 py-3 rounded-md capitalize font-medium ${
-                      activeTab === tab 
-                        ? "bg-yellow-400 text-black shadow-sm" 
-                        : "text-gray-700 hover:bg-gray-100"
-                    }`}
-                  >
-                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <div className="mt-8 pt-4 border-t border-gray-200">
+    <div className="min-h-screen bg-gray-900">
+      {/* Top Navigation Bar */}
+      <nav className="bg-black text-white shadow-lg sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16 items-center">
+            <div className="flex items-center">
+              <button
+                onClick={() => setMobileNavOpen(!mobileNavOpen)}
+                className="lg:hidden mr-4 text-white focus:outline-none"
+              >
+                {mobileNavOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
+              </button>
+              <h1 className="text-xl font-bold">
+                <span className="text-yellow-400">59Minutes</span>Print
+              </h1>
+            </div>
+            <div className="flex items-center space-x-4">
               <button
                 onClick={handleLogout}
-                className="w-full text-left px-4 py-2 rounded-md text-red-600 hover:bg-red-50 font-medium"
+                className="flex items-center text-sm hover:text-yellow-400 transition"
               >
-                Logout
+                <FaSignOutAlt className="mr-1" /> Sign Out
               </button>
             </div>
-          </nav>
-        </div>
-
-        {/* Content Area */}
-        <div className={`flex-1 p-4 md:p-6 lg:p-8 transition-transform duration-300 ${mobileMenuOpen ? 'ml-64' : ''}`}>
-          <div className="mb-6 md:mb-8 flex justify-between items-center">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-800 capitalize">
-              {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Area
-            </h2>
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-full bg-gray-100 hover:bg-gray-200"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
-              </svg>
-            </button>
           </div>
+        </div>
+      </nav>
 
-          {/* Overview Section */}
-          {activeTab === "dashboard" && (
-            <div className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200 mb-6 md:mb-8">
-              <h3 className="text-lg font-bold text-gray-800">Overview</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                <div className="bg-blue-100 rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-gray-600">Total Sales</h4>
-                  <p className="text-lg font-bold text-gray-800">{stats.totalSales}</p>
-                </div>
-                <div className="bg-green-100 rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-gray-600">Pending Orders</h4>
-                  <p className="text-lg font-bold text-gray-800">{stats.pendingOrders}</p>
-                </div>
-                <div className="bg-yellow-100 rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-gray-600">Completed Orders</h4>
-                  <p className="text-lg font-bold text-gray-800">{stats.completedOrders}</p>
-                </div>
-                <div className="bg-red-100 rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-gray-600">Earnings</h4>
-                  <p className="text-lg font-bold text-gray-800">{stats.earnings}</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Render content based on active tab */}
-          {activeTab === "products" && renderCreateProductForm()}
-
-          {activeTab === "orders" && renderRecentOrders()}
-
-          {activeTab === "withdrawal" && (
-            <form onSubmit={handleWithdrawSubmit} className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200 mb-6 md:mb-8">
-              <h3 className="text-lg font-bold text-gray-800">Withdrawal Information</h3>
-              <div>
-                <label htmlFor="accountName" className="block text-sm font-medium text-gray-700">Account Name</label>
-                <input 
-                  type="text"
-                  id="accountName"
-                  value={withdrawalInfo.accountName}
-                  onChange={(e) => setWithdrawalInfo({ ...withdrawalInfo, accountName: e.target.value })}
-                  required
-                  className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                />
-              </div>
-              <div className="mt-4">
-                <label htmlFor="accountNumber" className="block text-sm font-medium text-gray-700">Account Number</label>
-                <input 
-                  type="text"
-                  id="accountNumber"
-                  value={withdrawalInfo.accountNumber}
-                  onChange={(e) => setWithdrawalInfo({ ...withdrawalInfo, accountNumber: e.target.value })}
-                  required
-                  className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                />
-              </div>
-              <div className="mt-4">
-                <label htmlFor="bankName" className="block text-sm font-medium text-gray-700">Bank Name</label>
-                <input 
-                  type="text"
-                  id="bankName"
-                  value={withdrawalInfo.bankName}
-                  onChange={(e) => setWithdrawalInfo({ ...withdrawalInfo, bankName: e.target.value })}
-                  required
-                  className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                />
-              </div>
-              <div className="mt-4">
-                <label htmlFor="frequency" className="block text-sm font-medium text-gray-700">Withdrawal Frequency</label>
-                <select 
-                  id="frequency"
-                  value={withdrawalInfo.frequency}
-                  onChange={(e) => setWithdrawalInfo({ ...withdrawalInfo, frequency: e.target.value })}
-                  required
-                  className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                >
-                  <option value="daily">Daily</option>
-                  <option value="weekly">Weekly</option>
-                  <option value="monthly">Monthly</option>
-                </select>
-              </div>
-              <button type="submit" className="mt-4 w-full bg-green-500 hover:bg-green-600 text-white font-medium rounded-md py-2">
-                Submit Withdrawal Request
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Side Navigation */}
+          <aside className={`
+            fixed inset-y-0 left-0 z-40 
+            w-64 bg-gray-800 shadow-lg 
+            transform transition-transform duration-300 ease-in-out rounded
+            ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full'} 
+            lg:relative lg:translate-x-0 lg:w-64
+            mt-16 lg:mt-0
+          `}>
+            {/* Close button for mobile */}
+            <div className="lg:hidden absolute top-2 right-2">
+              <button
+                onClick={() => setMobileNavOpen(false)}
+                className="p-2 text-gray-400 hover:text-white focus:outline-none"
+              >
+                <FaTimes size={20} />
               </button>
-            </form>
-          )}
-
-          {activeTab === "settings" && (
-            <div className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200">
-              <h3 className="text-lg font-bold text-gray-800">Account Settings</h3>
-              <form onSubmit={(e) => { e.preventDefault(); handleSaveProfile(); }} className="space-y-4 mt-4">
-                <div>
-                  <label htmlFor="businessName" className="block text-sm font-medium text-gray-700">Business Name</label>
-                  <input
-                    type="text"
-                    id="businessName"
-                    value={businessName}
-                    onChange={(e) => setBusinessName(e.target.value)}
-                    required
-                    className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-                  <input
-                    type="email"
-                    id="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                  />
-                </div>
-                <button type="submit" className="w-full bg-green-500 hover:bg-green-600 text-white font-medium rounded-md py-2">
-                  Update Profile
-                </button>
-              </form>
-              <form onSubmit={handlePasswordChange} className="space-y-4 mt-8">
-                <h3 className="text-lg font-bold text-gray-800">Change Password</h3>
-                <div>
-                  <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700">Current Password</label>
-                  <input
-                    type="password"
-                    id="currentPassword"
-                    value={passwordForm.currentPassword}
-                    onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                    required
-                    className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">New Password</label>
-                  <input
-                    type="password"
-                    id="newPassword"
-                    value={passwordForm.newPassword}
-                    onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                    required
-                    className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">Confirm Password</label>
-                  <input
-                    type="password"
-                    id="confirmPassword"
-                    value={passwordForm.confirmPassword}
-                    onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                    required
-                    className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                  />
-                </div>
-                <button type="submit" className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md py-2">
-                  Change Password
-                </button>
-              </form>
             </div>
-          )}
+
+            {/* User Profile */}
+            <div className="p-4 border-b border-gray-700">
+              <div className="flex items-center space-x-3">
+                <div className="bg-yellow-400 bg-opacity-20 p-2 rounded-full">
+                  <FaUser className="text-yellow-400" />
+                </div>
+                <div className="overflow-hidden">
+                  <p className="font-medium text-white truncate">{user?.displayName || 'Vendor'}</p>
+                  <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Navigation Links */}
+            <nav className="p-2 h-[calc(100%-72px-4rem)] overflow-y-auto">
+              {Object.keys(tabs).map((tabName) => (
+                <button
+                  key={tabName}
+                  onClick={() => {
+                    setActiveTab(tabName);
+                    setMobileNavOpen(false);
+                  }}
+                  className={`
+                    w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
+                    transition-all duration-200
+                    ${activeTab === tabName
+                      ? 'bg-yellow-400 text-black font-bold shadow-md'
+                      : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                    }
+                  `}
+                >
+                  <span className="mr-3 text-base">
+                    {tabName === "Dashboard" && <FaHome />}
+                    {tabName === "My Products" && <FaBox />}
+                    {tabName === "Create Order" && <FaUpload />}
+                    {tabName === "Settings" && <FaCog />}
+                  </span>
+                  <span className="text-left">{tabName}</span>
+                </button>
+              ))}
+            </nav>
+          </aside>
+
+          {/* Main Content Area */}
+          <main className="flex-1">
+            <div className="mb-4 flex lg:hidden items-center">
+              {mobileNavOpen && (
+                <button
+                  onClick={() => setMobileNavOpen(false)}
+                  className="flex items-center text-sm text-yellow-400 mr-4"
+                >
+                  <FaTimes className="mr-1" /> Close Menu
+                </button>
+              )}
+              <h2 className="text-xl font-bold text-white">{activeTab}</h2>
+            </div>
+
+            {tabs[activeTab]}
+          </main>
         </div>
       </div>
     </div>
