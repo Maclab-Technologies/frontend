@@ -33,9 +33,9 @@ export default function VendorDashboard() {
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [earnings, setEarnings] = useState({
-    available: 0,
-    total: 0,
-    pending: 0,
+    available: 10,
+    total: 10,
+    pending: 10,
   });
   const [payouts, setPayouts] = useState([]);
 
