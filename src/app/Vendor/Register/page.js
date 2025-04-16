@@ -248,17 +248,7 @@ export default function VendorRegister() {
             </button>
           </form>
 
-          <div className="mt-6 text-center text-sm">
-            <p className="text-black">
-              Already have an account?{" "}
-              <Link
-                href="/Vendor/Login"
-                className="font-medium text-yellow-600 hover:text-yellow-500"
-              >
-                Sign in here
-              </Link>
-            </p>
-          </div>
+          
 
           <div className="relative mt-6 mb-4">
             <div className="absolute inset-0 flex items-center">

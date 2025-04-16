@@ -169,6 +169,7 @@ const Register = () => {
         },
         body: JSON.stringify({
           displayName: formData.firstName + ' ' + formData.lastName,
+          password: formData.password,
         }),
       });
   
