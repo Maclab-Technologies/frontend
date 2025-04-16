@@ -23,11 +23,14 @@ const NAV_LINKS = [
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
-  const [cartCount, setCartCount] = useState(0);
+  const cartItems = useSelector((state) => state.cart.cartItems || []);
   const pathname = usePathname();
   const auth = getAuth(app);
-  const cartItems = useSelector((state) => state.cart.cartItems || []);
 
+  // Cart count state
+  const [cartCount, setCartCount] = useState(0);
+
+  // User authentication effect
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -35,23 +38,10 @@ const Navbar = () => {
     return () => unsubscribe();
   }, [auth]);
 
+  // Effect to update cart count whenever cartItems change
   useEffect(() => {
-    const updateCartCount = () => {
-      try {
-        const count = cartItems.reduce((acc, item) => acc + item.quantity, 0) || 0;
-        setCartCount(count);
-      } catch (error) {
-        console.error("Error updating cart count:", error);
-        setCartCount(0);
-      }
-    };
-
-    updateCartCount();
-
-    const handleStorageChange = () => updateCartCount();
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
+    const count = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+    setCartCount(count);
   }, [cartItems]);
 
   const handleLogout = async () => {

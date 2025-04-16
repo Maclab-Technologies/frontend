@@ -2,64 +2,52 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { FaHome, FaBoxOpen, FaClipboardList, FaPlus, FaMoneyBillWave, FaWallet, FaHistory, FaSignOutAlt, FaBars, FaTimes, FaUser, FaFileDownload, FaFileUpload, FaCheck, FaClock, FaTrash, FaEdit, FaDollarSign } from "react-icons/fa";
+import { signOut } from "firebase/auth";
 import { auth } from "../../utils/firebaseconfig";
-import { onAuthStateChanged, signOut, updateProfile } from "firebase/auth";
-import { ToastContainer, toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function VendorDashboard() {
+  const router = useRouter();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("dashboard");
-  const [stats, setStats] = useState({
-    totalSales: 0,
-    pendingOrders: 0,
-    completedOrders: 0,
-    earnings: 1000,
-  });
-  const [businessName, setBusinessName] = useState("");
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [passwordForm, setPasswordForm] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: ""
-  });
-  const [withdrawal, setWithdrawal] = useState({
-    accountName: "",
-    accountNumber: "",
-    bank: "",
-    mode: "daily",
-  });
-  const [savedEarningsDuration, setSavedEarningsDuration] = useState("2 months");
+  const [activeTab, setActiveTab] = useState("Dashboard");
   
-  const router = useRouter();
+  // Form states for Create Product
+  const [productName, setProductName] = useState("");
+  const [productDescription, setProductDescription] = useState("");
+  const [productPrice, setProductPrice] = useState("");
+  const [productMaterial, setProductMaterial] = useState("");
+  const [selectedColors, setSelectedColors] = useState([]);
+  const [productImages, setProductImages] = useState([]);
+  
+  // State for bank details in Withdraw tab
+  const [bankName, setBankName] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [accountName, setAccountName] = useState("");
+  const [withdrawAmount, setWithdrawAmount] = useState("");
+  
+  // Mock Data
+  const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [earnings, setEarnings] = useState({
+    available: 10,
+    total: 10,
+    pending: 10,
+  });
+  const [payouts, setPayouts] = useState([]);
 
-  // Sample orders data
-  const [orders, setOrders] = useState([
-    { id: "#12345", customer: "John Doe", date: "2023-05-15", amount: "$45.99", status: "Completed" },
-    { id: "#12346", customer: "Jane Smith", date: "2023-05-14", amount: "$29.99", status: "Processing" },
-    { id: "#12347", customer: "Robert Johnson", date: "2023-05-14", amount: "$89.99", status: "Shipped" },
-    { id: "#12348", customer: "Emily Davis", date: "2023-05-13", amount: "$15.99", status: "Completed" },
-    { id: "#12349", customer: "Michael Wilson", date: "2023-05-12", amount: "$120.99", status: "Completed" },
-  ]);
-
-  // Sample products data
-  const [products, setProducts] = useState([
-    { id: "PRD-001", name: "Premium T-Shirt", price: "$24.99", stock: 142, status: "Active", image: "/placeholder-product.jpg" },
-    { id: "PRD-002", name: "Art Print", price: "$19.99", stock: 87, status: "Active", image: "/placeholder-product.jpg" },
-    { id: "PRD-003", name: "Mug", price: "$12.99", stock: 0, status: "Out of Stock", image: "/placeholder-product.jpg" }
-  ]);
-
-  // Check auth state
+  // Load user data and initial content
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-        const storedBusinessName = user.displayName || localStorage.getItem("businessName") || "Your Business";
-        setBusinessName(storedBusinessName);
-        fetchVendorData(user.uid);
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (!user) {
+        router.push("/Auth/Login");
       } else {
-        router.push("/Vendor/Login");
+        setUser(user);
+        // Load mock data
+        loadMockData();
       }
       setLoading(false);
     });
@@ -67,481 +55,1007 @@ export default function VendorDashboard() {
     return () => unsubscribe();
   }, [router]);
 
-  const fetchVendorData = async (vendorId) => {
-    try {
-      setTimeout(() => {
-        setStats({
-          totalSales: 1245,
-          pendingOrders: 8,
-          completedOrders: 42,
-          earnings: 8960,
-        });
-      }, 500);
-    } catch (error) {
-      console.error("Error fetching vendor data:", error);
-      toast.error("Failed to load dashboard data");
-    }
-  };
-
-  const handleWithdrawalSubmit = (e) => {
-    e.preventDefault();
-    toast.success(`Withdrawal submitted: Account Name: ${withdrawal.accountName}, Account Number: ${withdrawal.accountNumber}, Bank: ${withdrawal.bank}, Mode: ${withdrawal.mode}`);
-    setWithdrawal({ accountName: "", accountNumber: "", bank: "", mode: "daily" });
-  };
-
-  const handleSaveEarnings = () => {
-    toast.success(`Earnings saved for: ${savedEarningsDuration}`);
+  const loadMockData = () => {
+    setProducts([
+      { id: 1, name: "Business Cards", description: "Premium business cards, 300gsm", stock: 100, price: 4500, colors: ["Blue", "White", "Black"], material: "Gloss Coated", images: ["/api/placeholder/400/300"] },
+      { id: 2, name: "Flyers", description: "Full color A5 flyers", stock: 250, price: 7500, colors: ["Full Color"], material: "Matt Paper", images: ["/api/placeholder/400/300"] },
+      { id: 3, name: "Posters", description: "Large format posters, various sizes", stock: 50, price: 15000, colors: ["Full Color"], material: "Synthetic Paper", images: ["/api/placeholder/400/300"] },
+    ]);
+    
+    setOrders([
+      { id: "ORD-1001", clientName: "John Doe", date: "2023-06-15", status: "Completed", total: "₦12,599", files: ["brochure-design.pdf"], designLink: "https://design.example.com/1001" },
+      { id: "ORD-1002", clientName: "Jane Smith", date: "2023-06-20", status: "Processing", total: "₦8,950", files: ["logo-specs.pdf"], designLink: "" },
+      { id: "ORD-1003", clientName: "Robert Johnson", date: "2023-06-22", status: "Pending", total: "₦23,500", files: ["business-card.pdf", "letterhead.pdf"], designLink: "" }
+    ]);
+    
+    setEarnings({
+      available: 56000,
+      total: 125000,
+      pending: 23000
+    });
+    
+    setPayouts([
+      { id: "PYT-001", date: "2023-05-30", amount: "₦45,000", status: "Paid", txnId: "TXN4587952" },
+      { id: "PYT-002", date: "2023-06-15", amount: "₦32,000", status: "Paid", txnId: "TXN4692301" },
+      { id: "PYT-003", date: "2023-06-28", amount: "₦18,000", status: "Pending", txnId: "TXN4721905" }
+    ]);
   };
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      localStorage.removeItem("businessName");
       toast.success("Logged out successfully");
-      router.push("/Vendor/Login");
+      router.push("/Auth/Login");
     } catch (error) {
+      toast.error("Error signing out");
       console.error("Logout error:", error);
-      toast.error("Logout failed. Please try again.");
     }
   };
-
-  const handleSaveProfile = async () => {
-    try {
-      await updateProfile(auth.currentUser, {
-        displayName: businessName,
-      });
-      localStorage.setItem("businessName", businessName);
-      toast.success("Profile updated successfully");
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      toast.error("Failed to update profile");
+  
+  const handleCreateProduct = (e) => {
+    e.preventDefault();
+    
+    if (!productName || !productDescription || !productPrice || !productMaterial || selectedColors.length === 0) {
+      toast.error("Please fill all required fields");
+      return;
+    }
+    
+    const newProduct = {
+      id: products.length + 1,
+      name: productName,
+      description: productDescription,
+      price: parseFloat(productPrice),
+      colors: selectedColors,
+      material: productMaterial,
+      stock: 100, // Default starting stock
+      images: productImages.length > 0 ? productImages : ["/api/placeholder/400/300"],
+    };
+    
+    setProducts([...products, newProduct]);
+    toast.success("Product created successfully!");
+    
+    // Reset form
+    setProductName("");
+    setProductDescription("");
+    setProductPrice("");
+    setProductMaterial("");
+    setSelectedColors([]);
+    setProductImages([]);
+  };
+  
+  const handleColorToggle = (color) => {
+    if (selectedColors.includes(color)) {
+      setSelectedColors(selectedColors.filter(c => c !== color));
+    } else {
+      setSelectedColors([...selectedColors, color]);
     }
   };
+  
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length > 5) {
+      toast.error("Maximum 5 images allowed");
+      return;
+    }
+    
+    // In a real app, we would upload these to storage
+    // For this demo, just use placeholders
+    setProductImages(files.map((_, index) => `/api/placeholder/400/300?text=Image${index + 1}`));
+    toast.success(`${files.length} image(s) selected`);
+  };
+  
+  const handleDeleteProduct = (id) => {
+    setProducts(products.filter(product => product.id !== id));
+    toast.success("Product deleted");
+  };
+  
+  const handleSubmitWithdrawal = (e) => {
+    e.preventDefault();
+    
+    if (!bankName || !accountNumber || !accountName || !withdrawAmount) {
+      toast.error("Please fill all bank details");
+      return;
+    }
+    
+    if (parseFloat(withdrawAmount) > earnings.available) {
+      toast.error("Withdrawal amount exceeds available balance");
+      return;
+    }
+    
+    // In a real app, this would send a request to the backend
+    const newPayout = {
+      id: `PYT-00${payouts.length + 1}`,
+      date: new Date().toISOString().split('T')[0],
+      amount: `₦${parseFloat(withdrawAmount).toLocaleString()}`,
+      status: "Pending",
+      txnId: `TXN${Math.floor(1000000 + Math.random() * 9000000)}`
+    };
+    
+    setPayouts([newPayout, ...payouts]);
+    setEarnings({
+      ...earnings,
+      available: earnings.available - parseFloat(withdrawAmount),
+      pending: earnings.pending + parseFloat(withdrawAmount)
+    });
+    
+    toast.success("Withdrawal request submitted");
+    setWithdrawAmount("");
+  };
+  
+  const handleDesignLinkSubmit = (orderId, link) => {
+    setOrders(
+      orders.map(order => 
+        order.id === orderId 
+          ? {...order, designLink: link, status: "In Review"} 
+          : order
+      )
+    );
+    toast.success("Design link submitted for review");
+  };
 
-  const renderWithdrawalTab = () => {
-    const banks = [
-      "Access Bank", "First Bank", "GTBank", "Zenith Bank", "UBA", "Ecobank",
-      "FCMB", "Stanbic IBTC", "Union Bank", "Wema Bank", "Sterling Bank",
-      "Jaiz Bank", "Rubber Bank", "Heritage Bank", "Keystone Bank", "Polaris Bank",
-    ];
+  // Tab components
+  const tabs = {
+    Dashboard: (
+      <div className="space-y-6">
+        <div className="bg-gray-800 rounded-lg p-6 text-white">
+          <h1 className="text-2xl font-bold mb-2">
+            Welcome back, <span className="text-yellow-400">{user?.displayName || "Vendor"}</span>
+          </h1>
+          <p className="text-gray-300 mb-6">Quick overview of your products and orders</p>
 
-    return (
-      <div className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200">
-        <h3 className="text-lg font-bold text-gray-800">Submit Withdrawal</h3>
-        <form onSubmit={handleWithdrawalSubmit} className="space-y-4 mt-4">
-          <div>
-            <label htmlFor="accountName" className="block text-sm font-medium text-gray-700">Account Name</label>
-            <input
-              type="text"
-              id="accountName"
-              value={withdrawal.accountName}
-              onChange={(e) => setWithdrawal({ ...withdrawal, accountName: e.target.value })}
-              required
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-gray-700">
+              <div className="flex items-center">
+                <div className="bg-yellow-400 bg-opacity-20 p-3 rounded-full mr-3">
+                  <FaBoxOpen className="text-yellow-400" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-300">Total Products</p>
+                  <p className="text-xl font-bold text-white">{products.length}</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-gray-700">
+              <div className="flex items-center">
+                <div className="bg-yellow-400 bg-opacity-20 p-3 rounded-full mr-3">
+                  <FaClipboardList className="text-yellow-400" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-300">Total Orders</p>
+                  <p className="text-xl font-bold text-white">{orders.length}</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-gray-700">
+              <div className="flex items-center">
+                <div className="bg-yellow-400 bg-opacity-20 p-3 rounded-full mr-3">
+                  <FaMoneyBillWave className="text-yellow-400" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-300">Available Balance</p>
+                  <p className="text-xl font-bold text-white">₦{earnings.available.toLocaleString()}</p>
+                </div>
+              </div>
+            </div>
           </div>
-          <div>
-            <label htmlFor="accountNumber" className="block text-sm font-medium text-gray-700">Account Number</label>
-            <input
-              type="text"
-              id="accountNumber"
-              value={withdrawal.accountNumber}
-              onChange={(e) => setWithdrawal({ ...withdrawal, accountNumber: e.target.value })}
-              required
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-            />
+        </div>
+
+        {/* Recent Orders Section */}
+        <div className="bg-gray-800 rounded-lg p-6 text-white">
+          <h2 className="text-lg font-bold mb-4">Recent Orders</h2>
+          <div className="space-y-3">
+            {orders.slice(0, 3).map((order) => (
+              <div key={order.id} className="bg-black bg-opacity-30 rounded-lg p-4 border border-gray-700 flex justify-between items-center">
+                <div>
+                  <p className="text-sm font-medium">{order.id}</p>
+                  <p className="text-xs text-gray-400">{order.date}</p>
+                </div>
+                <p className={`font-bold ${
+                  order.status === "Completed" ? "text-green-400" : 
+                  order.status === "Processing" ? "text-blue-400" : 
+                  order.status === "In Review" ? "text-purple-400" : "text-yellow-400"
+                }`}>
+                  {order.status}
+                </p>
+                <p className="text-sm">{order.total}</p>
+              </div>
+            ))}
           </div>
-          <div>
-            <label htmlFor="bank" className="block text-sm font-medium text-gray-700">Select Bank</label>
-            <select
-              id="bank"
-              value={withdrawal.bank}
-              onChange={(e) => setWithdrawal({ ...withdrawal, bank: e.target.value })}
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-              required
-            >
-              <option value="">Select Bank</option>
-              {banks.map((bank, index) => (
-                <option key={index} value={bank}>{bank}</option>
+        </div>
+      </div>
+    ),
+    
+    Orders: (
+      <div className="bg-gray-800 rounded-lg p-6 text-white">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Manage Orders</h1>
+          <div className="flex space-x-2">
+            <button className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors bg-opacity-20 hover:bg-opacity-30 bg-white text-white`}>
+              All
+            </button>
+            <button className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors bg-opacity-20 hover:bg-opacity-30 bg-yellow-400 text-yellow-400`}>
+              Pending
+            </button>
+            <button className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors bg-opacity-20 hover:bg-opacity-30 bg-purple-400 text-purple-400`}>
+              In Review
+            </button>
+            <button className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors bg-opacity-20 hover:bg-opacity-30 bg-green-400 text-green-400`}>
+              Completed
+            </button>
+          </div>
+        </div>
+        
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-700">
+            <thead>
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Order ID</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Client</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Date</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Amount</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Files</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-700">
+              {orders.map((order) => (
+                <tr key={order.id}>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-white">{order.id}</td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">{order.clientName}</td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">{order.date}</td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <span className={`px-2 py-1 text-xs font-semibold rounded-full
+                      ${order.status === "Completed" ? "bg-green-100 text-green-800" : 
+                        order.status === "Processing" ? "bg-blue-100 text-blue-800" : 
+                        order.status === "In Review" ? "bg-purple-100 text-purple-800" : 
+                        "bg-yellow-100 text-yellow-800"}
+                    `}>
+                      {order.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">{order.total}</td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm">
+                    <div className="flex space-x-2">
+                      {order.files.map((file, index) => (
+                        <button 
+                          key={index}
+                          className="text-blue-400 hover:text-blue-300 flex items-center text-xs"
+                        >
+                          <FaFileDownload className="mr-1" />
+                          <span className="truncate max-w-xs">{file}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm">
+                    {order.status === "Pending" || order.status === "Processing" ? (
+                      <div className="flex items-center">
+                        <input
+                          type="text"
+                          placeholder="Enter design link"
+                          className="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm w-48 mr-2"
+                          defaultValue={order.designLink}
+                        />
+                        <button 
+                          onClick={() => handleDesignLinkSubmit(order.id, document.querySelector(`input[placeholder="Enter design link"]`).value)}
+                          className="bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-1 px-3 rounded text-xs"
+                        >
+                          Submit
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center">
+                        <span className="text-green-400 flex items-center">
+                          <FaCheck className="mr-1" /> Design Submitted
+                        </span>
+                      </div>
+                    )}
+                  </td>
+                </tr>
               ))}
-            </select>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    ),
+
+    "Create Product": (
+      <div className="bg-gray-800 rounded-lg p-6 text-white">
+        <h1 className="text-2xl font-bold mb-6">Create New Product</h1>
+        
+        <form onSubmit={handleCreateProduct} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Product Name</label>
+              <input
+                type="text"
+                value={productName}
+                onChange={(e) => setProductName(e.target.value)}
+                className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                placeholder="e.g. Business Cards"
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Price (₦)</label>
+              <input
+                type="number"
+                value={productPrice}
+                onChange={(e) => setProductPrice(e.target.value)}
+                className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                placeholder="Price in Naira"
+                min="0"
+                required
+              />
+            </div>
           </div>
+          
           <div>
-            <label htmlFor="withdrawalMode" className="block text-sm font-medium text-gray-700">Withdrawal Mode</label>
-            <select
-              id="withdrawalMode"
-              value={withdrawal.mode}
-              onChange={(e) => setWithdrawal({ ...withdrawal, mode: e.target.value })}
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-            >
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-            </select>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
+            <textarea
+              value={productDescription}
+              onChange={(e) => setProductDescription(e.target.value)}
+              rows="3"
+              className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              placeholder="Describe your product"
+              required
+            ></textarea>
           </div>
-          <button type="submit" className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md py-2">
-            Submit Withdrawal
-          </button>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Material</label>
+              <input
+                type="text"
+                value={productMaterial}
+                onChange={(e) => setProductMaterial(e.target.value)}
+                className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                placeholder="e.g. Glossy Paper, Matte, etc."
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Available Colors</label>
+              <div className="flex flex-wrap gap-2">
+                {["Red", "Blue", "Green", "Black", "White", "Yellow", "Full Color"].map(color => (
+                  <button
+                    key={color}
+                    type="button"
+                    onClick={() => handleColorToggle(color)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors
+                      ${selectedColors.includes(color) 
+                        ? 'bg-yellow-500 text-black' 
+                        : 'bg-gray-700 text-gray-300 border border-gray-600 hover:bg-gray-600'
+                      }`
+                    }
+                  >
+                    {color}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">
+              Upload Images (Max 5)
+            </label>
+            <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-600 border-dashed rounded-md">
+              <div className="space-y-1 text-center">
+                <FaFileUpload className="mx-auto h-12 w-12 text-gray-400" />
+                <div className="flex text-sm text-gray-400">
+                  <label htmlFor="file-upload" className="relative cursor-pointer rounded-md font-medium text-yellow-400 hover:text-yellow-300 focus-within:outline-none">
+                    <span>Upload files</span>
+                    <input 
+                      id="file-upload" 
+                      name="file-upload" 
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="sr-only"
+                      onChange={handleImageUpload}
+                    />
+                  </label>
+                  <p className="pl-1">or drag and drop</p>
+                </div>
+                <p className="text-xs text-gray-400">
+                  PNG, JPG, GIF up to 5 files
+                </p>
+                {productImages.length > 0 && (
+                  <p className="text-sm text-green-400">{productImages.length} images selected</p>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-medium rounded-md transition-colors"
+            >
+              Create Product
+            </button>
+          </div>
         </form>
       </div>
-    );
-  };
+    ),
 
-  const renderSavedEarningsTab = () => (
-    <div className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200">
-      <h3 className="text-lg font-bold text-gray-800">Save Earnings</h3>
-      <div className="mt-4">
-        <select
-          value={savedEarningsDuration}
-          onChange={(e) => setSavedEarningsDuration(e.target.value)}
-          className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-        >
-          <option value="2 months">2 months</option>
-          <option value="4 months">4 months</option>
-          <option value="6 months">6 months</option>
-          <option value="full year">Full year</option>
-        </select>
-      </div>
-      <button 
-        onClick={handleSaveEarnings} 
-        className="mt-4 w-full bg-green-500 hover:bg-green-600 text-white font-medium rounded-md py-2"
-      >
-        Save Earnings
-      </button>
-    </div>
-  );
-
-  const renderEarningsReportTab = () => (
-    <div className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200">
-      <h3 className="text-lg font-bold text-gray-800">Earnings Report</h3>
-      <div className="mt-4">
-        <h4 className="text-md font-medium text-gray-700">Total Earnings for This Month:</h4>
-        <p className="text-xl font-bold text-gray-800">{`${stats.earnings}`}</p>
-        <div className="mt-3">
-          <select className="mt-1 block w-full border border-gray-300 rounded-md p-2">
-            <option value="daily">Today</option>
-            <option value="weekly">This Week</option>
-            <option value="monthly">This Month</option>
-          </select>
-        </div>
-      </div>
-      {/* Placeholder for Chart */}
-      <div className="mt-4 h-48 bg-gray-200 rounded-md flex items-center justify-center">
-        <p className="text-gray-500">Earnings chart will appear here.</p>
-      </div>
-    </div>
-  );
-
-  const renderStatsCards = () => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
-      {[
-        { title: "Total Sales", value: stats.totalSales, icon: "💰", trend: "↑ 12% from last month", trendColor: "text-green-600" },
-        { title: "Pending Orders", value: stats.pendingOrders, icon: "🔄", trend: "↓ 5% from last month", trendColor: "text-red-600" },
-        { title: "Completed Orders", value: stats.completedOrders, icon: "✅", trend: "↑ 24% from last month", trendColor: "text-green-600" },
-        { title: "Total Earnings", value: `$${stats.earnings.toLocaleString()}`, icon: "💳", trend: "↑ 18% from last month", trendColor: "text-green-600" }
-      ].map((stat, index) => (
-        <div key={index} className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200">
-          <div className="flex justify-between">
-            <div>
-              <p className="text-xs md:text-sm font-medium text-gray-500">{stat.title}</p>
-              <p className="text-xl md:text-2xl font-bold text-gray-800 mt-1">{stat.value}</p>
-            </div>
-            <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-yellow-400 flex items-center justify-center text-xl md:text-2xl text-black">
-              {stat.icon}
-            </div>
+    "Manage Products": (
+      <div className="bg-gray-800 rounded-lg p-6 text-white">
+        <h1 className="text-2xl font-bold mb-6">Manage Your Products</h1>
+        
+        {products.length === 0 ? (
+          <div className="text-center py-10">
+            <p className="text-gray-400">No products available. Create your first product!</p>
           </div>
-          <div className={`mt-2 md:mt-4 text-xs md:text-sm ${stat.trendColor}`}>
-            {stat.trend}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-
-  const renderSalesChart = () => (
-    <div className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200 mb-6 md:mb-8">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-bold text-gray-800">Sales Overview</h3>
-        <span className="px-3 py-1 bg-yellow-400 text-black text-xs font-medium rounded-full">This Month</span>
-      </div>
-      <div className="h-48 md:h-64 bg-gray-50 rounded-md flex items-center justify-center">
-        <p className="text-gray-500">Sales chart will appear here</p>
-      </div>
-    </div>
-  );
-
-  const renderRecentOrders = () => (
-    <div className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-bold text-gray-800">Recent Orders</h3>
-        <button 
-          onClick={() => setActiveTab("orders")}
-          className="bg-yellow-400 hover:bg-yellow-500 text-black px-3 py-1 rounded text-sm font-medium transition-colors"
-        >
-          View All
-        </button>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-3 py-2 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
-              <th className="px-3 py-2 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-              <th className="px-3 py-2 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-              <th className="px-3 py-2 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-              <th className="px-3 py-2 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {orders.map((order) => (
-              <tr key={order.id}>
-                <td className="px-3 py-2 md:px-6 md:py-4 whitespace-nowrap text-xs md:text-sm font-medium text-gray-900">{order.id}</td>
-                <td className="px-3 py-2 md:px-6 md:py-4 whitespace-nowrap text-xs md:text-sm text-gray-500">{order.customer}</td>
-                <td className="px-3 py-2 md:px-6 md:py-4 whitespace-nowrap text-xs md:text-sm text-gray-500">{order.date}</td>
-                <td className="px-3 py-2 md:px-6 md:py-4 whitespace-nowrap text-xs md:text-sm text-gray-500">{order.amount}</td>
-                <td className="px-3 py-2 md:px-6 md:py-4 whitespace-nowrap">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    order.status === "Completed" ? "bg-green-100 text-green-800" :
-                    order.status === "Processing" ? "bg-yellow-400 text-black" :
-                    "bg-blue-100 text-blue-800"
-                  }`}>
-                    {order.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-
-  const renderProductsTab = () => (
-    <div className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-bold text-gray-800">Your Products</h3>
-        <button className="bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded-md text-sm font-medium transition-colors shadow-sm">
-          + Add New Product
-        </button>
-      </div>
-      <div className="border border-gray-200 rounded-lg overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-3 py-2 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-              <th className="px-3 py-2 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-              <th className="px-3 py-2 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
-              <th className="px-3 py-2 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-3 py-2 md:px-6 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {products.map((product) => (
-              <tr key={product.id}>
-                <td className="px-3 py-2 md:px-6 md:py-4 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 h-8 w-8 md:h-10 md:w-10">
-                      <img className="rounded-md" src={product.image} alt={product.name} />
-                    </div>
-                    <div className="ml-2 md:ml-4">
-                      <div className="text-xs md:text-sm font-medium text-gray-900">{product.name}</div>
-                      <div className="text-xs md:text-sm text-gray-500">#{product.id}</div>
-                    </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {products.map(product => (
+              <div key={product.id} className="bg-gray-900 border border-gray-700 rounded-lg overflow-hidden">
+                <div className="w-full h-48 bg-gray-800">
+                  <img 
+                    src={product.images[0]} 
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="text-lg font-semibold">{product.name}</h3>
+                    <p className="font-bold text-yellow-400">₦{product.price.toLocaleString()}</p>
                   </div>
-                </td>
-                <td className="px-3 py-2 md:px-6 md:py-4 whitespace-nowrap text-xs md:text-sm text-gray-500">{product.price}</td>
-                <td className="px-3 py-2 md:px-6 md:py-4 whitespace-nowrap text-xs md:text-sm text-gray-500">{product.stock}</td>
-                <td className="px-3 py-2 md:px-6 md:py-4 whitespace-nowrap">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    product.status === "Active" ? "bg-yellow-400 text-black" :
-                    "bg-red-100 text-red-800"
-                  }`}>
-                    {product.status}
-                  </span>
-                </td>
-                <td className="px-3 py-2 md:px-6 md:py-4 whitespace-nowrap text-xs md:text-sm font-medium">
-                  <button 
-                    onClick={() => handleProductAction("edit", product.id)}
-                    className="text-yellow-600 hover:text-yellow-800 mr-2 md:mr-3"
-                  >
-                    Edit
-                  </button>
-                  <button 
-                    onClick={() => handleProductAction("delete", product.id)}
-                    className="text-red-600 hover:text-red-800"
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
+                  <p className="text-sm text-gray-400 mb-3">{product.description}</p>
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {product.colors.map((color, idx) => (
+                      <span key={idx} className="px-2 py-0.5 bg-gray-700 text-xs rounded-full">{color}</span>
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between text-sm text-gray-400 mb-4">
+                    <span>Material: {product.material}</span>
+                    <span>In Stock: {product.stock}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <button className="flex items-center text-blue-400 hover:text-blue-300">
+                      <FaEdit className="mr-1" /> Edit
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteProduct(product.id)}
+                      className="flex items-center text-red-400 hover:text-red-300"
+                    >
+                      <FaTrash className="mr-1" /> Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+        )}
       </div>
-    </div>
-  );
+    ),
+    
+    "Earnings": (
+      <div className="bg-gray-800 rounded-lg p-6 text-white">
+        <h1 className="text-2xl font-bold mb-6">Your Earnings</h1>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-medium">Available Balance</h3>
+              <FaMoneyBillWave className="text-green-400 text-xl" />
+            </div>
+            <p className="text-3xl font-bold text-green-400">₦{earnings.available.toLocaleString()}</p>
+            <p className="text-sm text-gray-400 mt-2">Ready to withdraw</p>
+          </div>
+          
+          <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-medium">Total Earnings</h3>
+              <FaDollarSign className="text-yellow-400 text-xl" />
+            </div>
+            <p className="text-3xl font-bold text-yellow-400">₦{earnings.total.toLocaleString()}</p>
+            <p className="text-sm text-gray-400 mt-2">Lifetime earnings</p>
+          </div>
+          
+          <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-medium">Pending</h3>
+              <FaClock className="text-blue-400 text-xl" />
+            </div>
+            <p className="text-3xl font-bold text-blue-400">₦{earnings.pending.toLocaleString()}</p>
+            <p className="text-sm text-gray-400 mt-2">Processing withdrawals</p>
+          </div>
+        </div>
+        
+        <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
+          <h2 className="text-xl font-semibold mb-4">Performance Breakdown</h2>
+          <div className="mb-6">
+            <div className="flex justify-between mb-1">
+              <span className="text-sm text-gray-400">Commission Rate</span>
+              <span className="text-sm font-medium">80%</span>
+            </div>
+            <div className="w-full bg-gray-700 rounded-full h-2.5">
+              <div className="bg-green-500 h-2.5 rounded-full" style={{ width: "80%" }}></div>
+            </div>
+            <p className="text-xs text-gray-400 mt-2">
+              You receive 80% of each sale, 20% goes to platform fee
+            </p>
+          </div>
+          
+          <h3 className="font-medium mb-3">Monthly Summary</h3>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-700">
+              <thead>
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Month</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Orders</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Earnings</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Commission</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-700">
+                <tr>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm">June 2023</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm">12</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm">₦48,000</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-green-400">₦38,400</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm">May 2023</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm">15</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm">₦65,000</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-green-400">₦52,000</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm">April 2023</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm">8</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm">₦32,000</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-green-400">₦25,600</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    ),
+    
+    "Withdraw": (
+      <div className="bg-gray-800 rounded-lg p-6 text-white">
+        <h1 className="text-2xl font-bold mb-6">Withdraw Funds</h1>
+        
+        <div className="bg-gray-900 rounded-lg p-6 border border-gray-700 mb-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+            <div>
+              <span className="text-sm text-gray-400">Available Balance</span>
+              <h2 className="text-3xl font-bold text-green-400">₦{earnings.available.toLocaleString()}</h2>
+            </div>
+            
+            <div className="mt-4 md:mt-0">
+              <span className="text-sm text-gray-400">Minimum Withdrawal</span>
+              <p className="text-lg font-medium">₦5,000</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Bank Details</h2>
+            <form className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Bank Name</label>
+                <input
+                  type="text"
+                  value={bankName}
+                  onChange={(e) => setBankName(e.target.value)}
+                  className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  placeholder="Enter your bank name"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Account Number</label>
+                <input
+                  type="text"
+                  value={accountNumber}
+                  onChange={(e) => setAccountNumber(e.target.value)}
+                  className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  placeholder="Enter your account number"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Account Name</label>
+                <input
+                  type="text"
+                  value={accountName}
+                  onChange={(e) => setAccountName(e.target.value)}
+                  className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  placeholder="Enter account holder name"
+                />
+              </div>
+            </form>
+          </div>
+          
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Request Withdrawal</h2>
+            <form onSubmit={handleSubmitWithdrawal} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Amount (₦)</label>
+                <input
+                  type="number"
+                  value={withdrawAmount}
+                  onChange={(e) => setWithdrawAmount(e.target.value)}
+                  min="5000"
+                  max={earnings.available}
+                  className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  placeholder="Enter amount to withdraw"
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  Minimum withdrawal: ₦5,000 | Available: ₦{earnings.available.toLocaleString()}
+                </p>
+              </div>
+              
+              <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-gray-700">
+                <h3 className="font-medium mb-2">Withdrawal Notes</h3>
+                <ul className="text-sm text-gray-300 space-y-1">
+                  <li>• Withdrawals are processed within 24-48 hours</li>
+                  <li>• All bank details must be accurate</li>
+                  <li>• 80% commission is paid on all sales</li>
+                </ul>
+              </div>
+              
+              <div className="pt-4">
+                <button
+                  type="submit"
+                  className="w-full px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-md transition-colors"
+                >
+                  Request Withdrawal
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+        
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold mb-4">Recent Withdrawals</h2>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-700">
+              <thead>
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Date</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Amount</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-700">
+                {payouts.slice(0, 3).map((payout, index) => (
+                  <tr key={index}>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm">{payout.date}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">{payout.amount}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                        payout.status === "Paid" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
+                      }`}>
+                        {payout.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    ),
+    
+    "Payouts Received": (
+      <div className="bg-gray-800 rounded-lg p-6 text-white">
+        <h1 className="text-2xl font-bold mb-6">Payouts History</h1>
+        
+        <div className="bg-gray-900 rounded-lg p-6 border border-gray-700 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+            <div>
+              <p className="text-sm text-gray-400">Total Payouts</p>
+              <p className="text-2xl font-bold">₦{payouts
+                .filter(p => p.status === "Paid")
+                .reduce((sum, p) => sum + parseInt(p.amount.replace(/[^\d]/g, '')), 0)
+                .toLocaleString()}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-400">This Month</p>
+              <p className="text-2xl font-bold">₦{payouts
+                .filter(p => p.status === "Paid" && new Date(p.date).getMonth() === new Date().getMonth())
+                .reduce((sum, p) => sum + parseInt(p.amount.replace(/[^\d]/g, '')), 0)
+                .toLocaleString()}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-400">Pending</p>
+              <p className="text-2xl font-bold text-yellow-400">₦{payouts
+                .filter(p => p.status === "Pending")
+                .reduce((sum, p) => sum + parseInt(p.amount.replace(/[^\d]/g, '')), 0)
+                .toLocaleString()}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-700">
+            <thead>
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">ID</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Date</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Amount</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Transaction ID</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Receipt</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-700">
+              {payouts.map((payout, index) => (
+                <tr key={index}>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">{payout.id}</td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm">{payout.date}</td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">{payout.amount}</td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                      payout.status === "Paid" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
+                    }`}>
+                      {payout.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm">{payout.txnId}</td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm">
+                    {payout.status === "Paid" && (
+                      <button className="text-blue-400 hover:text-blue-300 flex items-center">
+                        <FaFileDownload className="mr-1" /> Download
+                      </button>
+                    )}
+                    {payout.status === "Pending" && (
+                      <span className="text-gray-400">Pending</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading dashboard...</p>
-        </div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <ToastContainer position="top-right" autoClose={5000} theme="colored" />
-
-      {/* Mobile Header */}
-      <div className="lg:hidden bg-white shadow-sm p-4 flex justify-between items-center border-b border-gray-200">
-        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 rounded-md text-gray-700">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-        <h1 className="text-lg font-bold text-gray-800">59Minutes Vendor</h1>
-        <div className="h-8 w-8 rounded-full bg-yellow-400 flex items-center justify-center text-black font-bold">
-          {user?.email?.charAt(0).toUpperCase()}
-        </div>
-      </div>
-
-      <div className="flex flex-col lg:flex-row">
-        {/* Sidebar - Desktop */}
-        <div className="hidden lg:block w-64 bg-white shadow-md h-screen sticky top-0 border-r border-gray-200">
-          <div className="p-4 border-b border-gray-200">
-            <h1 className="text-xl font-bold text-gray-800">59Minutes Vendor</h1>
-            <p className="text-sm text-gray-500">{businessName || user?.email}</p>
-          </div>
-
-          <nav className="p-4">
-            <ul className="space-y-1">
-              {["dashboard", "products", "orders", "withdrawal", "earnings", "save-earnings", "settings"].map((tab) => (
-                <li key={tab}>
-                  <button
-                    onClick={() => setActiveTab(tab)}
-                    className={`w-full text-left px-4 py-3 rounded-md capitalize font-medium ${
-                      activeTab === tab 
-                        ? "bg-yellow-400 text-black shadow-sm" 
-                        : "text-gray-700 hover:bg-gray-100"
-                    }`}
-                  >
-                    {tab.replace('-', ' ')}
-                  </button>
-                </li>
-              ))}
-            </ul>
-
-            <div className="mt-8 pt-4 border-t border-gray-200">
+    <div className="min-h-screen bg-gray-900">
+      {/* Top Navigation Bar */}
+      <nav className="bg-black text-white shadow-lg sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16 items-center">
+            <div className="flex items-center">
+              <button
+                onClick={() => setMobileNavOpen(!mobileNavOpen)}
+                className="lg:hidden mr-4 text-white focus:outline-none"
+              >
+                {mobileNavOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
+              </button>
+              <h1 className="text-xl font-bold">
+                <span className="text-yellow-400">59Minutes</span>Print
+              </h1>
+            </div>
+            <div className="flex items-center space-x-4">
               <button
                 onClick={handleLogout}
-                className="w-full text-left px-4 py-2 rounded-md text-red-600 hover:bg-red-50 font-medium"
+                className="flex items-center text-sm hover:text-yellow-400 transition"
               >
-                Logout
-              </button>
-            </div>
-          </nav>
-        </div>
-
-        {/* Main Content */}
-        <div className="flex-1 p-4 md:p-6 lg:p-8">
-          <div className="mb-6 md:mb-8 flex justify-between items-center">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-800 capitalize">
-              {activeTab === "dashboard" ? "Vendor Dashboard" : activeTab}
-            </h2>
-            <div className="flex items-center space-x-4">
-              <button className="p-2 rounded-full bg-gray-100 hover:bg-gray-200">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-              </button>
-              <button 
-                onClick={handleLogout} 
-                className="p-2 rounded-full bg-red-500 hover:bg-red-600 text-white"
-              >
-                Logout
+                <FaSignOutAlt className="mr-1" /> Sign Out
               </button>
             </div>
           </div>
+        </div>
+      </nav>
 
-          {/* Render content based on active tab */}
-          {activeTab === "dashboard" && (
-            <>
-              {renderStatsCards()}
-              {renderSalesChart()}
-              {renderRecentOrders()}
-            </>
-          )}
-          
-          {activeTab === "products" && renderProductsTab()}
-          
-          {activeTab === "orders" && (
-            <div className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200 mb-6 md:mb-8">
-              <h3 className="text-lg font-bold text-gray-800">All Orders</h3>
-              <p className="text-gray-500">All order details will be shown here.</p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Side Navigation */}
+          <aside className={`
+            fixed inset-y-0 left-0 z-40 
+            w-64 bg-gray-800 shadow-lg 
+            transform transition-transform duration-300 ease-in-out rounded
+            ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full'} 
+            lg:relative lg:translate-x-0 lg:w-64
+            mt-16 lg:mt-0
+          `}>
+            {/* Close button for mobile */}
+            <div className="lg:hidden absolute top-2 right-2">
+              <button
+                onClick={() => setMobileNavOpen(false)}
+                className="p-2 text-gray-400 hover:text-white focus:outline-none"
+              >
+                <FaTimes size={20} />
+              </button>
             </div>
-          )}
 
-          {activeTab === "withdrawal" && renderWithdrawalTab()}
-
-          {activeTab === "earnings" && renderEarningsReportTab()}
-
-          {activeTab === "save-earnings" && renderSavedEarningsTab()}
-
-          {activeTab === "settings" && (
-            <div className="bg-white p-4 md:p-6 rounded-lg shadow border border-gray-200">
-              <h3 className="text-lg font-bold text-gray-800">Account Settings</h3>
-              <form onSubmit={(e) => { e.preventDefault(); toast.success("Password changed successfully"); setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" }); }} className="space-y-4 mt-4">
-                <div>
-                  <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700">Current Password</label>
-                  <input
-                    type="password"
-                    id="currentPassword"
-                    value={passwordForm.currentPassword}
-                    onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                    required
-                    className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                  />
+            {/* User Profile */}
+            <div className="p-4 border-b border-gray-700">
+              <div className="flex items-center space-x-3">
+                <div className="bg-yellow-400 bg-opacity-20 p-2 rounded-full">
+                  <FaUser className="text-yellow-400" />
                 </div>
-                <div>
-                  <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">New Password</label>
-                  <input
-                    type="password"
-                    id="newPassword"
-                    value={passwordForm.newPassword}
-                    onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                    required
-                    className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                  />
+                <div className="overflow-hidden">
+                  <p className="font-medium text-white truncate">{user?.displayName || 'Vendor'}</p>
+                  <p className="text-xs text-gray-400 truncate">{user?.email}</p>
                 </div>
-                <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">Confirm Password</label>
-                  <input
-                    type="password"
-                    id="confirmPassword"
-                    value={passwordForm.confirmPassword}
-                    onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                    required
-                    className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                  />
-                </div>
-                <button type="submit" className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-medium rounded-md py-2">
-                  Change Password
-                </button>
-              </form>
-              <div className="mt-4">
-                <button 
-                  onClick={handleSaveProfile} 
-                  className="w-full bg-green-500 hover:bg-green-600 text-white font-medium rounded-md py-2"
-                >
-                  Update Business Name
-                </button>
               </div>
             </div>
-          )}
+
+            {/* Navigation Links */}
+            <nav className="p-2 h-[calc(100%-72px-4rem)] overflow-y-auto">
+              <button
+                onClick={() => {
+                  setActiveTab("Dashboard");
+                  setMobileNavOpen(false);
+                }}
+                className={`
+                  w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
+                  transition-all duration-200
+                  ${activeTab === "Dashboard"
+                    ? 'bg-yellow-400 text-black font-bold shadow-md'
+                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  }
+                `}
+              >
+                <span className="mr-3 text-base">
+                  <FaHome />
+                </span>
+                <span className="text-left">Dashboard</span>
+              </button>
+              
+              <button
+                onClick={() => {
+                  setActiveTab("Orders");
+                  setMobileNavOpen(false);
+                }}
+                className={`
+                  w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
+                  transition-all duration-200
+                  ${activeTab === "Orders"
+                    ? 'bg-yellow-400 text-black font-bold shadow-md'
+                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  }
+                `}
+              >
+                <span className="mr-3 text-base">
+                  <FaClipboardList />
+                </span>
+                <span className="text-left">Orders</span>
+              </button>
+              
+              <button
+                onClick={() => {
+                  setActiveTab("Create Product");
+                  setMobileNavOpen(false);
+                }}
+                className={`
+                  w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
+                  transition-all duration-200
+                  ${activeTab === "Create Product"
+                    ? 'bg-yellow-400 text-black font-bold shadow-md'
+                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  }
+                `}
+              >
+                <span className="mr-3 text-base">
+                  <FaPlus />
+                </span>
+                <span className="text-left">Create Product</span>
+              </button>
+              
+              <button
+                onClick={() => {
+                  setActiveTab("Manage Products");
+                  setMobileNavOpen(false);
+                }}
+                className={`
+                  w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
+                  transition-all duration-200
+                  ${activeTab === "Manage Products"
+                    ? 'bg-yellow-400 text-black font-bold shadow-md'
+                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  }
+                `}
+              >
+                <span className="mr-3 text-base">
+                  <FaBoxOpen />
+                </span>
+                <span className="text-left">Manage Products</span>
+              </button>
+              
+              <button
+                onClick={() => {
+                  setActiveTab("Earnings");
+                  setMobileNavOpen(false);
+                }}
+                className={`
+                  w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
+                  transition-all duration-200
+                  ${activeTab === "Earnings"
+                    ? 'bg-yellow-400 text-black font-bold shadow-md'
+                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  }
+                `}
+              >
+                <span className="mr-3 text-base">
+                  <FaMoneyBillWave />
+                </span>
+                <span className="text-left">Earnings</span>
+              </button>
+              
+              <button
+                onClick={() => {
+                  setActiveTab("Withdraw");
+                  setMobileNavOpen(false);
+                }}
+                className={`
+                  w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
+                  transition-all duration-200
+                  ${activeTab === "Withdraw"
+                    ? 'bg-yellow-400 text-black font-bold shadow-md'
+                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  }
+                `}
+              >
+                <span className="mr-3 text-base">
+                  <FaWallet />
+                </span>
+                <span className="text-left">Withdraw</span>
+              </button>
+              
+              <button
+                onClick={() => {
+                  setActiveTab("Payouts Received");
+                  setMobileNavOpen(false);
+                }}
+                className={`
+                  w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
+                  transition-all duration-200
+                  ${activeTab === "Payouts Received"
+                    ? 'bg-yellow-400 text-black font-bold shadow-md'
+                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  }
+                `}
+              >
+                <span className="mr-3 text-base">
+                  <FaHistory />
+                </span>
+                <span className="text-left">Payouts Received</span>
+              </button>
+            </nav>
+          </aside>
+
+          {/* Main Content Area */}
+          <main className="flex-1">
+            <div className="mb-4 flex lg:hidden items-center">
+              {mobileNavOpen && (
+                <button
+                  onClick={() => setMobileNavOpen(false)}
+                  className="flex items-center text-sm text-yellow-400 mr-4"
+                >
+                  <FaTimes className="mr-1" /> Close Menu
+                </button>
+              )}
+              <h2 className="text-xl font-bold text-white">{activeTab}</h2>
+            </div>
+
+            {tabs[activeTab]}
+          </main>
         </div>
       </div>
     </div>

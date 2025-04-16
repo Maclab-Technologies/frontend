@@ -250,16 +250,7 @@ export default function VendorRegister() {
 
           
 
-          <div className="relative mt-6 mb-4">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
-            </div>
-            <div className="relative flex justify-center text-sm bg-white">
-              <span className="px-2 text-black">Or sign up with</span>
-            </div>
-          </div>
-
-          <button
+          {/* <button
             onClick={handleGoogleSignUp}
             disabled={loading}
             className="w-full inline-flex justify-center items-center py-2 px-4 border border-black rounded-md shadow-sm bg-white text-sm font-medium text-black hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400 transition-colors"
@@ -287,7 +278,7 @@ export default function VendorRegister() {
               />
             </svg>
             Continue with Google
-          </button>
+          </button> */}
 
           <div className="mt-6 text-center text-sm">
             <p className="text-black">

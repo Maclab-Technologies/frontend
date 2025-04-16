@@ -78,7 +78,7 @@ const Feedback = () => {
                   value={formData.firstname}
                   onChange={handleChange}
                   placeholder="First Name"
-                  className="w-full px-4 py-2 rounded-lg text-white bg-gray-800"
+                  className="w-full px-4 py-2 rounded-lg text-black bg-white"
                   required
                 />
               </div>
@@ -90,7 +90,7 @@ const Feedback = () => {
                   value={formData.lastname}
                   onChange={handleChange}
                   placeholder="Last Name"
-                  className="w-full px-4 py-2 rounded-lg text-white bg-gray-800"
+                  className="w-full px-4 py-2 rounded-lg text-black bg-white"
                   required
                 />
               </div>
@@ -103,7 +103,7 @@ const Feedback = () => {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="Email Address"
-                className="w-full px-4 py-2 rounded-lg text-white bg-gray-800"
+                className="w-full px-4 py-2 rounded-lg text-black bg-white"
                 required
               />
             </div>
@@ -114,7 +114,7 @@ const Feedback = () => {
                 value={formData.message}
                 onChange={handleChange}
                 placeholder="Message"
-                className="w-full px-4 py-2 rounded-lg text-white bg-gray-800 h-32"
+                className="w-full px-4 py-2 rounded-lg text-black bg-white h-32"
                 required
               ></textarea>
             </div>

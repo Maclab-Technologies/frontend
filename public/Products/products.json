@@ -1,3 +1,4 @@
+
 [
   {
     "s/n": "1",
@@ -36,7 +37,7 @@
     "images": ["/images/brandimage.jpeg", "/images/brandimage.jpeg", "/images/brandimage.jpeg", "/images/brandimage.jpeg", "/images/brandimage.jpeg"],
     "price": 20000,
     "stock": 200,
-    "category": "Flyers",
+    "category": "flyers",
     "ownership": "Free Template",
     "joined": "2024-02-03",
     "vendor": "N/A",
