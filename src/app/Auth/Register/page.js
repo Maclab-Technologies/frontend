@@ -132,34 +132,52 @@ const Register = () => {
   // Handle form submission
   const handleSignUp = useCallback(async (e) => {
     e.preventDefault();
-    
+  
     // Validate all fields
     const newErrors = {};
     Object.entries(formData).forEach(([field, value]) => {
       validateField(field, value);
       if (errors[field]) newErrors[field] = errors[field];
     });
-    
+  
     if (Object.values(newErrors).some(error => error)) return;
-    
+  
     setIsLoading(true);
-
+  
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         formData.email,
         formData.password
       );
-
-      const idToken = userCredential.user.accessToken
-      setToken(idToken), 
-      localStorage.setItem('userToken', idToken)
-
-      // Update user display name with first and last name
+  
+      // Update user display name
       await updateProfile(userCredential.user, {
         displayName: `${formData.firstName} ${formData.lastName}`
       });
-
+  
+      const idToken = await userCredential.user.getIdToken();
+      setToken(idToken);
+      localStorage.setItem('userToken', idToken);
+  
+      // Send user data to backend
+      const response = await fetch('http://localhost:4000/api/user/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({
+          displayName: formData.firstName + ' ' + formData.lastName,
+          password: formData.password,
+        }),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Signup failed');
+      }
+  
       toast.success("Account created successfully!");
       router.push('/Clients/Dashboard');
     } catch (err) {
@@ -169,7 +187,7 @@ const Register = () => {
       setIsLoading(false);
     }
   }, [formData, errors, validateField, getErrorMessage, router]);
-
+  
   // Google Sign-In
   const handleGoogleSignIn = useCallback(async () => {
     setIsLoading(true);
@@ -177,9 +195,20 @@ const Register = () => {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
 
-      const idToken = result.user.accessToken
-      setToken(idToken), 
-      localStorage.setItem('userToken', idToken)
+      console.log(result)
+      
+
+      await fetch('http://localhost:4000/api/user/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+        }
+      });
+
+      const idToken = await result.user.getIdToken();
+      setToken(idToken);
+      localStorage.setItem('userToken', idToken);
 
     } catch (err) {
       toast.error(getErrorMessage(err.code));

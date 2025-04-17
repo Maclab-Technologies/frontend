@@ -164,6 +164,7 @@ export default function ClientDashboard() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
+    localStorage.removeItem('userToken');
       toast.success("Logged out successfully");
       router.push("/Auth/Login");
     } catch (error) {
