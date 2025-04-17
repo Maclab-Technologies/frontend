@@ -5,6 +5,20 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { 
+  ArrowLeft, 
+  Minus, 
+  Plus, 
+  ShoppingCart, 
+  Palette, 
+  Edit, 
+  Upload,
+  Box,
+  Paintbrush,
+  Building,
+  ShieldCheck,
+  Tag
+} from "lucide-react";
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -14,6 +28,7 @@ export default function ProductDetail() {
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(null);
   const [designOption, setDesignOption] = useState(null);
+  const [imageLoading, setImageLoading] = useState(true);
 
   useEffect(() => {
     if (!id) {
@@ -49,18 +64,29 @@ export default function ProductDetail() {
 
   const handleAddToCart = () => {
     if (!product) return;
+    
+    if (!designOption) {
+      toast.warning("Please select a design option first", {
+        position: "top-center",
+        autoClose: 3000,
+        theme: "dark",
+      });
+      return;
+    }
 
     const cartItem = {
       id: product.id,
       name: product.name,
       price: product.price,
-      image: product.images[0],
+      image: selectedImage || product.images[0],
       quantity,
       designOption,
     };
 
     const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
-    const existingItemIndex = existingCart.findIndex((item) => item.id === product.id);
+    const existingItemIndex = existingCart.findIndex((item) => 
+      item.id === product.id && item.designOption === designOption
+    );
 
     if (existingItemIndex !== -1) {
       existingCart[existingItemIndex].quantity += quantity;
@@ -70,6 +96,7 @@ export default function ProductDetail() {
 
     localStorage.setItem("cart", JSON.stringify(existingCart));
     window.dispatchEvent(new Event("cartUpdated"));
+    
     toast.success(`${product.name} added to cart!`, {
       position: "top-right",
       autoClose: 3000,
@@ -80,7 +107,10 @@ export default function ProductDetail() {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen bg-black">
-        <p className="text-white text-lg">Loading product details...</p>
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="w-16 h-16 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-white text-lg mt-4">Loading product details...</p>
+        </div>
       </div>
     );
   }
@@ -88,133 +118,207 @@ export default function ProductDetail() {
   if (!product) {
     return (
       <div className="flex justify-center items-center h-screen bg-black">
-        <p className="text-white text-lg">Product not found.</p>
+        <div className="text-center">
+          <p className="text-white text-xl mb-4">Product not found.</p>
+          <button 
+            onClick={() => router.push("/Products")}
+            className="bg-yellow-400 text-black px-6 py-2 rounded-md hover:bg-yellow-500 transition"
+          >
+            Return to Products
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-8 text-white bg-black min-h-screen">
+    <div className="bg-gradient-to-b from-black to-gray-900 min-h-screen">
       <ToastContainer />
+      
+      {/* Breadcrumb Navigation */}
+      <div className="container mx-auto pt-6 px-4">
+        <button 
+          onClick={() => router.push("/Products")}
+          className="flex items-center text-gray-400 hover:text-yellow-400 transition mb-4"
+        >
+          <ArrowLeft size={16} className="mr-1" />
+          <span>Back to Products</span>
+        </button>
+      </div>
 
-      <div className="flex flex-col md:flex-row gap-12 max-w-7xl mx-auto p-10 rounded-lg bg-gray-800 shadow-md">
+      <div className="container mx-auto px-4 pb-16">
+        <div className="bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
+          <div className="flex flex-col lg:flex-row">
+            
+            {/* Left Side: Product Images */}
+            <div className="lg:w-1/2 p-6 md:p-8">
+              <div className="relative aspect-square bg-gray-900 rounded-xl overflow-hidden">
+                {imageLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-12 h-12 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                )}
+                <Image 
+                  src={selectedImage || (product?.images?.[0] || "")} 
+                  alt={product?.name} 
+                  width={600} 
+                  height={600}
+                  className="object-contain w-full h-full"
+                  onLoad={() => setImageLoading(false)}
+                  priority
+                />
+              </div>
 
-        {/* Left Side: Product Images */}
-        <div className="md:w-1/2 flex flex-col items-center">
-          <Image 
-            src={selectedImage} 
-            alt={product?.name} 
-            width={450} 
-            height={450} 
-            className="rounded-xl" 
-          />
+              <div className="mt-6 grid grid-cols-4 gap-3">
+                {product?.images?.map((img, index) => (
+                  <div 
+                    key={index} 
+                    className={`relative aspect-square rounded-lg overflow-hidden cursor-pointer border-2 ${
+                      selectedImage === img ? 'border-yellow-400' : 'border-transparent'
+                    } transition-all hover:opacity-80`}
+                    onClick={() => setSelectedImage(img)}
+                  >
+                    <Image
+                      src={img}
+                      alt={`${product.name} image ${index + 1}`}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 25vw, 12vw"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
 
-          <div className="flex gap-4 mt-6 overflow-x-auto">
-            {product?.images?.map((img, index) => (
-              <Image
-                key={index}
-                src={img}
-                alt={`Thumbnail ${index + 1}`}
-                width={80}
-                height={80}
-                className={`rounded-lg cursor-pointer ${selectedImage === img ? 'border-2 border-yellow-400' : ''}`}
-                onClick={() => setSelectedImage(img)}
-                role="button"
-                aria-label={`View image ${index + 1}`}
-              />
-            ))}
+            {/* Right Side: Product Details */}
+            <div className="lg:w-1/2 p-6 md:p-8 lg:border-l border-gray-700">
+              <div className="mb-2 text-yellow-400 text-sm font-medium flex items-center">
+                <Tag size={14} className="mr-1" />
+                {product?.category}
+              </div>
+              
+              <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                {product?.name}
+              </h1>
+              
+              <div className="text-2xl md:text-3xl font-bold text-yellow-400 mb-4">
+                ₦{parseInt(product?.price).toLocaleString()}
+              </div>
+              
+              <div className="mb-6 text-gray-300">
+                {product?.description}
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-sm mb-8">
+                <div className="flex items-center">
+                  <Box size={16} className="text-gray-400 mr-2" />
+                  <span className="text-gray-400 mr-2">Material:</span>
+                  <span className="text-white">{product?.material}</span>
+                </div>
+                <div className="flex items-center">
+                  <Paintbrush size={16} className="text-gray-400 mr-2" />
+                  <span className="text-gray-400 mr-2">Color:</span>
+                  <span className="text-white">{product?.color}</span>
+                </div>
+                <div className="flex items-center">
+                  <Building size={16} className="text-gray-400 mr-2" />
+                  <span className="text-gray-400 mr-2">Vendor:</span>
+                  <span className="text-white">{product?.vendor}</span>
+                </div>
+                <div className="flex items-center">
+                  <ShieldCheck size={16} className="text-gray-400 mr-2" />
+                  <span className="text-gray-400 mr-2">Ownership:</span>
+                  <span className="text-white">{product?.ownership}</span>
+                </div>
+              </div>
+              
+              {/* Quantity Selector */}
+              <div className="mb-8">
+                <label className="block text-gray-300 text-sm font-medium mb-2">
+                  Quantity
+                </label>
+                <div className="flex items-center">
+                  <button 
+                    className="bg-gray-700 p-2 rounded-l-md hover:bg-gray-600 transition" 
+                    onClick={() => handleQuantityChange("decrease")}
+                    aria-label="Decrease quantity"
+                  >
+                    <Minus size={18} />
+                  </button>
+                  <div className="bg-gray-900 text-center py-2 px-6 text-lg font-medium">
+                    {quantity}
+                  </div>
+                  <button 
+                    className="bg-gray-700 p-2 rounded-r-md hover:bg-gray-600 transition" 
+                    onClick={() => handleQuantityChange("increase")}
+                    aria-label="Increase quantity"
+                  >
+                    <Plus size={18} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Design Options */}
+              <div className="mb-8">
+                <h2 className="text-white text-lg font-medium mb-3">Choose Design Option:</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <button
+                    onClick={() => {
+                      setDesignOption("Hire Graphics Designer");
+                      router.push("/Pages/Hire-designer");
+                    }}
+                    className={`flex flex-col items-center justify-center p-4 rounded-lg text-center transition ${
+                      designOption === "Hire Graphics Designer" 
+                        ? "bg-yellow-400 text-black" 
+                        : "bg-gray-700 hover:bg-gray-600 text-white"
+                    }`}
+                  >
+                    <Palette size={24} className="mb-2" />
+                    <span className="block text-sm font-medium">Hire Designer</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setDesignOption("Edit with Canva");
+                      router.push("/Pages/edit-canvas");
+                    }}
+                    className={`flex flex-col items-center justify-center p-4 rounded-lg text-center transition ${
+                      designOption === "Edit with Canva" 
+                        ? "bg-yellow-400 text-black" 
+                        : "bg-gray-700 hover:bg-gray-600 text-white"
+                    }`}
+                  >
+                    <Edit size={24} className="mb-2" />
+                    <span className="block text-sm font-medium">Edit with Canva</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setDesignOption("Upload Your Own Design");
+                      router.push("/pages/upload-design");
+                    }}
+                    className={`flex flex-col items-center justify-center p-4 rounded-lg text-center transition ${
+                      designOption === "Upload Your Own Design" 
+                        ? "bg-yellow-400 text-black" 
+                        : "bg-gray-700 hover:bg-gray-600 text-white"
+                    }`}
+                  >
+                    <Upload size={24} className="mb-2" />
+                    <span className="block text-sm font-medium">Upload Design</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Add to Cart Button */}
+              <button
+                className="w-full bg-yellow-400 text-black py-4 px-6 rounded-lg font-bold text-lg flex items-center justify-center hover:bg-yellow-500 transition transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50"
+                onClick={handleAddToCart}
+              >
+                <ShoppingCart className="mr-2" size={20} />
+                Add to Cart
+              </button>
+            </div>
           </div>
-        </div>
-
-        {/* Right Side: Product Details */}
-        <div className="md:w-1/2 space-y-6">
-          <h1 className="text-5xl font-bold">{product?.name}</h1>
-          <p className="text-white text-lg">{product?.description}</p>
-          <p className="text-yellow-400 text-3xl font-semibold">₦{product?.price}</p>
-
-          <div className="grid grid-cols-2 gap-4 text-sm text-gray-300">
-            <p>📂 Category: <span className="text-white font-medium">{product?.category}</span></p>
-            <p>📝 Material: <span className="text-white font-medium">{product?.material}</span></p>
-            <p>🎨 Color: <span className="text-white font-medium">{product?.color}</span></p>
-            <p>🏭 Vendor: <span className="text-white font-medium">{product?.vendor}</span></p>
-            <p>🛡️ Ownership: <span className="text-white font-medium">{product?.ownership}</span></p>
-          </div>
-
-          {/* Quantity Control */}
-          <div className="flex items-center gap-6">
-            <button 
-              className="bg-gray-800 px-5 py-2 rounded-md hover:bg-gray-700 transition" 
-              onClick={() => handleQuantityChange("decrease")}
-            >
-              -
-            </button>
-            <span className="text-lg font-semibold">{quantity}</span>
-            <button 
-              className="bg-gray-800 px-5 py-2 rounded-md hover:bg-gray-700 transition" 
-              onClick={() => handleQuantityChange("increase")}
-            >
-              +
-            </button>
-          </div>
-
-          {/* Design Options */}
-          <h2 className="text-lg font-semibold">Choose Design Option:</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-            {/* 🎨 Hire Designer */}
-            <button
-              onClick={() => {
-                setDesignOption("Hire Graphics Designer");
-                router.push("/Pages/Hire-designer");
-              }}
-              className={`flex items-center gap-3 bg-gray-800 px-6 py-5 rounded-lg text-lg ${
-                designOption === "Hire Graphics Designer" ? "bg-yellow-400 text-black" : ""
-              }`}
-            >
-              🎨 Hire Graphics Designer
-            </button>
-
-            {/* ✏️ Edit with Canva */}
-            <button
-              onClick={() => {
-                setDesignOption("Edit with Canva");
-                router.push("/Pages/edit-canvas");
-              }}
-              className={`flex items-center gap-3 bg-gray-800 px-6 py-5 rounded-lg text-lg ${
-                designOption === "Edit with Canva" ? "bg-yellow-400 text-black" : ""
-              }`}
-            >
-              ✏️ Edit with Canva
-            </button>
-
-            {/* 📤 Upload Design */}
-            <button
-              onClick={() => {
-                setDesignOption("Upload Your Own Design");
-                router.push("/pages/upload-design");
-              }}
-              className={`flex items-center gap-3 bg-gray-800 px-6 py-5 rounded-lg text-lg ${
-                designOption === "Upload Your Own Design" ? "bg-yellow-400 text-black" : ""
-              }`}
-            >
-              📤 Upload Design
-            </button>
-          </div>
-
-          {/* Add to Cart */}
-          <button
-            className="bg-yellow-400 text-black px-8 py-4 rounded-md font-bold w-full hover:bg-yellow-500 transition"
-            onClick={handleAddToCart}
-          >
-            Add to Cart
-          </button>
-
-          <button
-            className="mt-4 bg-white text-black px-8 py-2 rounded-md w-full hover:bg-gray-300 transition"
-            onClick={() => router.push("/Products")}
-          >
-            Back to Products
-          </button>
         </div>
       </div>
     </div>
