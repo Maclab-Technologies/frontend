@@ -604,7 +604,6 @@ export default function ClientDashboard() {
                 />
               </div>
               
-              
             </div>
             
             <div className="mt-6">

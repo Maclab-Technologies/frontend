@@ -17,7 +17,7 @@ const NAV_LINKS = [
   { label: "Categories", href: "/Pages/Categories" },
   { label: "Features", href: "/Pages/Features" },
   { label: "Become a Vendor", href: "/Vendor" },
-  { label: "Track Orders", href: "/track-orders" },
+  { label: "About US", href: "/Pages/About" },
 ];
 
 const Navbar = () => {

@@ -1,224 +1,622 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { 
+  FaChartPie, FaBoxOpen, FaUsers, FaUserTie, 
+  FaPaintBrush, FaMoneyCheckAlt, FaReceipt, FaSignOutAlt, 
+  FaBars, FaTimes, FaUser, FaCheck, FaDownload,
+  FaExclamationCircle, FaClock, FaTrash, FaEdit
+} from "react-icons/fa";
+import { signOut } from "firebase/auth";
 import { auth } from "../../utils/firebaseconfig";
-import { signOut, onAuthStateChanged } from "firebase/auth";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-import {
-  Printer,
-  Users,
-  ShoppingCart,
-  Settings,
-  LogOut,
-  Home,
-  BarChart2,
-  FileText,
-  Package,
-  Truck,
-  Menu,
-  X,
-} from "lucide-react";
-
-// Content components
-import DashboardContent from "../components/DashboardContent";
-import OrdersContent from "../components/OrdersContent";
-import PrintJobsContent from "../components/PrintJobsContent";
-import CustomersContent from "../components/CustomerContent";
-import ProductsContent from "../components/ProductsContent";
-import InvoicesContent from "../components/InvoicesContent";
-import ShippingContent from "../components/ShippingContent";
-import AnalyticsContent from "../components/AnalyticsContent";
-import SettingsContent from "../components/SettingsContent";
-
-const Dashboard = () => {
+export default function AdminDashboard() {
   const router = useRouter();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [activeContent, setActiveContent] = useState("dashboard");
-  const [userEmail, setUserEmail] = useState("");
-
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("Dashboard");
+  
+  // Mock data states
+  const [users, setUsers] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [vendors, setVendors] = useState([]);
+  const [designs, setDesigns] = useState([]);
+  const [payouts, setPayouts] = useState([]);
+  const [payments, setPayments] = useState([]);
+  const [stats, setStats] = useState({});
+  
+  // Load user data and initial content
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    // Extract email from URL query param if needed
+    const email = new URLSearchParams(window.location.search).get('email');
+    
+    const unsubscribe = auth.onAuthStateChanged((user) => {
       if (!user) {
-        router.push("/Admin");
+        router.push("/Admin/Login");
       } else {
-        setUserEmail(user.email || "");
+        setUser(user);
+        // Load mock data
+        loadMockData();
       }
+      setLoading(false);
     });
 
-    const handleResize = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-      setSidebarOpen(!mobile); // Sidebar open on desktop, closed on mobile
-    };
-
-    handleResize(); // Initial check
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      unsubscribe();
-      window.removeEventListener("resize", handleResize);
-    };
+    return () => unsubscribe();
   }, [router]);
+
+  const loadMockData = () => {
+    // Mock users
+    setUsers([
+      {
+        id: "USR-1001",
+        name: "John Smith",
+        email: "john@example.com",
+        dateJoined: "2023-09-10",
+        totalOrders: 5
+      },
+      {
+        id: "USR-1002",
+        name: "Sarah Johnson",
+        email: "sarah@example.com",
+        dateJoined: "2023-09-12",
+        totalOrders: 3
+      },
+      {
+        id: "USR-1003",
+        name: "Michael Wong",
+        email: "michael@example.com",
+        dateJoined: "2023-09-15",
+        totalOrders: 2
+      }
+    ]);
+
+    // Mock orders
+    setOrders([
+      {
+        id: "ORD-1001",
+        clientName: "John Smith",
+        orderType: "Business Cards",
+        status: "Completed",
+        assignedVendor: "PrintMaster Inc.",
+        date: "2023-09-15",
+        amount: "$45.99"
+      },
+      {
+        id: "ORD-1002",
+        clientName: "Sarah Johnson",
+        orderType: "Flyers",
+        status: "Assigned",
+        assignedVendor: "GraphiPrint Co.",
+        date: "2023-09-20",
+        amount: "$89.50"
+      },
+      {
+        id: "ORD-1003",
+        clientName: "Michael Wong",
+        orderType: "Banner",
+        status: "Pending",
+        assignedVendor: "Unassigned",
+        date: "2023-09-25",
+        amount: "$120.00"
+      }
+    ]);
+
+    // Mock vendors
+    setVendors([
+      {
+        id: "VEN-1001",
+        name: "PrintMaster Inc.",
+        email: "info@printmaster.com",
+        status: "Active",
+        accountNumber: "****1234",
+        assignedOrders: 15
+      },
+      {
+        id: "VEN-1002",
+        name: "GraphiPrint Co.",
+        email: "contact@graphiprint.com",
+        status: "Active",
+        accountNumber: "****5678",
+        assignedOrders: 8
+      },
+      {
+        id: "VEN-1003",
+        name: "SpeedyPrints Ltd.",
+        email: "hello@speedyprints.com",
+        status: "Pending Approval",
+        accountNumber: "****9012",
+        assignedOrders: 0
+      }
+    ]);
+
+    // Mock designs
+    setDesigns([
+      {
+        id: "DSG-1001",
+        orderId: "ORD-1001",
+        clientName: "John Smith",
+        vendorName: "PrintMaster Inc.",
+        status: "Approved",
+        submittedDate: "2023-09-14",
+        fileUrl: "#"
+      },
+      {
+        id: "DSG-1002",
+        orderId: "ORD-1002",
+        clientName: "Sarah Johnson",
+        vendorName: "GraphiPrint Co.",
+        status: "Awaiting Approval",
+        submittedDate: "2023-09-19",
+        fileUrl: "#"
+      },
+      {
+        id: "DSG-1003",
+        orderId: "ORD-1003",
+        clientName: "Michael Wong",
+        vendorName: "Unassigned",
+        status: "Revision",
+        submittedDate: "2023-09-24",
+        fileUrl: "#"
+      }
+    ]);
+
+    // Mock payouts
+    setPayouts([
+      {
+        id: "PAY-1001",
+        vendorName: "PrintMaster Inc.",
+        orderId: "ORD-1001",
+        amount: "$36.79", // 80% of $45.99
+        status: "Pending",
+        bankDetails: "****1234"
+      },
+      {
+        id: "PAY-1002",
+        vendorName: "GraphiPrint Co.",
+        orderId: "ORD-1002",
+        amount: "$71.60", // 80% of $89.50
+        status: "Pending",
+        bankDetails: "****5678"
+      }
+    ]);
+
+    // Mock payments/transactions
+    setPayments([
+      {
+        id: "TRX-1001",
+        clientName: "John Smith",
+        amountPaid: "$45.99",
+        vendorCut: "$36.79", // 80%
+        platformCommission: "$9.20", // 20%
+        date: "2023-09-15"
+      },
+      {
+        id: "TRX-1002",
+        clientName: "Sarah Johnson",
+        amountPaid: "$89.50",
+        vendorCut: "$71.60", // 80%
+        platformCommission: "$17.90", // 20%
+        date: "2023-09-20"
+      },
+      {
+        id: "TRX-1003",
+        clientName: "Michael Wong",
+        amountPaid: "$120.00",
+        vendorCut: "$96.00", // 80%
+        platformCommission: "$24.00", // 20%
+        date: "2023-09-25"
+      }
+    ]);
+
+    // Mock stats
+    setStats({
+      totalUsers: 24,
+      totalOrders: 32,
+      totalVendors: 7,
+      pendingOrders: 5,
+      pendingPayouts: 2,
+      totalEarnings: "$2,450.50",
+      revenueThisMonth: "$1,250.00"
+    });
+  };
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
+      localStorage.removeItem('adminToken');
       toast.success("Logged out successfully");
-      router.push("/Admin");
+      router.push("/Admin/Login");
     } catch (error) {
       toast.error("Error signing out");
       console.error("Logout error:", error);
     }
   };
 
-  const handleNavClick = (id) => {
-    setActiveContent(id);
-    if (isMobile) setSidebarOpen(false);
-  };
-
-  const toggleSidebar = () => {
-    setSidebarOpen((prev) => !prev);
-  };
-
+  // Navigation items configuration
   const navItems = [
-    { name: "Dashboard", icon: <Home size={20} />, id: "dashboard" },
-    { name: "Orders", icon: <ShoppingCart size={20} />, id: "orders" },
-    { name: "Print Jobs", icon: <Printer size={20} />, id: "printjobs" },
-    { name: "Customers", icon: <Users size={20} />, id: "customers" },
-    { name: "Products", icon: <Package size={20} />, id: "products" },
-    { name: "Invoices", icon: <FileText size={20} />, id: "invoices" },
-    { name: "Shipping", icon: <Truck size={20} />, id: "shipping" },
-    { name: "Analytics", icon: <BarChart2 size={20} />, id: "analytics" },
-    { name: "Settings", icon: <Settings size={20} />, id: "settings" },
+    { name: "Dashboard", icon: <FaChartPie /> },
+    { name: "Orders Management", icon: <FaBoxOpen /> },
+    { name: "Users Management", icon: <FaUsers /> },
+    { name: "Vendor Management", icon: <FaUserTie /> },
+    { name: "Design Management", icon: <FaPaintBrush /> },
+    { name: "Payout", icon: <FaMoneyCheckAlt /> },
+    { name: "Payments Overview", icon: <FaReceipt /> }
   ];
 
-  const renderContent = () => {
-    switch (activeContent) {
-      case "orders": return <OrdersContent />;
-      case "printjobs": return <PrintJobsContent />;
-      case "customers": return <CustomersContent />;
-      case "products": return <ProductsContent />;
-      case "invoices": return <InvoicesContent />;
-      case "shipping": return <ShippingContent />;
-      case "analytics": return <AnalyticsContent />;
-      case "settings": return <SettingsContent />;
-      default: return <DashboardContent />;
-    }
-  };
+  // Tab components
+  const tabContent = {
+    Dashboard: (
+      <div className="space-y-6">
+        <div className="bg-gray-800 rounded-lg p-6 text-white">
+          <h1 className="text-2xl font-bold mb-2">
+            Welcome back, <span className="text-yellow-400">{user?.email || "Admin"}</span>
+          </h1>
+          <p className="text-gray-300 mb-6">Here's an overview of the platform</p>
 
-  return (
-    <div className="flex h-screen bg-gray-50 relative font-sans">
-      <ToastContainer position="top-right" autoClose={3000} />
-
-      {/* Mobile Hamburger Button */}
-      {isMobile && !sidebarOpen && (
-        <button
-          onClick={toggleSidebar}
-          className="fixed z-40 left-4 top-4 p-2 rounded-full bg-yellow-400 text-black border-2 border-black shadow-lg hover:bg-yellow-500 transition"
-          aria-label="Open menu"
-        >
-          <Menu size={24} />
-        </button>
-      )}
-
-      {/* Sidebar */}
-      <div
-        className={`${isMobile ? (sidebarOpen ? "translate-x-0" : "-translate-x-full") : "translate-x-0"
-          } transform ${isMobile ? "fixed inset-y-0 left-0 z-50 w-64" : "relative w-64"
-          } bg-gradient-to-b from-black to-gray-800 text-white transition-transform duration-300 ease-in-out flex flex-col h-full`}
-      >
-        {/* Sidebar Header */}
-        <div className="flex items-center justify-between h-16 bg-yellow-400 border-b-2 border-black px-4">
-          <span className="text-black font-bold text-xl">59MINUTES PRINTS</span>
-          {isMobile && (
-            <button
-              onClick={toggleSidebar}
-              className="p-1 rounded-full bg-black text-yellow-400 hover:bg-gray-800 transition"
-              aria-label="Close menu"
-            >
-              <X size={24} />
-            </button>
-          )}
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-2 space-y-1">
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => handleNavClick(item.id)}
-              className={`flex items-center w-full px-4 py-3 rounded-md transition duration-200 ${
-                activeContent === item.id
-                  ? "bg-yellow-400 text-black font-semibold"
-                  : "hover:bg-gray-700 text-white"
-              }`}
-            >
-              <span className="mr-3">{item.icon}</span>
-              <span>{item.name}</span>
-            </button>
-          ))}
-        </nav>
-
-        {/* User Info and Logout */}
-        <div className="p-4 border-t border-gray-800">
-          <div className="flex items-center mb-3 px-2">
-            <div className="h-8 w-8 rounded-full bg-yellow-400 flex items-center justify-center mr-3 border border-black">
-              <span className="text-black font-medium text-sm">
-                {userEmail?.charAt(0).toUpperCase() || "A"}
-              </span>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-gray-700">
+              <div className="flex items-center">
+                <div className="bg-yellow-400 bg-opacity-20 p-3 rounded-full mr-3">
+                  <FaUsers className="text-yellow-400" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-300">Total Users</p>
+                  <p className="text-xl font-bold text-white">{stats.totalUsers}</p>
+                </div>
+              </div>
             </div>
-            <div className="text-sm truncate">{userEmail || "Admin"}</div>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center w-full px-4 py-3 text-white hover:bg-gray-800 rounded-md transition"
-          >
-            <LogOut size={20} className="mr-3" />
-            <span>Logout</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Backdrop */}
-      {isMobile && sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
-          onClick={toggleSidebar}
-        />
-      )}
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="bg-white shadow-sm z-10 border-b-2 border-gray-200">
-          <div className="flex items-center justify-between h-16 px-6">
-            <h1 className="text-2xl font-bold text-gray-900">
-              {navItems.find((item) => item.id === activeContent)?.name || "Dashboard"}
-            </h1>
-            <div className="hidden md:block text-sm text-gray-700">
-              Logged in as: <span className="font-medium">{userEmail || "Admin"}</span>
+            <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-gray-700">
+              <div className="flex items-center">
+                <div className="bg-yellow-400 bg-opacity-20 p-3 rounded-full mr-3">
+                  <FaBoxOpen className="text-yellow-400" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-300">Total Orders</p>
+                  <p className="text-xl font-bold text-white">{stats.totalOrders}</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-gray-700">
+              <div className="flex items-center">
+                <div className="bg-yellow-400 bg-opacity-20 p-3 rounded-full mr-3">
+                  <FaUserTie className="text-yellow-400" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-300">Total Vendors</p>
+                  <p className="text-xl font-bold text-white">{stats.totalVendors}</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-gray-700">
+              <div className="flex items-center">
+                <div className="bg-yellow-400 bg-opacity-20 p-3 rounded-full mr-3">
+                  <FaMoneyCheckAlt className="text-yellow-400" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-300">Total Earnings</p>
+                  <p className="text-xl font-bold text-white">{stats.totalEarnings}</p>
+                </div>
+              </div>
             </div>
           </div>
-        </header>
 
-        {/* Dynamic Page Content */}
-        <main className="flex-1 overflow-y-auto p-6 bg-gray-100">
-          {renderContent()}
-        </main>
-
-        {/* Footer */}
-        <footer className="bg-white border-t border-gray-200 p-4">
-          <div className="text-center text-sm text-gray-700 font-medium">
-            © {new Date().getFullYear()} 59Minutes Prints | Admin Dashboard v1.0
+          {/* Additional Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+            <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-gray-700">
+              <h3 className="font-medium text-yellow-400 mb-2">Revenue This Month</h3>
+              <p className="text-2xl font-bold">{stats.revenueThisMonth}</p>
+              <div className="h-2 bg-gray-700 rounded-full mt-4 overflow-hidden">
+                <div className="h-full bg-yellow-400 w-3/4"></div>
+              </div>
+            </div>
+            <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-gray-700">
+              <h3 className="font-medium text-yellow-400 mb-2">Pending Orders</h3>
+              <p className="text-2xl font-bold">{stats.pendingOrders}</p>
+              <div className="flex items-center text-sm text-gray-400 mt-4">
+                <FaClock className="mr-2" /> Needs attention
+              </div>
+            </div>
+            <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-gray-700">
+              <h3 className="font-medium text-yellow-400 mb-2">Pending Payouts</h3>
+              <p className="text-2xl font-bold">{stats.pendingPayouts}</p>
+              <div className="flex items-center text-sm text-gray-400 mt-4">
+                <FaMoneyCheckAlt className="mr-2" /> To be processed
+              </div>
+            </div>
           </div>
-        </footer>
-      </div>
-    </div>
-  );
-};
+        </div>
 
-export default Dashboard;
+        {/* Activity Graph Placeholder */}
+        <div className="bg-gray-800 rounded-lg p-6 text-white">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-bold">Activity Overview</h2>
+            <div className="flex space-x-2">
+              <button className="px-3 py-1 text-xs bg-yellow-400 text-black rounded-full">Daily</button>
+              <button className="px-3 py-1 text-xs bg-gray-700 text-gray-300 rounded-full">Weekly</button>
+              <button className="px-3 py-1 text-xs bg-gray-700 text-gray-300 rounded-full">Monthly</button>
+            </div>
+          </div>
+          
+          <div className="bg-black bg-opacity-30 rounded-lg p-6 border border-gray-700 h-64 flex items-center justify-center">
+            <p className="text-gray-400">Activity Graph Placeholder</p>
+          </div>
+        </div>
+
+        {/* Recent Activity */}
+        <div className="bg-gray-800 rounded-lg p-6 text-white">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-bold">Recent Activity</h2>
+            <button className="text-sm text-yellow-400 hover:underline">View All</button>
+          </div>
+          
+          <div className="space-y-3">
+            <div className="bg-black bg-opacity-30 rounded-lg p-3 border border-gray-700 flex items-center">
+              <div className="bg-yellow-400 bg-opacity-20 p-2 rounded-full mr-3">
+                <FaUser className="text-yellow-400 text-sm" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">New user registered</p>
+                <p className="text-xs text-gray-400">Michael Wong • 2023-09-15</p>
+              </div>
+            </div>
+            <div className="bg-black bg-opacity-30 rounded-lg p-3 border border-gray-700 flex items-center">
+              <div className="bg-yellow-400 bg-opacity-20 p-2 rounded-full mr-3">
+                <FaBoxOpen className="text-yellow-400 text-sm" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">New order received</p>
+                <p className="text-xs text-gray-400">ORD-1003 • 2023-09-25</p>
+              </div>
+            </div>
+            <div className="bg-black bg-opacity-30 rounded-lg p-3 border border-gray-700 flex items-center">
+              <div className="bg-yellow-400 bg-opacity-20 p-2 rounded-full mr-3">
+                <FaPaintBrush className="text-yellow-400 text-sm" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">Design submitted for approval</p>
+                <p className="text-xs text-gray-400">DSG-1002 • 2023-09-19</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    ),
+
+    "Orders Management": (
+      <div className="bg-gray-800 rounded-lg p-6 text-white">
+        <h1 className="text-2xl font-bold mb-6">Orders Management</h1>
+        
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div className="flex items-center space-x-2">
+            <button className="bg-yellow-400 text-black px-4 py-2 rounded-lg font-medium flex items-center">
+              <FaBoxOpen className="mr-2" /> All Orders
+            </button>
+            <button className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg font-medium flex items-center transition">
+              <FaClock className="mr-2" /> Pending
+            </button>
+            <button className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg font-medium flex items-center transition">
+              <FaCheck className="mr-2" /> Completed
+            </button>
+          </div>
+          
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search orders..."
+              className="bg-gray-700 text-white px-4 py-2 pl-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            />
+            <svg className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+            </svg>
+          </div>
+        </div>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="text-left border-b border-gray-700">
+                <th className="pb-3 pr-6">Order ID</th>
+                <th className="pb-3 pr-6">Client</th>
+                <th className="pb-3 pr-6">Type</th>
+                <th className="pb-3 pr-6">Status</th>
+                <th className="pb-3 pr-6">Assigned Vendor</th>
+                <th className="pb-3 pr-6">Amount</th>
+                <th className="pb-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-700">
+              {orders.map((order) => (
+                <tr key={order.id} className="hover:bg-gray-700">
+                  <td className="py-4 pr-6">{order.id}</td>
+                  <td className="py-4 pr-6">{order.clientName}</td>
+                  <td className="py-4 pr-6">{order.orderType}</td>
+                  <td className="py-4 pr-6">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      order.status === "Completed" ? "bg-green-900 text-green-200" :
+                      order.status === "Assigned" ? "bg-blue-900 text-blue-200" : 
+                      "bg-yellow-900 text-yellow-200"
+                    }`}>
+                      {order.status}
+                    </span>
+                  </td>
+                  <td className="py-4 pr-6">{order.assignedVendor}</td>
+                  <td className="py-4 pr-6">{order.amount}</td>
+                  <td className="py-4 flex items-center space-x-2">
+                    <button className="p-1 text-blue-400 hover:text-blue-300 transition" title="View">
+                      <FaEdit />
+                    </button>
+                    <button className="p-1 text-yellow-400 hover:text-yellow-300 transition" title="Reassign">
+                      <FaUserTie />
+                    </button>
+                    <button className="p-1 text-red-400 hover:text-red-300 transition" title="Delete">
+                      <FaTrash />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        
+        {/* Pagination */}
+        <div className="flex justify-between items-center mt-6">
+          <p className="text-gray-400 text-sm">Showing 1 to {orders.length} of {orders.length} entries</p>
+          <div className="flex space-x-1">
+            <button className="px-3 py-1 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 transition">Previous</button>
+            <button className="px-3 py-1 bg-yellow-400 text-black rounded-md">1</button>
+            <button className="px-3 py-1 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 transition">Next</button>
+          </div>
+        </div>
+      </div>
+    ),
+
+    "Users Management": (
+      <div className="bg-gray-800 rounded-lg p-6 text-white">
+        <h1 className="text-2xl font-bold mb-6">Users Management</h1>
+        
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <h2 className="text-lg">Registered Clients</h2>
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search users..."
+              className="bg-gray-700 text-white px-4 py-2 pl-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            />
+            <svg className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+            </svg>
+          </div>
+        </div>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="text-left border-b border-gray-700">
+                <th className="pb-3 pr-6">Name</th>
+                <th className="pb-3 pr-6">Email</th>
+                <th className="pb-3 pr-6">Date Joined</th>
+                <th className="pb-3 pr-6">Total Orders</th>
+                <th className="pb-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-700">
+              {users.map((user) => (
+                <tr key={user.id} className="hover:bg-gray-700">
+                  <td className="py-4 pr-6">{user.name}</td>
+                  <td className="py-4 pr-6">{user.email}</td>
+                  <td className="py-4 pr-6">{user.dateJoined}</td>
+                  <td className="py-4 pr-6">{user.totalOrders}</td>
+                  <td className="py-4 flex items-center space-x-2">
+                    <button className="p-1 text-blue-400 hover:text-blue-300 transition" title="View Profile">
+                      <FaUser />
+                    </button>
+                    <button className="p-1 text-yellow-400 hover:text-yellow-300 transition" title="Message">
+                      <FaEdit />
+                    </button>
+                    <button className="p-1 text-red-400 hover:text-red-300 transition" title="Delete">
+                      <FaTrash />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        
+        {/* Pagination */}
+        <div className="flex justify-between items-center mt-6">
+          <p className="text-gray-400 text-sm">Showing 1 to {users.length} of {users.length} entries</p>
+          <div className="flex space-x-1">
+            <button className="px-3 py-1 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 transition">Previous</button>
+            <button className="px-3 py-1 bg-yellow-400 text-black rounded-md">1</button>
+            <button className="px-3 py-1 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 transition">Next</button>
+          </div>
+        </div>
+      </div>
+    ),
+
+    "Vendor Management": (
+      <div className="bg-gray-800 rounded-lg p-6 text-white">
+        <h1 className="text-2xl font-bold mb-6">Vendor Management</h1>
+        
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div className="flex items-center space-x-2">
+            <button className="bg-yellow-400 text-black px-4 py-2 rounded-lg font-medium flex items-center">
+              <FaUserTie className="mr-2" /> All Vendors
+            </button>
+            <button className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg font-medium flex items-center transition">
+              <FaExclamationCircle className="mr-2" /> Pending Approval
+            </button>
+          </div>
+          
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search vendors..."
+              className="bg-gray-700 text-white px-4 py-2 pl-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            />
+            <svg className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+            </svg>
+          </div>
+        </div>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="text-left border-b border-gray-700">
+                <th className="pb-3 pr-6">Name</th>
+                <th className="pb-3 pr-6">Email</th>
+                <th className="pb-3 pr-6">Status</th>
+                <th className="pb-3 pr-6">Account Number</th>
+                <th className="pb-3 pr-6">Assigned Orders</th>
+                <th className="pb-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-700">
+              {vendors.map((vendor) => (
+                <tr key={vendor.id} className="hover:bg-gray-700">
+                  <td className="py-4 pr-6">{vendor.name}</td>
+                  <td className="py-4 pr-6">{vendor.email}</td>
+                  <td className="py-4 pr-6">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      vendor.status === "Active" ? "bg-green-900 text-green-200" :
+                      "bg-yellow-900 text-yellow-200"
+                    }`}>
+                      {vendor.status}
+                    </span>
+                  </td>
+                  <td className="py-4 pr-6">{vendor.accountNumber}</td>
+                  <td className="py-4 pr-6">{vendor.assignedOrders}</td>
+                  <td className="py-4 flex items-center space-x-2">
+                    <button className="p-1 text-blue-400 hover:text-blue-300 transition" title="View Details">
+                      <FaUser />
+                    </button>
+                    {vendor.status === "Pending Approval" ? (
+                      <button className="p-1 text-green-400 hover:text-green-300 transition" title="Approve">
+                        <FaCheck />
+                      </button>
+                    ) : (
+                      <button className="p-1 text-yellow-400 hover:text-yellow-300 transition" title="Edit Bank Info">
+                        <FaEdit />
+                      </button>
+                    )}
+                    <button className="p-1 text-red-400 hover:text-red-300 transition" title="Suspend/Delete">
+                      <FaTrash />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        
+        {/* Pagination */}
+        <div className="flex justify-between items-center mt-6">
+          <p className="text-gray-400 text-sm">Showing 1 to {vendors.length} of {vendors.length} entries</p>
+          <div className="flex space-x-1">
+            <button className="px
