@@ -6,8 +6,9 @@ import {
   FaChartPie, FaBoxOpen, FaUsers, FaUserTie,
   FaPaintBrush, FaMoneyCheckAlt, FaReceipt, FaSignOutAlt,
   FaBars, FaTimes, FaUser, FaCheck, FaDownload,
-  FaExclamationCircle, FaClock, FaTrash, FaEdit
+  FaExclamationCircle, FaClock, FaTrash, FaEdit, FaShoppingCart, FaDollarSign, FaArrowUp
 } from "react-icons/fa";
+// import FaShoppingCart from "react-icons/fa"
 import { signOut } from "firebase/auth";
 import { auth } from "../../utils/firebaseconfig";
 import { toast, ToastContainer } from "react-toastify";
@@ -86,7 +87,7 @@ export default function AdminDashboard() {
         status: "Completed",
         assignedVendor: "PrintMaster Inc.",
         date: "2023-09-15",
-        amount: "$45.99"
+        amount: "₦45.99"
       },
       {
         id: "ORD-1002",
@@ -95,7 +96,7 @@ export default function AdminDashboard() {
         status: "Assigned",
         assignedVendor: "GraphiPrint Co.",
         date: "2023-09-20",
-        amount: "$89.50"
+        amount: "₦89.50"
       },
       {
         id: "ORD-1003",
@@ -104,7 +105,7 @@ export default function AdminDashboard() {
         status: "Pending",
         assignedVendor: "Unassigned",
         date: "2023-09-25",
-        amount: "$120.00"
+        amount: "₦120.00"
       }
     ]);
 
@@ -173,7 +174,7 @@ export default function AdminDashboard() {
         id: "PAY-1001",
         vendorName: "PrintMaster Inc.",
         orderId: "ORD-1001",
-        amount: "$36.79", // 80% of $45.99
+        amount: "₦36.79", // 80% of ₦45.99
         status: "Pending",
         bankDetails: "****1234"
       },
@@ -181,7 +182,7 @@ export default function AdminDashboard() {
         id: "PAY-1002",
         vendorName: "GraphiPrint Co.",
         orderId: "ORD-1002",
-        amount: "$71.60", // 80% of $89.50
+        amount: "₦71.60", // 80% of ₦89.50
         status: "Pending",
         bankDetails: "****5678"
       }
@@ -192,25 +193,25 @@ export default function AdminDashboard() {
       {
         id: "TRX-1001",
         clientName: "John Smith",
-        amountPaid: "$45.99",
-        vendorCut: "$36.79", // 80%
-        platformCommission: "$9.20", // 20%
+        amountPaid: "₦45.99",
+        vendorCut: "₦36.79", // 80%
+        platformCommission: "₦9.20", // 20%
         date: "2023-09-15"
       },
       {
         id: "TRX-1002",
         clientName: "Sarah Johnson",
-        amountPaid: "$89.50",
-        vendorCut: "$71.60", // 80%
-        platformCommission: "$17.90", // 20%
+        amountPaid: "₦89.50",
+        vendorCut: "₦71.60", // 80%
+        platformCommission: "₦17.90", // 20%
         date: "2023-09-20"
       },
       {
         id: "TRX-1003",
         clientName: "Michael Wong",
-        amountPaid: "$120.00",
-        vendorCut: "$96.00", // 80%
-        platformCommission: "$24.00", // 20%
+        amountPaid: "₦120.00",
+        vendorCut: "₦96.00", // 80%
+        platformCommission: "₦24.00", // 20%
         date: "2023-09-25"
       }
     ]);
@@ -222,8 +223,8 @@ export default function AdminDashboard() {
       totalVendors: 7,
       pendingOrders: 5,
       pendingPayouts: 2,
-      totalEarnings: "$2,450.50",
-      revenueThisMonth: "$1,250.00"
+      totalEarnings: "₦2,450.50",
+      revenueThisMonth: "₦1,250.00"
     });
   };
 
@@ -1057,29 +1058,57 @@ export default function AdminDashboard() {
 
   // Main render
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-gray-900 text-white top-15">
       <ToastContainer position="top-right" autoClose={3000} />
-
-      {/* Mobile Topbar */}
-      <div className="lg:hidden bg-gray-800 p-4 flex justify-between items-center border-b border-gray-700 sticky top-0 z-10">
-        <button
-          onClick={() => setMobileNavOpen(!mobileNavOpen)}
-          className="text-gray-300 hover:text-white transition-colors"
-        >
-          {mobileNavOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
-        </button>
-        <h1 className="text-xl font-bold text-yellow-400">Admin Dashboard</h1>
-        <div className="w-6"></div> {/* Spacer for alignment */}
-      </div>
-
-      <div className="flex">
-        {/* Sidebar - Desktop */}
-        <div className={`fixed lg:static inset-y-0 left-0 z-20 w-64 bg-gray-800 border-r border-gray-700 transform ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col h-screen`}>
-          <div className="p-5 border-b border-gray-700 hidden lg:block">
-            <h1 className="text-xl font-bold text-yellow-400">Admin Dashboard</h1>
+  
+      {/* Fixed Top Navbar - Always visible */}
+      <header className="fixed top-20 left-0 right-0 bg-gray-800 border-b border-gray-700 z-30 h-16">
+        <div className="h-full px-4 flex justify-between items-center">
+          {/* Mobile Menu Toggle */}
+          <button
+            onClick={() => setMobileNavOpen(!mobileNavOpen)}
+            className="lg:hidden text-gray-300 hover:text-white transition-colors"
+          >
+            {mobileNavOpen ? <FaTimes size={22} /> : <FaBars size={22} />}
+          </button>
+          
+          {/* Logo/Title - Visible on all screens */}
+          <div className="flex items-center">
+            <h1 className="text-xl font-bold text-yellow-400">59Minutes Prints</h1>
+            <span className="hidden md:inline-block text-gray-400 ml-2 border-l border-gray-600 pl-2">Admin</span>
           </div>
-
-          <div className="flex-1 overflow-y-auto py-2">
+          
+          {/* User Menu - Desktop */}
+          <div className="hidden md:flex items-center space-x-4">
+            <div className="flex items-center space-x-2 bg-gray-750 px-3 py-1.5 rounded-lg">
+              <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-yellow-400">
+                <FaUser size={14} />
+              </div>
+              <span className="text-sm">{user?.email || "Admin"}</span>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="text-gray-300 hover:text-yellow-400 transition-colors p-2 rounded-full hover:bg-gray-700"
+              title="Logout"
+            >
+              <FaSignOutAlt />
+            </button>
+          </div>
+  
+          {/* Mobile Section Title */}
+          <div className="lg:hidden text-lg font-semibold text-gray-200">{activeTab}</div>
+          <div className="lg:hidden w-10"></div>
+        </div>
+      </header>
+  
+      <div className="flex pt-20">
+        {/* Sidebar - Desktop & Mobile */}
+        <aside 
+          className={`fixed inset-y-0 left-0 z-20 w-64 bg-gray-800 border-r border-gray-700 transform ${
+            mobileNavOpen ? 'translate-x-0' : '-translate-x-full'
+          } lg:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col top-40`}
+        >
+          <div className="flex-1 overflow-y-auto py-4">
             <nav className="px-3 space-y-1">
               {navItems.map((item) => (
                 <button
@@ -1088,21 +1117,23 @@ export default function AdminDashboard() {
                     setActiveTab(item.name);
                     setMobileNavOpen(false);
                   }}
-                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${activeTab === item.name
-                      ? 'bg-yellow-400 text-gray-900 font-semibold shadow-md'
+                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                    activeTab === item.name
+                      ? 'bg-yellow-500 text-gray-900 font-semibold shadow-md'
                       : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                    }`}
+                  }`}
                 >
                   <span className="text-lg">{item.icon}</span>
-                  <span className="text-sm">{item.name}</span>
+                  <span>{item.name}</span>
                 </button>
               ))}
             </nav>
           </div>
-
-          <div className="p-4 border-t border-gray-700 bg-gray-850">
+  
+          {/* Mobile User Profile */}
+          <div className="p-4 border-t border-gray-700 bg-gray-850 lg:hidden">
             <div className="flex items-center space-x-3 mb-4 p-2 rounded-lg bg-gray-750">
-              <div className="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center text-yellow-400">
+              <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-yellow-400">
                 <FaUser size={16} />
               </div>
               <div className="overflow-hidden">
@@ -1112,54 +1143,104 @@ export default function AdminDashboard() {
             </div>
             <button
               onClick={handleLogout}
-              className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+              className="w-full flex items-center justify-center space-x-3 px-4 py-3 rounded-lg bg-gray-700 text-white hover:bg-gray-650 transition-colors"
             >
               <FaSignOutAlt />
-              <span className="text-sm">Logout</span>
+              <span>Logout</span>
             </button>
           </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="flex-1 lg:ml-64 min-h-screen flex flex-col">
-          {/* Topbar - Desktop */}
-          <header className="bg-gray-800 border-b border-gray-700 p-4 hidden lg:block sticky top-0 z-10">
-            <div className="flex justify-between items-center max-w-7xl mx-auto">
-              <h2 className="text-xl font-bold text-white">{activeTab}</h2>
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2 bg-gray-750 px-3 py-1.5 rounded-lg">
-                  <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-yellow-400">
-                    <FaUser size={14} />
-                  </div>
-                  <span className="text-sm">{user?.email || "Admin"}</span>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="text-gray-300 hover:text-yellow-400 transition-colors p-2 rounded-full hover:bg-gray-700"
-                  title="Logout"
-                >
-                  <FaSignOutAlt />
-                </button>
+        </aside>
+  
+        {/* Main Content Area */}
+        <main className="flex-1 lg:ml-64 min-h-[calc(100vh-64px)] flex flex-col">
+          {/* Section Header */}
+          <div className="bg-gray-800/80 backdrop-blur-sm sticky top-16 z-10 border-b border-gray-700 px-6 py-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold text-white flex items-center">
+                {/* Icon for section if available */}
+                {navItems.find(item => item.name === activeTab)?.icon && (
+                  <span className="mr-2 text-yellow-400">
+                    {navItems.find(item => item.name === activeTab)?.icon}
+                  </span>
+                )}
+                {activeTab}
+              </h2>
+              {/* Optional: Action buttons for this section */}
+              <div className="flex items-center space-x-2">
+                {activeTab === "Products" && (
+                  <button className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center">
+                    <span className="mr-1">
+                      <FaPlus size={12} />
+                    </span>
+                    Add Product
+                  </button>
+                )}
               </div>
             </div>
-          </header>
-
+          </div>
+  
           {/* Page Content */}
-          <main className="flex-1 p-4 bg-gray-900">
-            <div className="max-w-7xl mx-auto">
-              {loading ? (
-                <div className="flex justify-center items-center h-64">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400"></div>
+          <div className="flex-1 p-6 bg-gray-900 mt-10">
+            {loading ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400"></div>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Breadcrumbs */}
+                <div className="text-sm text-gray-400">
+                  Dashboard / {activeTab}
                 </div>
-              ) : (
-                <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
+  
+                {/* Dashboard Cards - Show if on Dashboard tab */}
+                {activeTab === "Dashboard" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                    {[
+                      { title: "Total Orders", value: "124", icon: <FaShoppingCart />, color: "blue" },
+                      { title: "Products", value: "48", icon: <FaBoxOpen />, color: "yellow" },
+                      { title: "Revenue", value: "₦5,240", icon: <FaDollarSign />, color: "green" },
+                      { title: "Customers", value: "86", icon: <FaUsers />, color: "purple" }
+                    ].map((card, index) => (
+                      <div key={index} className="bg-gray-800 rounded-xl overflow-hidden shadow-lg border border-gray-700">
+                        <div className="p-5">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="text-gray-400 text-sm font-medium">{card.title}</p>
+                              <h3 className="text-2xl font-bold mt-1 text-white">{card.value}</h3>
+                            </div>
+                            <div className={`p-3 rounded-lg text-white bg-${card.color}-500/20`}>
+                              <span className={`text-${card.color}-400`}>{card.icon}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="bg-gray-750 px-5 py-3 text-sm flex justify-between items-center">
+                          <span className="text-green-400 flex items-center">
+                            <FaArrowUp size={12} className="mr-1" /> 12% 
+                          </span>
+                          <span className="text-gray-400">vs last week</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+  
+                {/* Main Content */}
+                <div className="bg-gray-800 rounded-xl shadow-lg border border-gray-700">
                   {tabContent[activeTab]}
                 </div>
-              )}
-            </div>
-          </main>
-        </div>
+              </div>
+            )}
+          </div>
+        </main>
       </div>
+  
+      {/* Overlay for mobile */}
+      {mobileNavOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-10 lg:hidden"
+          onClick={() => setMobileNavOpen(false)}
+        ></div>
+      )}
     </div>
   )
 }
