@@ -174,7 +174,7 @@ export default function AdminDashboard() {
         id: "PAY-1001",
         vendorName: "PrintMaster Inc.",
         orderId: "ORD-1001",
-        amount: "₦36.79", // 80% of ₦45.99
+        amount: "₦36.79", 
         status: "Pending",
         bankDetails: "****1234"
       },
@@ -182,7 +182,7 @@ export default function AdminDashboard() {
         id: "PAY-1002",
         vendorName: "GraphiPrint Co.",
         orderId: "ORD-1002",
-        amount: "₦71.60", // 80% of ₦89.50
+        amount: "₦71.60", 
         status: "Pending",
         bankDetails: "****5678"
       }

@@ -54,49 +54,56 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 w-full bg-black text-white py-4 border-b-4 border-yellow-400 z-50">
+      <nav className="fixed top-0 left-0 w-full bg-gradient-to-r from-black to-gray-900 text-white py-3 border-b-2 border-yellow-500 z-50 shadow-lg">
         <div className="container mx-auto flex items-center justify-between px-4">
           {/* Logo */}
-          <Link href="/" className="flex items-center" aria-label="Go to homepage">
-            <Image
-              src={logo}
-              alt="Brand Logo"
-              width={50}
-              height={50}
-              className="h-12"
-            />
+          <Link href="/" className="flex items-center space-x-2" aria-label="Go to homepage">
+            <div className="relative overflow-hidden rounded-full border-2 border-yellow-400">
+              <Image
+                src={logo}
+                alt="59Minutes Prints"
+                width={40}
+                height={40}
+                className="object-cover"
+              />
+            </div>
+            <span className="font-bold text-xl hidden sm:block text-yellow-400">59Minutes Prints</span>
           </Link>
 
           {/* Mobile Menu Button */}
           <button
             aria-label="Toggle mobile menu"
-            className="md:hidden text-white focus:outline-none"
+            className="md:hidden text-yellow-400 focus:outline-none hover:text-yellow-300 transition-colors"
             onClick={() => setIsMobileMenuOpen((prev) => !prev)}
           >
-            {isMobileMenuOpen ? <FiX size={32} /> : <FiMenu size={32} />}
+            {isMobileMenuOpen ? <FiX size={28} /> : <FiMenu size={28} />}
           </button>
 
           {/* Mobile Navigation */}
           <div
-            className={`fixed top-0 right-0 h-full w-64 bg-black shadow-md z-20 transition-transform duration-300 ease-in-out md:hidden ${
+            className={`fixed top-0 right-0 h-full w-72 bg-gray-900 shadow-xl z-20 transition-transform duration-300 ease-in-out md:hidden ${
               isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
             }`}
             role="navigation"
             aria-hidden={!isMobileMenuOpen}
           >
-            <button
-              className="absolute top-4 right-4 text-white"
-              onClick={() => setIsMobileMenuOpen(false)}
-              aria-label="Close mobile menu"
-            >
-              <FiX size={32} />
-            </button>
-            <ul className="flex flex-col space-y-4 p-6">
+            <div className="flex justify-between items-center p-4 border-b border-gray-700">
+              <span className="text-yellow-400 font-bold text-xl">Menu</span>
+              <button
+                className="text-yellow-400 hover:text-yellow-300 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+                aria-label="Close mobile menu"
+              >
+                <FiX size={24} />
+              </button>
+            </div>
+
+            <ul className="flex flex-col p-4">
               {NAV_LINKS.map(({ label, href }) => (
-                <li key={href}>
+                <li key={href} className="border-b border-gray-800 last:border-0">
                   <Link
                     href={href}
-                    className={`text-white hover:text-yellow-400 block py-2 ${
+                    className={`text-white hover:text-yellow-400 block py-3 transition-colors ${
                       pathname === href ? "text-yellow-400 font-bold" : ""
                     }`}
                     onClick={() => setIsMobileMenuOpen(false)}
@@ -108,79 +115,79 @@ const Navbar = () => {
             </ul>
 
             {/* Mobile Authentication Section */}
-            <div className="flex flex-col items-center space-y-4 mt-6">
+            <div className="flex flex-col items-center space-y-4 mt-6 px-4">
               {!user ? (
                 <>
                   <Link
                     href="/Auth/Register"
-                    className="bg-yellow-400 text-black px-4 py-2 rounded w-3/4 text-center hover:bg-yellow-300"
+                    className="bg-yellow-500 text-black font-medium px-4 py-2 rounded-md w-full text-center hover:bg-yellow-400 transition-colors"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    Sign Up
+                    SIGN UP
                   </Link>
                   <Link
                     href="/Auth/Login"
-                    className="border border-yellow-400 text-yellow-400 px-4 py-2 rounded w-3/4 text-center hover:border-yellow-300 hover:text-yellow-300"
+                    className="border-2 border-yellow-500 text-yellow-500 font-medium px-4 py-2 rounded-md w-full text-center hover:border-yellow-400 hover:text-yellow-400 transition-colors"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    Login
+                    LOGIN
                   </Link>
                 </>
               ) : (
                 <div className="flex flex-col space-y-4 w-full items-center">
                   <Link
                     href="/Clients/Cart"
-                    className="relative text-yellow-400 text-lg hover:text-yellow-300"
+                    className="relative flex items-center justify-center w-full text-white bg-gray-800 hover:bg-gray-700 py-3 rounded-md transition-colors"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    <FaShoppingCart size={40} />
+                    <FaShoppingCart size={20} className="text-yellow-400 mr-2" />
+                    <span>Your Cart</span>
                     {cartCount > 0 && (
                       <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                         {cartCount}
                       </span>
                     )}
                   </Link>
-                  <div className="relative group">
-                    <FaUserCircle size={40} className="text-yellow-400 cursor-pointer" />
-                    <div className="absolute right-0 mt-2 bg-black text-white shadow-md rounded-md opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
-                      <Link
-                        href="/profile"
-                        className="block px-4 py-2 hover:bg-gray-800"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Profile
-                      </Link>
-                      <Link
-                        href="/Clients/Dashboard"
-                        className="block px-4 py-2 hover:bg-gray-800"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Dashboard
-                      </Link>
-                      <Link
-                        href="/Inbox"
-                        className="block px-4 py-2 hover:bg-gray-800"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Inbox
-                      </Link>
-                      <Link
-                        href="/Help"
-                        className="block px-4 py-2 hover:bg-gray-800"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Help
-                      </Link>
-                      <button
-                        className="block w-full text-left px-4 py-2 hover:bg-gray-800"
-                        onClick={() => {
-                          handleLogout();
-                          setIsMobileMenuOpen(false);
-                        }}
-                      >
-                        Logout
-                      </button>
-                    </div>
+                  
+                  <div className="w-full space-y-2">
+                    <p className="text-gray-400 text-sm font-medium px-2">ACCOUNT</p>
+                    <Link
+                      href="/profile"
+                      className="block px-4 py-2 hover:bg-gray-800 rounded transition-colors"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Profile
+                    </Link>
+                    <Link
+                      href="/Clients/Dashboard"
+                      className="block px-4 py-2 hover:bg-gray-800 rounded transition-colors"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      href="/Inbox"
+                      className="block px-4 py-2 hover:bg-gray-800 rounded transition-colors"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Inbox
+                    </Link>
+                    <Link
+                      href="/Help"
+                      className="block px-4 py-2 hover:bg-gray-800 rounded transition-colors"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Help
+                    </Link>
+                    <button
+                      className="block w-full text-left px-4 py-2 text-red-400 hover:bg-gray-800 rounded transition-colors"
+                      onClick={() => {
+                        handleLogout();
+                        setIsMobileMenuOpen(false);
+                      }}
+                    >
+                      Logout
+                    </button>
                   </div>
                 </div>
               )}
@@ -193,11 +200,14 @@ const Navbar = () => {
               <Link
                 key={href}
                 href={href}
-                className={`text-white hover:text-yellow-400 block py-2 ${
-                  pathname === href ? "text-yellow-400 font-bold" : ""
+                className={`text-white hover:text-yellow-400 relative font-medium transition-colors ${
+                  pathname === href ? "text-yellow-400" : ""
                 }`}
               >
                 {label.toUpperCase()}
+                {pathname === href && (
+                  <span className="absolute -bottom-2 left-0 w-full h-0.5 bg-yellow-400"></span>
+                )}
               </Link>
             ))}
           </div>
@@ -207,25 +217,25 @@ const Navbar = () => {
             {!user ? (
               <>
                 <Link
-                  href="/Auth/Register"
-                  className="bg-yellow-400 text-black px-4 py-2 rounded hover:bg-yellow-300"
+                  href="/Auth/Login"
+                  className="text-yellow-400 font-medium hover:text-yellow-300 transition-colors"
                 >
-                  Sign Up
+                  LOGIN
                 </Link>
                 <Link
-                  href="/Auth/Login"
-                  className="border border-yellow-400 text-yellow-400 px-4 py-2 rounded hover:border-yellow-300 hover:text-yellow-300"
+                  href="/Auth/Register"
+                  className="bg-yellow-500 text-black px-4 py-2 rounded-md font-medium hover:bg-yellow-400 transition-colors"
                 >
-                  Login
+                  SIGN UP
                 </Link>
               </>
             ) : (
               <>
                 <Link
                   href="/Clients/Cart"
-                  className="relative text-yellow-400 text-lg hover:text-yellow-300"
+                  className="relative text-yellow-400 hover:text-yellow-300 transition-colors"
                 >
-                  <FaShoppingCart size={40} />
+                  <FaShoppingCart size={24} />
                   {cartCount > 0 && (
                     <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                       {cartCount}
@@ -233,38 +243,49 @@ const Navbar = () => {
                   )}
                 </Link>
                 <div className="relative group">
-                  <FaUserCircle size={40} className="text-yellow-400 cursor-pointer" />
-                  <div className="absolute right-0 mt-2 bg-black text-white shadow-md rounded-md opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
+                  <div className="flex items-center space-x-2 cursor-pointer">
+                    <FaUserCircle size={24} className="text-yellow-400" />
+                    <span className="text-sm text-white">Account</span>
+                  </div>
+                  <div className="absolute right-0 mt-2 w-48 bg-gray-900 border border-gray-700 text-white shadow-xl rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
+                    <div className="py-2 border-b border-gray-700 px-4">
+                      <p className="text-sm text-gray-400">Signed in as</p>
+                      <p className="text-sm font-medium truncate">
+                        {user?.email || "User"}
+                      </p>
+                    </div>
                     <Link
                       href="/profile"
-                      className="block px-4 py-2 hover:bg-gray-800"
+                      className="block px-4 py-2 hover:bg-gray-800 transition-colors"
                     >
                       Profile
                     </Link>
                     <Link
                       href="/Clients/Dashboard"
-                      className="block px-4 py-2 hover:bg-gray-800"
+                      className="block px-4 py-2 hover:bg-gray-800 transition-colors"
                     >
                       Dashboard
                     </Link>
                     <Link
                       href="/Inbox"
-                      className="block px-4 py-2 hover:bg-gray-800"
+                      className="block px-4 py-2 hover:bg-gray-800 transition-colors"
                     >
                       Inbox
                     </Link>
                     <Link
                       href="/Help"
-                      className="block px-4 py-2 hover:bg-gray-800"
+                      className="block px-4 py-2 hover:bg-gray-800 transition-colors"
                     >
                       Help
                     </Link>
-                    <button
-                      className="block w-full text-left px-4 py-2 hover:bg-gray-800"
-                      onClick={handleLogout}
-                    >
-                      Logout
-                    </button>
+                    <div className="border-t border-gray-700">
+                      <button
+                        className="block w-full text-left px-4 py-2 text-red-400 hover:bg-gray-800 transition-colors"
+                        onClick={handleLogout}
+                      >
+                        Logout
+                      </button>
+                    </div>
                   </div>
                 </div>
               </>
@@ -272,10 +293,7 @@ const Navbar = () => {
           </div>
         </div>
       </nav>
-      {/* Add a margin top to the main content to prevent it from being hidden behind the Navbar */}
-      <div className="mt-16">
-        {/* Your main content goes here */}
-      </div>
+      
     </>
   );
 };

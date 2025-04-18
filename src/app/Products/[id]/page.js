@@ -245,7 +245,7 @@ export default function ProductDetail() {
                   >
                     <Minus size={18} />
                   </button>
-                  <div className="bg-gray-900 text-center py-2 px-6 text-lg font-medium">
+                  <div className="bg-gray-900 text-center text-white py-2 px-6 text-lg font-medium">
                     {quantity}
                   </div>
                   <button 
