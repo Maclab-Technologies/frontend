@@ -15,14 +15,6 @@ import "react-toastify/dist/ReactToastify.css";
 
 export default function AdminDashboard() {
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
-
-  // Calculate pagination
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentVendors = vendors.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(vendors.length / itemsPerPage);
 
 
   const router = useRouter();
@@ -564,100 +556,124 @@ export default function AdminDashboard() {
 
     "Vendor Management": (
       <div className="bg-gray-800 rounded-lg p-6 text-white">
-        <h1 className="text-2xl font-bold mb-6">Vendor Management</h1>
+        {/* Component-specific pagination state */}
+        {(() => {
+          const [currentPage, setCurrentPage] = useState(1);
+          const [itemsPerPage] = useState(10);
+          const indexOfLastItem = currentPage * itemsPerPage;
+          const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+          const currentVendors = vendors.slice(indexOfFirstItem, indexOfLastItem);
+          const totalPages = Math.ceil(vendors.length / itemsPerPage);
 
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-          <div className="flex items-center space-x-2">
-            <button className="bg-yellow-400 text-black px-4 py-2 rounded-lg font-medium flex items-center">
-              <FaUserTie className="mr-2" /> All Vendors
-            </button>
-            <button className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg font-medium flex items-center transition">
-              <FaExclamationCircle className="mr-2" /> Pending Approval
-            </button>
-          </div>
+          return (
+            <>
+              <h1 className="text-2xl font-bold mb-6">Vendor Management</h1>
 
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search vendors..."
-              className="bg-gray-700 text-white px-4 py-2 pl-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
-            />
-            <svg className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-            </svg>
-          </div>
-        </div>
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                <div className="flex items-center space-x-2">
+                  <button className="bg-yellow-400 text-black px-4 py-2 rounded-lg font-medium flex items-center">
+                    <FaUserTie className="mr-2" /> All Vendors
+                  </button>
+                  <button className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg font-medium flex items-center transition">
+                    <FaExclamationCircle className="mr-2" /> Pending Approval
+                  </button>
+                </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="text-left border-b border-gray-700">
-                <th className="pb-3 pr-6">Name</th>
-                <th className="pb-3 pr-6">Email</th>
-                <th className="pb-3 pr-6">Status</th>
-                <th className="pb-3 pr-6">Account Number</th>
-                <th className="pb-3 pr-6">Assigned Orders</th>
-                <th className="pb-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-700">
-              {vendors.map((vendor) => (
-                <tr key={vendor.id} className="hover:bg-gray-700">
-                  <td className="py-4 pr-6">{vendor.name}</td>
-                  <td className="py-4 pr-6">{vendor.email}</td>
-                  <td className="py-4 pr-6">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${vendor.status === "Active" ? "bg-green-900 text-green-200" :
-                      "bg-yellow-900 text-yellow-200"
-                      }`}>
-                      {vendor.status}
-                    </span>
-                  </td>
-                  <td className="py-4 pr-6">{vendor.accountNumber}</td>
-                  <td className="py-4 pr-6">{vendor.assignedOrders}</td>
-                  <td className="py-4 flex items-center space-x-2">
-                    <button className="p-1 text-blue-400 hover:text-blue-300 transition" title="View Details">
-                      <FaUser />
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search vendors..."
+                    className="bg-gray-700 text-white px-4 py-2 pl-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                  />
+                  <svg className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="text-left border-b border-gray-700">
+                      <th className="pb-3 pr-6">Name</th>
+                      <th className="pb-3 pr-6">Email</th>
+                      <th className="pb-3 pr-6">Status</th>
+                      <th className="pb-3 pr-6">Account Number</th>
+                      <th className="pb-3 pr-6">Assigned Orders</th>
+                      <th className="pb-3">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-700">
+                    {currentVendors.map((vendor) => (
+                      <tr key={vendor.id} className="hover:bg-gray-700">
+                        <td className="py-4 pr-6">{vendor.name}</td>
+                        <td className="py-4 pr-6">{vendor.email}</td>
+                        <td className="py-4 pr-6">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${vendor.status === "Active" ? "bg-green-900 text-green-200" :
+                            "bg-yellow-900 text-yellow-200"
+                            }`}>
+                            {vendor.status}
+                          </span>
+                        </td>
+                        <td className="py-4 pr-6">{vendor.accountNumber}</td>
+                        <td className="py-4 pr-6">{vendor.assignedOrders}</td>
+                        <td className="py-4 flex items-center space-x-2">
+                          <button className="p-1 text-blue-400 hover:text-blue-300 transition" title="View Details">
+                            <FaUser />
+                          </button>
+                          {vendor.status === "Pending Approval" ? (
+                            <button className="p-1 text-green-400 hover:text-green-300 transition" title="Approve">
+                              <FaCheck />
+                            </button>
+                          ) : (
+                            <button className="p-1 text-yellow-400 hover:text-yellow-300 transition" title="Edit Bank Info">
+                              <FaEdit />
+                            </button>
+                          )}
+                          <button className="p-1 text-red-400 hover:text-red-300 transition" title="Suspend/Delete">
+                            <FaTrash />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination */}
+              <div className="flex justify-between items-center mt-6">
+                <p className="text-gray-400 text-sm">
+                  Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, vendors.length)} of {vendors.length} entries
+                </p>
+                <div className="flex space-x-1">
+                  <button
+                    className="px-3 py-1 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 transition disabled:opacity-50"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  >
+                    Previous
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => (
+                    <button
+                      key={i + 1}
+                      className={`px-3 py-1 rounded-md ${currentPage === i + 1 ? 'bg-yellow-400 text-black' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+                      onClick={() => setCurrentPage(i + 1)}
+                    >
+                      {i + 1}
                     </button>
-                    {vendor.status === "Pending Approval" ? (
-                      <button className="p-1 text-green-400 hover:text-green-300 transition" title="Approve">
-                        <FaCheck />
-                      </button>
-                    ) : (
-                      <button className="p-1 text-yellow-400 hover:text-yellow-300 transition" title="Edit Bank Info">
-                        <FaEdit />
-                      </button>
-                    )}
-                    <button className="p-1 text-red-400 hover:text-red-300 transition" title="Suspend/Delete">
-                      <FaTrash />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        <div className="flex justify-between items-center mt-6">
-          <p className="text-gray-400 text-sm">Showing 1 to {vendors.length} of {vendors.length} entries</p>
-          <div className="flex space-x-1">
-            <button
-              className="px-3 py-1 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 transition disabled:opacity-50"
-              disabled={true} // Disabled for first page
-            >
-              Previous
-            </button>
-            <button className="px-3 py-1 bg-yellow-400 text-black rounded-md">
-              1
-            </button>
-            <button
-              className="px-3 py-1 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 transition disabled:opacity-50"
-              disabled={vendors.length <= 10} // Disable if no next page
-            >
-              Next
-            </button>
-          </div>
-        </div>
+                  ))}
+                  <button
+                    className="px-3 py-1 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 transition disabled:opacity-50"
+                    disabled={currentPage >= totalPages}
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </>
+          );
+        })()}
       </div>
     ),
 
@@ -907,7 +923,7 @@ export default function AdminDashboard() {
 
     // PYAMENTS OVERVIEW
 
-    
+
     "Payments Overview": (
       <div className="bg-gray-800 rounded-lg p-6 text-white">
         <h1 className="text-2xl font-bold mb-6">Payments Overview</h1>
@@ -939,7 +955,7 @@ export default function AdminDashboard() {
                 onChange={(e) => setToDate(e.target.value)} // Update state with selected date
               />
             </div>
-            <button className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg font-medium" onClick={handleFilter}>
+            <button className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg font-medium" >
               Filter
             </button>
           </div>
@@ -1045,80 +1061,81 @@ export default function AdminDashboard() {
       <ToastContainer position="top-right" autoClose={3000} />
 
       {/* Mobile Topbar */}
-      <div className="lg:hidden bg-gray-800 p-4 flex justify-between items-center border-b border-gray-700">
+      <div className="lg:hidden bg-gray-800 p-4 flex justify-between items-center border-b border-gray-700 sticky top-0 z-10">
         <button
           onClick={() => setMobileNavOpen(!mobileNavOpen)}
-          className="text-gray-300 hover:text-white"
+          className="text-gray-300 hover:text-white transition-colors"
         >
           {mobileNavOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
         </button>
-        <h1 className="text-xl font-bold">Admin Dashboard</h1>
+        <h1 className="text-xl font-bold text-yellow-400">Admin Dashboard</h1>
         <div className="w-6"></div> {/* Spacer for alignment */}
       </div>
 
       <div className="flex">
         {/* Sidebar - Desktop */}
-        <div className={`fixed lg:static inset-y-0 left-0 z-20 w-64 bg-gray-800 border-r border-gray-700 transform ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out`}>
-          <div className="flex flex-col h-full">
-            <div className="p-4 border-b border-gray-700 hidden lg:block">
-              <h1 className="text-xl font-bold">Admin Dashboard</h1>
-            </div>
+        <div className={`fixed lg:static inset-y-0 left-0 z-20 w-64 bg-gray-800 border-r border-gray-700 transform ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col h-screen`}>
+          <div className="p-5 border-b border-gray-700 hidden lg:block">
+            <h1 className="text-xl font-bold text-yellow-400">Admin Dashboard</h1>
+          </div>
 
-            <div className="flex-1 overflow-y-auto">
-              <nav className="p-4 space-y-1">
-                {navItems.map((item) => (
-                  <button
-                    key={item.name}
-                    onClick={() => {
-                      setActiveTab(item.name);
-                      setMobileNavOpen(false);
-                    }}
-                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition ${activeTab === item.name ? 'bg-yellow-400 text-black font-medium' : 'text-gray-300 hover:bg-gray-700'}`}
-                  >
-                    <span className="text-lg">{item.icon}</span>
-                    <span>{item.name}</span>
-                  </button>
-                ))}
-              </nav>
-            </div>
+          <div className="flex-1 overflow-y-auto py-2">
+            <nav className="px-3 space-y-1">
+              {navItems.map((item) => (
+                <button
+                  key={item.name}
+                  onClick={() => {
+                    setActiveTab(item.name);
+                    setMobileNavOpen(false);
+                  }}
+                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${activeTab === item.name
+                      ? 'bg-yellow-400 text-gray-900 font-semibold shadow-md'
+                      : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                    }`}
+                >
+                  <span className="text-lg">{item.icon}</span>
+                  <span className="text-sm">{item.name}</span>
+                </button>
+              ))}
+            </nav>
+          </div>
 
-            <div className="p-4 border-t border-gray-700">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center">
-                  <FaUser />
-                </div>
-                <div>
-                  <p className="font-medium">{user?.email || "Admin"}</p>
-                  <p className="text-xs text-gray-400">Administrator</p>
-                </div>
+          <div className="p-4 border-t border-gray-700 bg-gray-850">
+            <div className="flex items-center space-x-3 mb-4 p-2 rounded-lg bg-gray-750">
+              <div className="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center text-yellow-400">
+                <FaUser size={16} />
               </div>
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-700 transition"
-              >
-                <FaSignOutAlt />
-                <span>Logout</span>
-              </button>
+              <div className="overflow-hidden">
+                <p className="font-medium truncate">{user?.email || "Admin"}</p>
+                <p className="text-xs text-gray-400">Administrator</p>
+              </div>
             </div>
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+            >
+              <FaSignOutAlt />
+              <span className="text-sm">Logout</span>
+            </button>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 lg:ml-64">
+        <div className="flex-1 lg:ml-64 min-h-screen flex flex-col">
           {/* Topbar - Desktop */}
-          <header className="bg-gray-800 border-b border-gray-700 p-4 hidden lg:block">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-bold">{activeTab}</h2>
+          <header className="bg-gray-800 border-b border-gray-700 p-4 hidden lg:block sticky top-0 z-10">
+            <div className="flex justify-between items-center max-w-7xl mx-auto">
+              <h2 className="text-xl font-bold text-white">{activeTab}</h2>
               <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center">
-                    <FaUser />
+                <div className="flex items-center space-x-2 bg-gray-750 px-3 py-1.5 rounded-lg">
+                  <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-yellow-400">
+                    <FaUser size={14} />
                   </div>
-                  <span>{user?.email || "Admin"}</span>
+                  <span className="text-sm">{user?.email || "Admin"}</span>
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="text-gray-300 hover:text-white flex items-center space-x-1"
+                  className="text-gray-300 hover:text-yellow-400 transition-colors p-2 rounded-full hover:bg-gray-700"
                   title="Logout"
                 >
                   <FaSignOutAlt />
@@ -1128,17 +1145,21 @@ export default function AdminDashboard() {
           </header>
 
           {/* Page Content */}
-          <main className="p-4">
-            {loading ? (
-              <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400"></div>
-              </div>
-            ) : (
-              tabContent[activeTab]
-            )}
+          <main className="flex-1 p-4 bg-gray-900">
+            <div className="max-w-7xl mx-auto">
+              {loading ? (
+                <div className="flex justify-center items-center h-64">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400"></div>
+                </div>
+              ) : (
+                <div className="bg-gray-800 rounded-xl p-6 shadow-lg">
+                  {tabContent[activeTab]}
+                </div>
+              )}
+            </div>
           </main>
         </div>
       </div>
     </div>
-  );
+  )
 }
