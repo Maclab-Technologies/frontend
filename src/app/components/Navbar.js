@@ -394,7 +394,7 @@ const Navbar = () => {
           </div>
         </div>
       </div>
-      <div className="pt-16 md:pt-10"></div>
+      <div className="pt-9 md:pt-9"></div>
     </>
   );
 };
