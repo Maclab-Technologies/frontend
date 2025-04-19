@@ -11,20 +11,24 @@ import Link from "next/link";
 export default function VendorRegister() {
   const [formData, setFormData] = useState({
     businessName: "",
-    email: "",
+    businessEmail: "",
+    businessPhone: "",
+    shopAddress1: "",
+    shopAddress2: "",
+    businessDescription: "",
     password: "",
     agreeToTerms: false,
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const [showPassword, setShowPassword] = useState(false); // State for showing/hiding password
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     if (!auth) {
       console.error("Firebase auth is not initialized");
       toast.error("Authentication service is not available. Please refresh the page.");
-      return; // Exit early if auth is not defined
+      return;
     }
   }, []);
 
@@ -37,10 +41,26 @@ export default function VendorRegister() {
       newErrors.businessName = "Business name must be at least 3 characters";
     }
 
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email";
+    if (!formData.businessEmail) {
+      newErrors.businessEmail = "Business email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.businessEmail)) {
+      newErrors.businessEmail = "Please enter a valid email";
+    }
+
+    if (!formData.businessPhone) {
+      newErrors.businessPhone = "Business phone is required";
+    } else if (!/^[\d\s\+\-\(\)]{10,15}$/.test(formData.businessPhone)) {
+      newErrors.businessPhone = "Please enter a valid phone number";
+    }
+
+    if (!formData.shopAddress1) {
+      newErrors.shopAddress1 = "Shop address is required";
+    }
+
+    if (!formData.businessDescription) {
+      newErrors.businessDescription = "Business description is required";
+    } else if (formData.businessDescription.length < 20) {
+      newErrors.businessDescription = "Description must be at least 20 characters";
     }
 
     if (!formData.password) {
@@ -81,14 +101,27 @@ export default function VendorRegister() {
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
-        formData.email,
+        formData.businessEmail,
         formData.password
       );
 
-      localStorage.setItem("businessName", formData.businessName);
+      // Store additional vendor information
+      const vendorData = {
+        businessName: formData.businessName,
+        businessEmail: formData.businessEmail,
+        businessPhone: formData.businessPhone,
+        shopAddress1: formData.shopAddress1,
+        shopAddress2: formData.shopAddress2,
+        businessDescription: formData.businessDescription,
+        uid: userCredential.user.uid,
+        createdAt: new Date().toISOString()
+      };
+
+      // Here you would typically send this data to your backend/database
+      localStorage.setItem("vendorData", JSON.stringify(vendorData));
 
       toast.success(
-        "Account created successfully! Welcome to 59Minutes Vendor Portal",
+        "Vendor account created successfully! Welcome to 59Minutes Vendor Portal",
         { autoClose: 3000 }
       );
 
@@ -110,34 +143,6 @@ export default function VendorRegister() {
     }
   };
 
-  const handleGoogleSignUp = async () => {
-    setLoading(true);
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-
-      localStorage.setItem("businessName", "Your Business"); // Default value
-
-      toast.success("Google sign-in successful! Redirecting to your dashboard...", {
-        autoClose: 2500
-      });
-
-      setTimeout(() => router.push("/Vendor/Dashboard"), 1500);
-    } catch (error) {
-      console.error("Google sign-in error:", error);
-
-      const errorMessages = {
-        "auth/popup-closed-by-user": "Sign-in popup was closed",
-        "auth/network-request-failed": "Network error. Please check your connection.",
-        "auth/cancelled-popup-request": "Sign-in process was cancelled",
-        default: error.message || "Google sign-in failed. Please try again.",
-      };
-
-      toast.error(errorMessages[error.code] || errorMessages.default);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <ToastContainer position="top-center" />
@@ -150,6 +155,7 @@ export default function VendorRegister() {
 
         <div className="p-6">
           <form onSubmit={handleEmailSignUp} className="space-y-4">
+            {/* Business Name */}
             <div>
               <label className="block text-sm font-medium text-black mb-1">
                 Business Name <span className="text-red-500">*</span>
@@ -167,30 +173,101 @@ export default function VendorRegister() {
               )}
             </div>
 
+            {/* Business Email */}
             <div>
               <label className="block text-sm font-medium text-black mb-1">
-                Email Address <span className="text-red-500">*</span>
+                Business Email <span className="text-red-500">*</span>
               </label>
               <input
                 type="email"
-                name="email"
-                className={`w-full px-3 py-2 border ${errors.email ? "border-red-500" : "border-black"} rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400`}
-                placeholder="you@business.com"
-                value={formData.email}
+                name="businessEmail"
+                className={`w-full px-3 py-2 border ${errors.businessEmail ? "border-red-500" : "border-black"} rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400`}
+                placeholder="business@example.com"
+                value={formData.businessEmail}
                 onChange={handleInputChange}
               />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+              {errors.businessEmail && (
+                <p className="mt-1 text-sm text-red-600">{errors.businessEmail}</p>
               )}
             </div>
 
+            {/* Business Phone */}
+            <div>
+              <label className="block text-sm font-medium text-black mb-1">
+                Business Phone <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="tel"
+                name="businessPhone"
+                className={`w-full px-3 py-2 border ${errors.businessPhone ? "border-red-500" : "border-black"} rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400`}
+                placeholder="+1 (123) 456-7890"
+                value={formData.businessPhone}
+                onChange={handleInputChange}
+              />
+              {errors.businessPhone && (
+                <p className="mt-1 text-sm text-red-600">{errors.businessPhone}</p>
+              )}
+            </div>
+
+            {/* Shop Address 1 */}
+            <div>
+              <label className="block text-sm font-medium text-black mb-1">
+                Shop Address (Line 1) <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="shopAddress1"
+                className={`w-full px-3 py-2 border ${errors.shopAddress1 ? "border-red-500" : "border-black"} rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400`}
+                placeholder="Street address, P.O. box, company name"
+                value={formData.shopAddress1}
+                onChange={handleInputChange}
+              />
+              {errors.shopAddress1 && (
+                <p className="mt-1 text-sm text-red-600">{errors.shopAddress1}</p>
+              )}
+            </div>
+
+            {/* Shop Address 2 (Optional) */}
+            <div>
+              <label className="block text-sm font-medium text-black mb-1">
+                Shop Address (Line 2) <span className="text-gray-500">Optional</span>
+              </label>
+              <input
+                type="text"
+                name="shopAddress2"
+                className="w-full px-3 py-2 border border-black rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                placeholder="Apartment, suite, unit, building, floor, etc."
+                value={formData.shopAddress2}
+                onChange={handleInputChange}
+              />
+            </div>
+
+            {/* Business Description */}
+            <div>
+              <label className="block text-sm font-medium text-black mb-1">
+                Business Description <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                name="businessDescription"
+                rows={4}
+                className={`w-full px-3 py-2 border ${errors.businessDescription ? "border-red-500" : "border-black"} rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400`}
+                placeholder="Tell us about your business (minimum 20 characters)"
+                value={formData.businessDescription}
+                onChange={handleInputChange}
+              />
+              {errors.businessDescription && (
+                <p className="mt-1 text-sm text-red-600">{errors.businessDescription}</p>
+              )}
+            </div>
+
+            {/* Password */}
             <div>
               <label className="block text-sm font-medium text-black mb-1">
                 Password <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <input
-                  type={showPassword ? "text" : "password"} // Toggle password visibility
+                  type={showPassword ? "text" : "password"}
                   name="password"
                   className={`w-full px-3 py-2 border ${errors.password ? "border-red-500" : "border-black"} rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400`}
                   placeholder="At least 6 characters"
@@ -199,7 +276,7 @@ export default function VendorRegister() {
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)} // Toggle state
+                  onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 px-3 flex items-center text-sm text-gray-600"
                 >
                   {showPassword ? "Hide" : "Show"}
@@ -211,6 +288,7 @@ export default function VendorRegister() {
               <p className="mt-1 text-xs text-gray-600">Must contain at least 6 characters, one uppercase letter, and one number</p>
             </div>
 
+            {/* Terms and Conditions */}
             <div className="flex items-start">
               <div className="flex items-center h-5">
                 <input
@@ -239,6 +317,7 @@ export default function VendorRegister() {
               </div>
             </div>
 
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
@@ -247,38 +326,6 @@ export default function VendorRegister() {
               {loading ? "Creating Account..." : "Register as Vendor"}
             </button>
           </form>
-
-          
-
-          {/* <button
-            onClick={handleGoogleSignUp}
-            disabled={loading}
-            className="w-full inline-flex justify-center items-center py-2 px-4 border border-black rounded-md shadow-sm bg-white text-sm font-medium text-black hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400 transition-colors"
-          >
-            <svg
-              className="w-5 h-5 mr-2"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                fill="#4285F4"
-              />
-              <path
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                fill="#34A853"
-              />
-              <path
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                fill="#FBBC05"
-              />
-              <path
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                fill="#EA4335"
-              />
-            </svg>
-            Continue with Google
-          </button> */}
 
           <div className="mt-6 text-center text-sm">
             <p className="text-black">
