@@ -351,7 +351,7 @@ export default function ProductsPage() {
                         </button>
                       </Link>
                       
-                      <button 
+                      {/* <button 
                         disabled={product.stock === 0}
                         onClick={handleAddToCart}
                         className={`flex items-center justify-center px-4 py-2 rounded-md transition ${
@@ -361,7 +361,7 @@ export default function ProductsPage() {
                         }`}
                       >
                         <FiShoppingCart className="mr-1" /> Buy
-                      </button>
+                      </button> */}
                     </div>
                   </div>
                 </div>

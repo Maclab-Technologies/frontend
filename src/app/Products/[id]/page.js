@@ -17,7 +17,8 @@ import {
   Paintbrush,
   Building,
   ShieldCheck,
-  Tag
+  Tag,
+  ChevronRight
 } from "lucide-react";
 
 export default function ProductDetail() {
@@ -29,6 +30,7 @@ export default function ProductDetail() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [designOption, setDesignOption] = useState(null);
   const [imageLoading, setImageLoading] = useState(true);
+  const [processingAction, setProcessingAction] = useState(false);
 
   useEffect(() => {
     if (!id) {
@@ -102,6 +104,52 @@ export default function ProductDetail() {
       autoClose: 3000,
       theme: "dark",
     });
+  };
+
+  const handleDesignOptionSelect = (option) => {
+    setDesignOption(option);
+  };
+
+  const handleProceedToDesign = () => {
+    if (!designOption) {
+      toast.warning("Please select a design option first", {
+        position: "top-center",
+        autoClose: 3000,
+        theme: "dark",
+      });
+      return;
+    }
+
+    setProcessingAction(true);
+
+    // Store product info in localStorage for the design pages
+    const designInfo = {
+      productId: product.id,
+      productName: product.name,
+      productImage: selectedImage || product.images[0],
+      quantity: quantity,
+      price: product.price,
+      designOption: designOption
+    };
+    
+    localStorage.setItem("currentDesignInfo", JSON.stringify(designInfo));
+
+    // Route to the correct design page based on option
+    setTimeout(() => {
+      switch(designOption) {
+        case "Hire Graphics Designer":
+          router.push("/Pages/hire-designer");
+          break;
+        case "Edit with Canva":
+          router.push("/Pages/edit-canvas");
+          break;
+        case "Upload Your Own Design":
+          router.push("/Pages/upload-design");
+          break;
+        default:
+          setProcessingAction(false);
+      }
+    }, 300);
   };
 
   if (loading) {
@@ -258,15 +306,12 @@ export default function ProductDetail() {
                 </div>
               </div>
 
-              {/* Design Options */}
+              {/* Design Options - Updated to select instead of navigate */}
               <div className="mb-8">
                 <h2 className="text-white text-lg font-medium mb-3">Choose Design Option:</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <button
-                    onClick={() => {
-                      setDesignOption("Hire Graphics Designer");
-                      router.push("/Pages/Hire-designer");
-                    }}
+                    onClick={() => handleDesignOptionSelect("Hire Graphics Designer")}
                     className={`flex flex-col items-center justify-center p-4 rounded-lg text-center transition ${
                       designOption === "Hire Graphics Designer" 
                         ? "bg-yellow-400 text-black" 
@@ -278,10 +323,7 @@ export default function ProductDetail() {
                   </button>
 
                   <button
-                    onClick={() => {
-                      setDesignOption("Edit with Canva");
-                      router.push("/Pages/edit-canvas");
-                    }}
+                    onClick={() => handleDesignOptionSelect("Edit with Canva")}
                     className={`flex flex-col items-center justify-center p-4 rounded-lg text-center transition ${
                       designOption === "Edit with Canva" 
                         ? "bg-yellow-400 text-black" 
@@ -293,10 +335,7 @@ export default function ProductDetail() {
                   </button>
 
                   <button
-                    onClick={() => {
-                      setDesignOption("Upload Your Own Design");
-                      router.push("/pages/upload-design");
-                    }}
+                    onClick={() => handleDesignOptionSelect("Upload Your Own Design")}
                     className={`flex flex-col items-center justify-center p-4 rounded-lg text-center transition ${
                       designOption === "Upload Your Own Design" 
                         ? "bg-yellow-400 text-black" 
@@ -309,14 +348,30 @@ export default function ProductDetail() {
                 </div>
               </div>
 
-              {/* Add to Cart Button */}
-              <button
-                className="w-full bg-yellow-400 text-black py-4 px-6 rounded-lg font-bold text-lg flex items-center justify-center hover:bg-yellow-500 transition transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50"
-                onClick={handleAddToCart}
-              >
-                <ShoppingCart className="mr-2" size={20} />
-                Add to Cart
-              </button>
+              {/* Action Buttons: Either Add to Cart or Proceed to Design */}
+              <div className="flex flex-col md:flex-row gap-4">
+                <button
+                  className="flex-1 bg-yellow-400 text-black py-3 px-4 rounded-lg font-bold text-lg flex items-center justify-center hover:bg-yellow-500 transition focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50"
+                  onClick={handleAddToCart}
+                  disabled={processingAction}
+                >
+                  <ShoppingCart className="mr-2" size={20} />
+                  Add to Cart
+                </button>
+                
+                <button
+                  className="flex-1 bg-gray-700 text-white py-3 px-4 rounded-lg font-bold text-lg flex items-center justify-center hover:bg-gray-600 transition focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-opacity-50"
+                  onClick={handleProceedToDesign}
+                  disabled={processingAction}
+                >
+                  {processingAction ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  ) : (
+                    <ChevronRight className="mr-2" size={20} />
+                  )}
+                  Continue to Design
+                </button>
+              </div>
             </div>
           </div>
         </div>
