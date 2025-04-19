@@ -200,7 +200,7 @@ export default function VendorRegister() {
                 type="tel"
                 name="businessPhone"
                 className={`w-full px-3 py-2 border ${errors.businessPhone ? "border-red-500" : "border-black"} rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400`}
-                placeholder="+1 (123) 456-7890"
+                placeholder="+234 (123) 456-7890"
                 value={formData.businessPhone}
                 onChange={handleInputChange}
               />

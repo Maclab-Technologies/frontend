@@ -17,8 +17,7 @@ import {
   Paintbrush,
   Building,
   ShieldCheck,
-  Tag,
-  ChevronRight
+  Tag
 } from "lucide-react";
 
 export default function ProductDetail() {
@@ -104,6 +103,9 @@ export default function ProductDetail() {
       autoClose: 3000,
       theme: "dark",
     });
+    
+    // After adding to cart, redirect to design page
+    handleProceedToDesign();
   };
 
   const handleDesignOptionSelect = (option) => {
@@ -144,7 +146,7 @@ export default function ProductDetail() {
           router.push("/Pages/edit-canvas");
           break;
         case "Upload Your Own Design":
-          router.push("/Pages/upload-design");
+          router.push("/Pages/Upload-design");
           break;
         default:
           setProcessingAction(false);
@@ -306,7 +308,7 @@ export default function ProductDetail() {
                 </div>
               </div>
 
-              {/* Design Options - Updated to select instead of navigate */}
+              {/* Design Options */}
               <div className="mb-8">
                 <h2 className="text-white text-lg font-medium mb-3">Choose Design Option:</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -348,19 +350,15 @@ export default function ProductDetail() {
                 </div>
               </div>
 
-              {/* Action Buttons: Either Add to Cart or Proceed to Design */}
-              <div className="flex flex-col md:flex-row gap-4">
-                <button
-                  className="flex-1 bg-yellow-400 text-black py-3 px-4 rounded-lg font-bold text-lg flex items-center justify-center hover:bg-yellow-500 transition focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50"
-                  onClick={handleAddToCart}
-                  disabled={processingAction}
-                >
-                  <ShoppingCart className="mr-2" size={20} />
-                  Add to Cart
-                </button>
-                
-                
-              </div>
+              {/* Action Button: Add to Cart */}
+              <button
+                className="w-full bg-yellow-400 text-black py-3 px-4 rounded-lg font-bold text-lg flex items-center justify-center hover:bg-yellow-500 transition focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50"
+                onClick={handleAddToCart}
+                disabled={processingAction}
+              >
+                <ShoppingCart className="mr-2" size={20} />
+                Add to Cart & Proceed
+              </button>
             </div>
           </div>
         </div>
