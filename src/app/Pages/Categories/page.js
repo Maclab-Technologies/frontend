@@ -13,61 +13,61 @@ export default function CategoriesPage() {
     { 
       id: 'business-cards', 
       name: 'Business Cards', 
-      imageUrl: '/api/placeholder/400/300',
+      imageUrl: 'https://via.placeholder.com/800',
       description: 'Professional cards for networking and brand representation'
     },
     { 
       id: 'flyers', 
       name: 'Flyers', 
-      imageUrl: '/api/placeholder/400/300',
+      imageUrl: 'https://via.placeholder.com/800',
       description: 'Eye-catching promotional materials for events and marketing'
     },
     { 
       id: 'brochures', 
       name: 'Brochures', 
-      imageUrl: '/api/placeholder/400/300',
+      imageUrl: 'https://via.placeholder.com/800',
       description: 'Informative multi-page materials for detailed product or service information'
     },
     { 
       id: 'posters', 
       name: 'Posters', 
-      imageUrl: '/api/placeholder/400/300',
+      imageUrl: 'https://via.placeholder.com/800',
       description: 'Large format prints for advertising and decoration'
     },
     { 
       id: 'stickers', 
       name: 'Stickers', 
-      imageUrl: '/api/placeholder/400/300',
+      imageUrl: 'https://via.placeholder.com/800',
       description: 'Adhesive designs for branding and personalization'
     },
     { 
       id: 'invitation-cards', 
       name: 'Invitation Cards', 
-      imageUrl: '/api/placeholder/400/300',
+      imageUrl: 'https://via.placeholder.com/800',
       description: 'Elegant cards for special events and occasions'
     },
     { 
       id: 'stationery', 
       name: 'Stationery', 
-      imageUrl: '/api/placeholder/400/300',
+      imageUrl: 'https://via.placeholder.com/800',
       description: 'Professional office supplies for business communication'
     },
     { 
       id: 'banners', 
       name: 'Banners', 
-      imageUrl: '/api/placeholder/400/300',
+      imageUrl: 'https://via.placeholder.com/800',
       description: 'Large displays for events and promotions'
     },
     { 
       id: 'apparel', 
       name: 'Apparel', 
-      imageUrl: '/api/placeholder/400/300',
+      imageUrl: 'https://via.placeholder.com/800',
       description: 'Custom printed clothing for teams and brands'
     },
     { 
       id: 'merchandise', 
       name: 'Merchandise', 
-      imageUrl: '/api/placeholder/400/300',
+      imageUrl: 'https://via.placeholder.com/800',
       description: 'Branded products for marketing and gifts'
     }
   ];

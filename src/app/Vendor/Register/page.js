@@ -17,11 +17,13 @@ export default function VendorRegister() {
     shopAddress2: "",
     businessDescription: "",
     password: "",
+    confirmPassword: "",
     agreeToTerms: false,
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -71,6 +73,12 @@ export default function VendorRegister() {
       newErrors.password = "Password must contain at least one uppercase letter";
     } else if (!/[0-9]/.test(formData.password)) {
       newErrors.password = "Password must contain at least one number";
+    }
+
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your password";
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
     }
 
     if (!formData.agreeToTerms) {
@@ -286,6 +294,33 @@ export default function VendorRegister() {
                 <p className="mt-1 text-sm text-red-600">{errors.password}</p>
               )}
               <p className="mt-1 text-xs text-gray-600">Must contain at least 6 characters, one uppercase letter, and one number</p>
+            </div>
+
+            {/* Confirm Password */}
+            <div>
+              <label className="block text-sm font-medium text-black mb-1">
+                Confirm Password <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  className={`w-full px-3 py-2 border ${errors.confirmPassword ? "border-red-500" : "border-black"} rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400`}
+                  placeholder="Confirm your password"
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-0 px-3 flex items-center text-sm text-gray-600"
+                >
+                  {showConfirmPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+              {errors.confirmPassword && (
+                <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
+              )}
             </div>
 
             {/* Terms and Conditions */}
