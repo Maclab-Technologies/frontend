@@ -138,7 +138,7 @@ export default function ProductDetail() {
     setTimeout(() => {
       switch(designOption) {
         case "Hire Graphics Designer":
-          router.push("/Pages/hire-designer");
+          router.push("/Pages/Hire-designer");
           break;
         case "Edit with Canva":
           router.push("/Pages/edit-canvas");
@@ -359,18 +359,7 @@ export default function ProductDetail() {
                   Add to Cart
                 </button>
                 
-                <button
-                  className="flex-1 bg-gray-700 text-white py-3 px-4 rounded-lg font-bold text-lg flex items-center justify-center hover:bg-gray-600 transition focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-opacity-50"
-                  onClick={handleProceedToDesign}
-                  disabled={processingAction}
-                >
-                  {processingAction ? (
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                  ) : (
-                    <ChevronRight className="mr-2" size={20} />
-                  )}
-                  Continue to Design
-                </button>
+                
               </div>
             </div>
           </div>

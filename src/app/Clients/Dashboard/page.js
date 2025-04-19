@@ -678,7 +678,7 @@ export default function ClientDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-gray-900 mt-16">
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -703,7 +703,7 @@ export default function ClientDashboard() {
                 {mobileNavOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
               </button>
               <h1 className="text-xl font-bold">
-                <span className="text-yellow-400">59Minutes</span>Print
+                <span className="text-yellow-400">59Minutes Prints Dashboard</span>
               </h1>
             </div>
             <div className="flex items-center space-x-4">

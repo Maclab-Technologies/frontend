@@ -28,7 +28,7 @@ const Navbar = () => {
   const pathname = usePathname();
   const auth = getAuth(app);
 
-  // Cart count state
+  // Cart count state with improved calculation
   const [cartCount, setCartCount] = useState(0);
 
   // User authentication effect
@@ -41,8 +41,20 @@ const Navbar = () => {
 
   // Effect to update cart count whenever cartItems change
   useEffect(() => {
-    const count = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+    // Calculate the total number of items in the cart
+    const count = cartItems.reduce((acc, item) => acc + (parseInt(item.quantity) || 0), 0);
     setCartCount(count);
+    
+    // Add visual feedback when items are added (optional)
+    if (count > 0) {
+      const cartIcon = document.querySelectorAll('.cart-icon');
+      cartIcon.forEach(icon => {
+        icon.classList.add('cart-pulse');
+        setTimeout(() => {
+          icon.classList.remove('cart-pulse');
+        }, 1000);
+      });
+    }
   }, [cartItems]);
 
   // Effect to detect scrolling for navbar style change
@@ -64,10 +76,22 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+      <style jsx global>{`
+        .cart-pulse {
+          animation: pulse 0.5s ease-in-out;
+        }
+        
+        @keyframes pulse {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.2); }
+          100% { transform: scale(1); }
+        }
+      `}</style>
+
+      <nav className={`fixed top-1 left-0 w-full bg-black z-50 transition-all duration-300 mb-20 ${
         isScrolled 
-          ? "bg-black bg-opacity-95 py-2 shadow-lg" 
-          : "bg-gradient-to-r from-black to-gray-900 py-4"
+          ? "bg-black bg-opacity-95 shadow-lg" 
+          : "bg-black border-b-bg-yellow-400"
       }`}>
         <div className="container mx-auto flex items-center justify-between px-4">
           {/* Logo */}
@@ -81,7 +105,7 @@ const Navbar = () => {
                 className="object-cover transition-transform duration-300 group-hover:scale-110"
               />
             </div>
-            <span className="font-bold text-xl hidden sm:block text-yellow-400 transition-colors duration-300 group-hover:text-white">59Minutes Prints</span>
+            <span className="font-bold text-xl hidden sm:block text-yellow-400 transition-colors duration-300 group-hover:text-white flex-nowrap">59Minutes Prints</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -128,9 +152,9 @@ const Navbar = () => {
                   className="relative p-2 rounded-full bg-gray-800 text-yellow-400 hover:bg-gray-700 transition-all duration-300"
                   aria-label="View cart"
                 >
-                  <FaShoppingCart size={20} />
+                  <FaShoppingCart size={20} className="cart-icon" />
                   {cartCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full animate-bounce">
                       {cartCount}
                     </span>
                   )}
@@ -204,9 +228,9 @@ const Navbar = () => {
                 className="relative p-2 text-yellow-400"
                 aria-label="View cart"
               >
-                <FaShoppingCart size={20} />
+                <FaShoppingCart size={20} className="cart-icon" />
                 {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full animate-bounce">
                     {cartCount}
                   </span>
                 )}
@@ -370,6 +394,7 @@ const Navbar = () => {
           </div>
         </div>
       </div>
+      <div className="pt-16 md:pt-10"></div>
     </>
   );
 };
