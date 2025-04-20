@@ -17,8 +17,7 @@ import {
   Paintbrush,
   Building,
   ShieldCheck,
-  Tag,
-  ChevronRight
+  Tag
 } from "lucide-react";
 
 export default function ProductDetail() {
@@ -54,14 +53,44 @@ export default function ProductDetail() {
         }
       })
       .catch((error) => {
+        console.error("Product fetch error:", error);
         toast.error(error.message || "Failed to fetch product details.");
         router.push("/Products");
       })
       .finally(() => setLoading(false));
   }, [id, router]);
 
+  // Reset image loading state when a new image is selected
+  useEffect(() => {
+    if (selectedImage) {
+      setImageLoading(true);
+    }
+  }, [selectedImage]);
+
   const handleQuantityChange = (action) => {
     setQuantity((prev) => (action === "increase" ? prev + 1 : Math.max(1, prev - 1)));
+  };
+
+  const handleThumbnailSelect = (img) => {
+    setImageLoading(true);
+    setSelectedImage(img);
+  };
+
+  const handleDesignOptionSelect = (option) => {
+    setDesignOption(option);
+  };
+
+  const getDesignRoute = (option) => {
+    switch(option) {
+      case "Hire Graphics Designer":
+        return "/Pages/Hire-designer";
+      case "Edit with Canva":
+        return "/Pages/edit-canvas";
+      case "Upload Your Own Design":
+        return "/Pages/Upload-design";
+      default:
+        return null;
+    }
   };
 
   const handleAddToCart = () => {
@@ -76,80 +105,66 @@ export default function ProductDetail() {
       return;
     }
 
-    const cartItem = {
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image: selectedImage || product.images[0],
-      quantity,
-      designOption,
-    };
+    setProcessingAction(true);
 
-    const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
-    const existingItemIndex = existingCart.findIndex((item) => 
-      item.id === product.id && item.designOption === designOption
-    );
+    try {
+      const cartItem = {
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: selectedImage || product.images[0],
+        quantity,
+        designOption,
+      };
 
-    if (existingItemIndex !== -1) {
-      existingCart[existingItemIndex].quantity += quantity;
-    } else {
-      existingCart.push(cartItem);
-    }
+      const existingCart = JSON.parse(localStorage.getItem("cart") || "[]");
+      const existingItemIndex = existingCart.findIndex((item) => 
+        item.id === product.id && item.designOption === designOption
+      );
 
-    localStorage.setItem("cart", JSON.stringify(existingCart));
-    window.dispatchEvent(new Event("cartUpdated"));
-    
-    toast.success(`${product.name} added to cart!`, {
-      position: "top-right",
-      autoClose: 3000,
-      theme: "dark",
-    });
-  };
+      if (existingItemIndex !== -1) {
+        existingCart[existingItemIndex].quantity += quantity;
+      } else {
+        existingCart.push(cartItem);
+      }
 
-  const handleDesignOptionSelect = (option) => {
-    setDesignOption(option);
-  };
+      localStorage.setItem("cart", JSON.stringify(existingCart));
+      
+      // Dispatch event for other components that might be listening for cart updates
+      window.dispatchEvent(new Event("cartUpdated"));
+      
+      // Store current design info for the design pages
+      const designInfo = {
+        productId: product.id,
+        productName: product.name,
+        productImage: selectedImage || product.images[0],
+        quantity: quantity,
+        price: product.price,
+        designOption: designOption
+      };
+      
+      localStorage.setItem("currentDesignInfo", JSON.stringify(designInfo));
 
-  const handleProceedToDesign = () => {
-    if (!designOption) {
-      toast.warning("Please select a design option first", {
-        position: "top-center",
+      toast.success(`${product.name} added to cart!`, {
+        position: "top-right",
         autoClose: 3000,
         theme: "dark",
       });
-      return;
-    }
 
-    setProcessingAction(true);
-
-    // Store product info in localStorage for the design pages
-    const designInfo = {
-      productId: product.id,
-      productName: product.name,
-      productImage: selectedImage || product.images[0],
-      quantity: quantity,
-      price: product.price,
-      designOption: designOption
-    };
-    
-    localStorage.setItem("currentDesignInfo", JSON.stringify(designInfo));
-
-    // Route to the correct design page based on option
-    setTimeout(() => {
-      switch(designOption) {
-        case "Hire Graphics Designer":
-          router.push("/Pages/Hire-designer");
-          break;
-        case "Edit with Canva":
-          router.push("/Pages/edit-canvas");
-          break;
-        case "Upload Your Own Design":
-          router.push("/Pages/upload-design");
-          break;
-        default:
-          setProcessingAction(false);
+      // Get the route for the selected design option
+      const designRoute = getDesignRoute(designOption);
+      if (designRoute) {
+        setTimeout(() => {
+          router.push(designRoute);
+        }, 500);
+      } else {
+        setProcessingAction(false);
       }
-    }, 300);
+    } catch (error) {
+      console.error("Error processing cart:", error);
+      toast.error("Failed to add item to cart. Please try again.");
+      setProcessingAction(false);
+    }
   };
 
   if (loading) {
@@ -224,7 +239,7 @@ export default function ProductDetail() {
                     className={`relative aspect-square rounded-lg overflow-hidden cursor-pointer border-2 ${
                       selectedImage === img ? 'border-yellow-400' : 'border-transparent'
                     } transition-all hover:opacity-80`}
-                    onClick={() => setSelectedImage(img)}
+                    onClick={() => handleThumbnailSelect(img)}
                   >
                     <Image
                       src={img}
@@ -306,7 +321,7 @@ export default function ProductDetail() {
                 </div>
               </div>
 
-              {/* Design Options - Updated to select instead of navigate */}
+              {/* Design Options */}
               <div className="mb-8">
                 <h2 className="text-white text-lg font-medium mb-3">Choose Design Option:</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -348,19 +363,28 @@ export default function ProductDetail() {
                 </div>
               </div>
 
-              {/* Action Buttons: Either Add to Cart or Proceed to Design */}
-              <div className="flex flex-col md:flex-row gap-4">
-                <button
-                  className="flex-1 bg-yellow-400 text-black py-3 px-4 rounded-lg font-bold text-lg flex items-center justify-center hover:bg-yellow-500 transition focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50"
-                  onClick={handleAddToCart}
-                  disabled={processingAction}
-                >
-                  <ShoppingCart className="mr-2" size={20} />
-                  Add to Cart
-                </button>
-                
-                
-              </div>
+              {/* Action Button: Add to Cart */}
+              <button
+                className={`w-full py-3 px-4 rounded-lg font-bold text-lg flex items-center justify-center transition focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50 ${
+                  processingAction 
+                    ? "bg-gray-500 text-gray-300 cursor-not-allowed" 
+                    : "bg-yellow-400 text-black hover:bg-yellow-500"
+                }`}
+                onClick={handleAddToCart}
+                disabled={processingAction}
+              >
+                {processingAction ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-gray-300 border-t-transparent rounded-full animate-spin mr-2"></div>
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart className="mr-2" size={20} />
+                    Add to Cart & Proceed
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>
