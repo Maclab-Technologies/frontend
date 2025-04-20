@@ -161,7 +161,7 @@ const Register = () => {
       localStorage.setItem('userToken', idToken);
   
       // Send user data to backend
-      const response = await fetch('http://localhost:4000/api/user/signup', {
+      const response = await fetch(`${process.env.API_KEY}/user/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -198,7 +198,7 @@ const Register = () => {
       console.log(result)
       
 
-      await fetch('http://localhost:4000/api/user/signup', {
+      await fetch(`${process.env.API_KEY}/user/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

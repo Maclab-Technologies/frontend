@@ -99,26 +99,14 @@ export default function VendorRegister() {
 
     setLoading(true);
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        formData.businessEmail,
-        formData.password
-      );
+      const userCredential = await fetch( `${process.env.API_KEY}/vendor/signup`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: formData
+      });
 
-      // Store additional vendor information
-      const vendorData = {
-        businessName: formData.businessName,
-        businessEmail: formData.businessEmail,
-        businessPhone: formData.businessPhone,
-        shopAddress1: formData.shopAddress1,
-        shopAddress2: formData.shopAddress2,
-        businessDescription: formData.businessDescription,
-        uid: userCredential.user.uid,
-        createdAt: new Date().toISOString()
-      };
-
-      // Here you would typically send this data to your backend/database
-      localStorage.setItem("vendorData", JSON.stringify(vendorData));
+      localStorage.setItem("vendor_token", userCredential.token);
 
       toast.success(
         "Vendor account created successfully! Welcome to 59Minutes Vendor Portal",

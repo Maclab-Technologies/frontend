@@ -53,11 +53,13 @@ export default function VendorLogin() {
 
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(
+      const data = await signInWithEmailAndPassword(
         auth,
         formData.email,
         formData.password
       );
+      console.log(data.user.accessToken)
+      localStorage.setItem('vendor_token', data.user.accessToken)
       
       toast.success(
         <div>

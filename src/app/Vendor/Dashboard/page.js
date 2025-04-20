@@ -83,16 +83,34 @@ export default function VendorDashboard() {
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
+      localStorage.removeItem('vendor_token')
       toast.success("Logged out successfully");
-      router.push("/Auth/Login");
+      router.push("/Vendor/Login");
     } catch (error) {
       toast.error("Error signing out");
       console.error("Logout error:", error);
     }
   };
+
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+
+    // Optional: limit number of images to 5
+    if (files.length + productImages.length > 5) {
+      alert('You can only upload up to 5 images.');
+      return;
+    }
+
+    // Optional: check file types
+    const validImages = files.filter(file =>
+      ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'].includes(file.type)
+    );
+
+    setProductImages(prev => [...prev, ...validImages]);
+  };
+
   
-  const handleCreateProduct = (e) => {
+  const handleCreateProduct = async(e) => {
     e.preventDefault();
     
     if (!productName || !productDescription || !productPrice || !productMaterial || selectedColors.length === 0) {
@@ -107,11 +125,20 @@ export default function VendorDashboard() {
       price: parseFloat(productPrice),
       colors: selectedColors,
       material: productMaterial,
-      stock: 100, // Default starting stock
+      stock: 100,
       images: productImages.length > 0 ? productImages : ["/api/placeholder/400/300"],
     };
     
     setProducts([...products, newProduct]);
+
+    const response = await axios(`${process.env.API_KEY}/products/add-product/${vendorId}`, products, {
+        headers: {
+          "Authorization": "Bearer " + localStorage.getItem('vendor_token')
+        }
+      });
+
+    console.log(response);
+    
     toast.success("Product created successfully!");
     
     // Reset form
@@ -129,19 +156,6 @@ export default function VendorDashboard() {
     } else {
       setSelectedColors([...selectedColors, color]);
     }
-  };
-  
-  const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length > 5) {
-      toast.error("Maximum 5 images allowed");
-      return;
-    }
-    
-    // In a real app, we would upload these to storage
-    // For this demo, just use placeholders
-    setProductImages(files.map((_, index) => `/api/placeholder/400/300?text=Image${index + 1}`));
-    toast.success(`${files.length} image(s) selected`);
   };
   
   const handleDeleteProduct = (id) => {
@@ -391,6 +405,22 @@ export default function VendorDashboard() {
               />
             </div>
           </div>
+
+          <div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Price (₦)</label>
+              <select
+                value={productPrice}
+                onChange={(e) => setProductPrice(e.target.value)}
+                className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                placeholder="Price in Naira"
+                min="0"
+                required
+              >
+                <option value></option>
+              </select>
+            </div>
+          </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
@@ -447,11 +477,14 @@ export default function VendorDashboard() {
               <div className="space-y-1 text-center">
                 <FaFileUpload className="mx-auto h-12 w-12 text-gray-400" />
                 <div className="flex text-sm text-gray-400">
-                  <label htmlFor="file-upload" className="relative cursor-pointer rounded-md font-medium text-yellow-400 hover:text-yellow-300 focus-within:outline-none">
+                  <label
+                    htmlFor="file-upload"
+                    className="relative cursor-pointer rounded-md font-medium text-yellow-400 hover:text-yellow-300 focus-within:outline-none"
+                  >
                     <span>Upload files</span>
-                    <input 
-                      id="file-upload" 
-                      name="file-upload" 
+                    <input
+                      id="file-upload"
+                      name="file-upload"
                       type="file"
                       accept="image/*"
                       multiple
@@ -461,16 +494,25 @@ export default function VendorDashboard() {
                   </label>
                   <p className="pl-1">or drag and drop</p>
                 </div>
-                <p className="text-xs text-gray-400">
-                  PNG, JPG, GIF up to 5 files
-                </p>
+                <p className="text-xs text-gray-400">PNG, JPG, GIF up to 5 files</p>
                 {productImages.length > 0 && (
                   <p className="text-sm text-green-400">{productImages.length} images selected</p>
                 )}
               </div>
             </div>
           </div>
-          
+
+          <div className="flex flex-wrap gap-2 mt-4">
+            {productImages.map((file, index) => (
+              <img
+                key={index}
+                src={URL.createObjectURL(file)}
+                alt={`upload-${index}`}
+                className="w-24 h-24 object-cover rounded-md border border-gray-400"
+              />
+            ))}
+          </div>
+
           <div className="flex justify-end">
             <button
               type="submit"
