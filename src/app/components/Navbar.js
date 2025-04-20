@@ -31,6 +31,18 @@ const Navbar = () => {
   // Cart count state with improved calculation
   const [cartCount, setCartCount] = useState(0);
 
+  // Effect to handle body scroll lock when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileMenuOpen]);
+
   // User authentication effect
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -47,36 +59,59 @@ const Navbar = () => {
     
     // Add visual feedback when items are added (optional)
     if (count > 0) {
-      const cartIcon = document.querySelectorAll('.cart-icon');
-      cartIcon.forEach(icon => {
-        icon.classList.add('cart-pulse');
-        setTimeout(() => {
-          icon.classList.remove('cart-pulse');
-        }, 1000);
+      const cartIcons = document.querySelectorAll('.cart-icon');
+      cartIcons.forEach(icon => {
+        if (icon) {
+          icon.classList.add('cart-pulse');
+          setTimeout(() => {
+            if (icon) icon.classList.remove('cart-pulse');
+          }, 1000);
+        }
       });
     }
   }, [cartItems]);
 
-  // Effect to detect scrolling for navbar style change
+  // Effect to detect scrolling for navbar style change with throttling
   useEffect(() => {
+    let ticking = false;
+    
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setIsScrolled(window.scrollY > 20);
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
-    window.addEventListener('scroll', handleScroll);
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
+      // Close mobile menu if open
+      setIsMobileMenuOpen(false);
     } catch (error) {
       console.error("Logout Error:", error.message);
     }
   };
 
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <>
       <style jsx global>{`
+        @media (prefers-reduced-motion: reduce) {
+          .cart-pulse, .animate-bounce {
+            animation: none !important;
+          }
+        }
+        
         .cart-pulse {
           animation: pulse 0.5s ease-in-out;
         }
@@ -86,14 +121,36 @@ const Navbar = () => {
           50% { transform: scale(1.2); }
           100% { transform: scale(1); }
         }
+        
+        .mobile-menu-transition {
+          transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          will-change: transform;
+        }
+        
+        /* Improve iOS support */
+        .smooth-scroll {
+          -webkit-overflow-scrolling: touch;
+        }
+        
+        /* Fix for older Safari */
+        @supports (-webkit-touch-callout: none) {
+          .fixed-ios {
+            position: fixed;
+            width: 100%;
+          }
+        }
       `}</style>
 
-      <nav className={`fixed top-1 left-0 w-full bg-black z-50 transition-all duration-300 mb-20 ${
-        isScrolled 
-          ? "bg-black bg-opacity-95 shadow-lg" 
-          : "bg-black border-b-bg-yellow-400"
-      }`}>
-        <div className="container mx-auto flex items-center justify-between px-4">
+      <nav 
+        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 fixed-ios ${
+          isScrolled 
+            ? "bg-black bg-opacity-95 shadow-lg" 
+            : "bg-black border-b border-yellow-400"
+        }`}
+        role="navigation"
+        aria-label="Main navigation"
+      >
+        <div className="container mx-auto flex items-center justify-between px-4 py-2">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2 group" aria-label="Go to homepage">
             <div className="relative overflow-hidden rounded-full border-2 border-yellow-400 transition-all duration-300 group-hover:border-white">
@@ -103,9 +160,10 @@ const Navbar = () => {
                 width={40}
                 height={40}
                 className="object-cover transition-transform duration-300 group-hover:scale-110"
+                priority
               />
             </div>
-            <span className="font-bold text-xl hidden sm:block text-yellow-400 transition-colors duration-300 group-hover:text-white flex-nowrap">59Minutes Prints</span>
+            <span className="font-bold text-xl hidden sm:block text-yellow-400 transition-colors duration-300 group-hover:text-white whitespace-nowrap">59Minutes Prints</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -115,10 +173,10 @@ const Navbar = () => {
                 <Link
                   key={href}
                   href={href}
-                  className={`flex items-center px-3 py-2 rounded-full text-sm lg:text-base transition-all duration-300 ${
+                  className={`flex items-center px-3 py-2 rounded-full text-sm lg:text-base transition-all duration-300 hover:bg-gray-700 ${
                     pathname === href 
                       ? "bg-yellow-500 text-black font-medium" 
-                      : "text-white hover:bg-gray-700"
+                      : "text-white"
                   }`}
                 >
                   <span className="hidden lg:inline-block">{icon}</span>
@@ -160,7 +218,11 @@ const Navbar = () => {
                   )}
                 </Link>
                 <div className="relative group">
-                  <button className="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 rounded-full pl-2 pr-4 py-2 transition-all duration-300">
+                  <button 
+                    className="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 rounded-full pl-2 pr-4 py-2 transition-all duration-300"
+                    aria-expanded="false"
+                    aria-haspopup="true"
+                  >
                     <div className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center text-black">
                       <FaUserCircle size={20} />
                     </div>
@@ -168,7 +230,11 @@ const Navbar = () => {
                       {user?.displayName?.charAt(0).toUpperCase() || "Account"}
                     </span>
                   </button>
-                  <div className="absolute right-0 mt-2 w-64 bg-gray-900 border border-gray-700 text-white shadow-xl rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right">
+                  <div 
+                    className="absolute right-0 mt-2 w-64 bg-gray-900 border border-gray-700 text-white shadow-xl rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right z-50"
+                    role="menu"
+                    aria-orientation="vertical"
+                  >
                     <div className="py-3 border-b border-gray-700 px-4">
                       <p className="text-sm text-gray-400">Signed in as</p>
                       <p className="text-sm font-medium truncate">
@@ -179,6 +245,7 @@ const Navbar = () => {
                       <Link
                         href="/profile"
                         className="flex items-center px-4 py-2 hover:bg-gray-800 transition-colors"
+                        role="menuitem"
                       >
                         <FaUserCircle className="mr-3 text-yellow-400" size={16} />
                         Profile
@@ -186,6 +253,7 @@ const Navbar = () => {
                       <Link
                         href="/Clients/Dashboard"
                         className="flex items-center px-4 py-2 hover:bg-gray-800 transition-colors"
+                        role="menuitem"
                       >
                         <FaBoxOpen className="mr-3 text-yellow-400" size={16} />
                         Dashboard
@@ -193,6 +261,7 @@ const Navbar = () => {
                       <Link
                         href="/Inbox"
                         className="flex items-center px-4 py-2 hover:bg-gray-800 transition-colors"
+                        role="menuitem"
                       >
                         <FaListAlt className="mr-3 text-yellow-400" size={16} />
                         Inbox
@@ -200,6 +269,7 @@ const Navbar = () => {
                       <Link
                         href="/Help"
                         className="flex items-center px-4 py-2 hover:bg-gray-800 transition-colors"
+                        role="menuitem"
                       >
                         <FaInfoCircle className="mr-3 text-yellow-400" size={16} />
                         Help
@@ -209,6 +279,7 @@ const Navbar = () => {
                       <button
                         className="flex items-center w-full text-left px-4 py-2 text-red-400 hover:bg-gray-800 transition-colors"
                         onClick={handleLogout}
+                        role="menuitem"
                       >
                         <FiX className="mr-3" size={16} />
                         Logout
@@ -237,7 +308,9 @@ const Navbar = () => {
               </Link>
             )}
             <button
-              aria-label="Toggle mobile menu"
+              aria-label={isMobileMenuOpen ? "Close mobile menu" : "Open mobile menu"}
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-menu"
               className="p-2 rounded-full bg-gray-800 text-yellow-400 focus:outline-none hover:bg-gray-700 transition-colors"
               onClick={() => setIsMobileMenuOpen((prev) => !prev)}
             >
@@ -251,23 +324,24 @@ const Navbar = () => {
       {isMobileMenuOpen && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-          onClick={() => setIsMobileMenuOpen(false)}
+          onClick={closeMobileMenu}
+          aria-hidden="true"
         />
       )}
 
       {/* Mobile Navigation Sidebar */}
       <div
-        className={`fixed top-0 right-0 h-full w-72 bg-gray-900 shadow-xl z-50 transition-transform duration-300 ease-in-out md:hidden ${
+        id="mobile-menu"
+        className={`fixed top-0 right-0 h-full w-72 bg-gray-900 shadow-xl z-50 mobile-menu-transition overflow-y-auto smooth-scroll md:hidden ${
           isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
         }`}
-        role="navigation"
         aria-hidden={!isMobileMenuOpen}
       >
         <div className="flex justify-between items-center p-4 border-b border-gray-700">
           <span className="text-yellow-400 font-bold text-xl">Menu</span>
           <button
             className="p-2 rounded-full bg-gray-800 text-yellow-400 hover:bg-gray-700 transition-colors"
-            onClick={() => setIsMobileMenuOpen(false)}
+            onClick={closeMobileMenu}
             aria-label="Close mobile menu"
           >
             <FiX size={20} />
@@ -303,7 +377,7 @@ const Navbar = () => {
                       ? "bg-yellow-500 text-black font-medium"
                       : "text-white hover:bg-gray-800"
                   } transition-colors`}
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={closeMobileMenu}
                 >
                   <span className="mr-3">{icon}</span>
                   {label}
@@ -319,14 +393,14 @@ const Navbar = () => {
                 <Link
                   href="/Auth/Login"
                   className="w-full py-3 border border-yellow-400 text-yellow-400 rounded-lg text-center font-medium hover:bg-yellow-400 hover:text-black transition-all"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={closeMobileMenu}
                 >
                   Login
                 </Link>
                 <Link
                   href="/Auth/Register"
                   className="w-full py-3 bg-yellow-500 text-black rounded-lg text-center font-medium hover:bg-yellow-400 transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={closeMobileMenu}
                 >
                   Sign Up
                 </Link>
@@ -337,7 +411,7 @@ const Navbar = () => {
                 <Link
                   href="/profile"
                   className="flex items-center rounded-lg py-3 px-4 text-white hover:bg-gray-800 transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={closeMobileMenu}
                 >
                   <FaUserCircle className="mr-3 text-yellow-400" size={16} />
                   Profile
@@ -345,7 +419,7 @@ const Navbar = () => {
                 <Link
                   href="/Clients/Dashboard"
                   className="flex items-center rounded-lg py-3 px-4 text-white hover:bg-gray-800 transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={closeMobileMenu}
                 >
                   <FaBoxOpen className="mr-3 text-yellow-400" size={16} />
                   Dashboard
@@ -353,7 +427,7 @@ const Navbar = () => {
                 <Link
                   href="/Clients/Cart"
                   className="flex items-center rounded-lg py-3 px-4 text-white hover:bg-gray-800 transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={closeMobileMenu}
                 >
                   <FaShoppingCart className="mr-3 text-yellow-400" size={16} />
                   Cart
@@ -366,7 +440,7 @@ const Navbar = () => {
                 <Link
                   href="/Inbox"
                   className="flex items-center rounded-lg py-3 px-4 text-white hover:bg-gray-800 transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={closeMobileMenu}
                 >
                   <FaListAlt className="mr-3 text-yellow-400" size={16} />
                   Inbox
@@ -374,17 +448,14 @@ const Navbar = () => {
                 <Link
                   href="/Help"
                   className="flex items-center rounded-lg py-3 px-4 text-white hover:bg-gray-800 transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={closeMobileMenu}
                 >
                   <FaInfoCircle className="mr-3 text-yellow-400" size={16} />
                   Help
                 </Link>
                 <button
                   className="flex items-center w-full text-left rounded-lg py-3 px-4 text-red-400 hover:bg-gray-800 transition-colors mt-2"
-                  onClick={() => {
-                    handleLogout();
-                    setIsMobileMenuOpen(false);
-                  }}
+                  onClick={handleLogout}
                 >
                   <FiX className="mr-3" size={16} />
                   Logout
@@ -394,7 +465,8 @@ const Navbar = () => {
           </div>
         </div>
       </div>
-      <div className="pt-9 md:pt-9"></div>
+      {/* Spacer to prevent content from being hidden under navbar */}
+      <div className="pt-16"></div>
     </>
   );
 };
