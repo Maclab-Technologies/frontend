@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import products from "../../../../public/Products/products.json";
+import axios from 'axios';
 
 export default async function CategoriesPage() {
   const router = useRouter();
@@ -42,7 +43,7 @@ export default async function CategoriesPage() {
         {categories.map((category) => (
           <Link 
             key={category.id}
-            href={`/Pages/Categories/${encodeURIComponent(category._id)}`}
+            href={`/Pages/Categories/${encodeURIComponent(category.name)}`}
             className="relative group overflow-hidden rounded-lg shadow-lg transition-transform transform hover:scale-105 bg-gray-800"
           >
             {/* Category Image */}
