@@ -5,83 +5,30 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import products from "../../../../public/Products/products.json";
 
-export default function CategoriesPage() {
+export default async function CategoriesPage() {
   const router = useRouter();
-  
-  // Define categories manually with image URLs
-  const categories = [
-    { 
-      id: 'business-cards', 
-      name: 'Business Cards', 
-      imageUrl: '/api/placeholder/400/300',
-      description: 'Professional cards for networking and brand representation'
-    },
-    { 
-      id: 'flyers', 
-      name: 'Flyers', 
-      imageUrl: '/api/placeholder/400/300',
-      description: 'Eye-catching promotional materials for events and marketing'
-    },
-    { 
-      id: 'brochures', 
-      name: 'Brochures', 
-      imageUrl: '/api/placeholder/400/300',
-      description: 'Informative multi-page materials for detailed product or service information'
-    },
-    { 
-      id: 'posters', 
-      name: 'Posters', 
-      imageUrl: '/api/placeholder/400/300',
-      description: 'Large format prints for advertising and decoration'
-    },
-    { 
-      id: 'stickers', 
-      name: 'Stickers', 
-      imageUrl: '/api/placeholder/400/300',
-      description: 'Adhesive designs for branding and personalization'
-    },
-    { 
-      id: 'invitation-cards', 
-      name: 'Invitation Cards', 
-      imageUrl: '/api/placeholder/400/300',
-      description: 'Elegant cards for special events and occasions'
-    },
-    { 
-      id: 'stationery', 
-      name: 'Stationery', 
-      imageUrl: '/api/placeholder/400/300',
-      description: 'Professional office supplies for business communication'
-    },
-    { 
-      id: 'banners', 
-      name: 'Banners', 
-      imageUrl: '/api/placeholder/400/300',
-      description: 'Large displays for events and promotions'
-    },
-    { 
-      id: 'apparel', 
-      name: 'Apparel', 
-      imageUrl: '/api/placeholder/400/300',
-      description: 'Custom printed clothing for teams and brands'
-    },
-    { 
-      id: 'merchandise', 
-      name: 'Merchandise', 
-      imageUrl: '/api/placeholder/400/300',
-      description: 'Branded products for marketing and gifts'
-    }
-  ];
+  try{
+    const categories = await axios.get(`${process.env.API_KEY}/category`);
 
-  // Count products in each category
-  const categoryCounts = {};
-  categories.forEach(category => {
-    // Match product category case-insensitively
-    const count = products.filter(product => 
-      product.category.toLowerCase() === category.name.toLowerCase() ||
-      product.category.toLowerCase() === category.id.toLowerCase()
-    ).length;
-    categoryCounts[category.id] = count;
-  });
+    if (!categories.ok){
+      // add nice alert
+      console.error('Failed to fetch category products')
+    }
+
+    const categoryCounts = {};
+    categories.data.forEach(category => {
+      // Match product category case-insensitively
+      const count = products.filter(product => 
+        product.category.toLowerCase() === category.name.toLowerCase() ||
+        product.category.toSrting() === category._id.toSrting()
+      ).length;
+      categoryCounts[category.id] = count;
+    });
+  }catch (err) {
+    console.error('Internal error', err.message);
+  }
+
+  
 
   return (
     <div className="bg-black min-h-screen p-6">
@@ -95,7 +42,7 @@ export default function CategoriesPage() {
         {categories.map((category) => (
           <Link 
             key={category.id}
-            href={`/Pages/Categories/${encodeURIComponent(category.id)}`}
+            href={`/Pages/Categories/${encodeURIComponent(category._id)}`}
             className="relative group overflow-hidden rounded-lg shadow-lg transition-transform transform hover:scale-105 bg-gray-800"
           >
             {/* Category Image */}

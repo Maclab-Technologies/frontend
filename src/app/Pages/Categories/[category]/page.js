@@ -11,16 +11,28 @@ export async function generateStaticParams() {
   }));
 }
 
-export default function CategoryPage({ params }) {
+export default async function CategoryPage({ params }) {
   const decodedCategory = decodeURIComponent(params.category);
-  // alert(params.category)
-  const categoryProducts = products.filter(
-    product => product.category.toLowerCase() === decodedCategory.toLowerCase()
-  );
+  try {
+    const categoryProducts = await axios.get(`${process.env.API_URL}/category/product/${decodedCategory}`);
 
-  // if (categoryProducts.length === 0) {
-  //   notFound();
-  // }
+    if (!categoryProducts.ok){
+      // add nice alert
+      console.error('failed to fetch category products')
+    }
+    categoryProducts = products.filter(
+      product => product.category.toLowerCase() === decodedCategory.toLowerCase()
+    );
+  
+    if (categoryProducts.length === 0) {
+      notFound();
+    }
+
+  } catch (error) {
+    // Add a nice alert brr
+    console.error('Internal error: ', error.message)
+  }
+  
 
   return (
     <div className="bg-black min-h-screen p-6">
