@@ -12,7 +12,7 @@ export default async function CategoryPage({ params }) {
   const decodedCategory = decodeURIComponent(params.category);
 
   try {
-    const baseUrl = process.env.API_KEY || process.env.NEXT_PUBLIC_API_KEY;
+    const baseUrl = process.env.API_URL;
     
     if (!baseUrl) {
       throw new Error("API URL is not configured");

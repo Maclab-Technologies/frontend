@@ -107,11 +107,12 @@ export default function VendorRegister() {
 
     setLoading(true);
     try {
-      const userCredential = await fetch( `${process.env.API_KEY}/vendor/signup`, {
+      const userCredential = await fetch(`${process.env.API_URL}/vendor/signup`, {
+        method: 'POST', 
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json', 
         },
-        body: formData
+        body: JSON.stringify(formData), 
       });
 
       localStorage.setItem("vendor_token", userCredential.token);
