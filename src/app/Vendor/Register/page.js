@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { auth, googleProvider } from "../../utils/firebaseconfig";
-import { createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+// import { auth, googleProvider } from "../../utils/firebaseconfig";
+// import { createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
@@ -26,13 +26,13 @@ export default function VendorRegister() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
 
-  useEffect(() => {
-    if (!auth) {
-      console.error("Firebase auth is not initialized");
-      toast.error("Authentication service is not available. Please refresh the page.");
-      return;
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (!auth) {
+  //     console.error("Firebase auth is not initialized");
+  //     toast.error("Authentication service is not available. Please refresh the page.");
+  //     return;
+  //   }
+  // }, []);
 
   const validateForm = () => {
     const newErrors = {};
@@ -104,28 +104,34 @@ export default function VendorRegister() {
   const handleEmailSignUp = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-
+  
     setLoading(true);
     try {
-      const userCredential = await fetch(`${process.env.API_URL}/vendor/signup`, {
+      const res = await fetch(`https://five9minutes-backend.onrender.com/api/vendor/signup`, {
         method: 'POST', 
         headers: {
           'Content-Type': 'application/json', 
         },
         body: JSON.stringify(formData), 
       });
-
-      localStorage.setItem("vendor_token", userCredential.token);
-
+  
+      const data = await res.json();
+  
+      if (!res.ok) {
+        throw new Error(data.message || 'Signup failed');
+      }
+  
+      localStorage.setItem("vendor_token", data.token);
+  
       toast.success(
         "Vendor account created successfully! Welcome to 59Minutes Vendor Portal",
         { autoClose: 3000 }
       );
-
+  
       setTimeout(() => router.push("/Vendor/Dashboard"), 1500);
     } catch (error) {
       console.error("Signup error:", error);
-
+  
       const errorMessages = {
         "auth/email-already-in-use": "Email already registered. Try logging in.",
         "auth/invalid-email": "Please enter a valid email address",
@@ -133,12 +139,13 @@ export default function VendorRegister() {
         "auth/network-request-failed": "Network error. Please check your connection.",
         default: error.message || "Signup failed. Please try again.",
       };
-
-      toast.error(errorMessages[error.code] || errorMessages.default);
+  
+      toast.error('Something went wrong');
     } finally {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
