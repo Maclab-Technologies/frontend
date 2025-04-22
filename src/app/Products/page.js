@@ -17,11 +17,11 @@ export default function ProductsPage() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch("/Products/products.json");
+        const response = await fetch(`https://five9minutes-backend.onrender.com/api/products`);
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
-        const data = await response.json();
+        const data = await response.data;
         setProducts(data);
       } catch (err) {
         setError(err.message);
@@ -65,7 +65,7 @@ export default function ProductsPage() {
   };
 
     const handleAddToCart = () => {
-      if (!product) return;
+      if (!products) return;
       
       if (!designOption) {
         toast.warning("Please select a design option first", {

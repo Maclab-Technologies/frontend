@@ -37,10 +37,10 @@ export default function ProductDetail() {
       return;
     }
 
-    fetch("/Products/products.json")
+    fetch(`https://five9minutes-backend.onrender.com/api/products/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch product details.");
-        return res.json();
+        return res.data;
       })
       .then((data) => {
         const foundProduct = data.find((p) => p.id === id);

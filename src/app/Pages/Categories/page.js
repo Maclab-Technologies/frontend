@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
-import productData from "../../../../public/Products/products.json";
+// import productData from "../../../../public/Products/products.json";
 
 export default function CategoriesPage() {
   const router = useRouter();
@@ -20,16 +20,17 @@ export default function CategoriesPage() {
       setIsLoading(true);
       try {
         // Replace with your actual API URL - using an environment variable in client components requires special setup
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_KEY}/category`);
+        const response = await axios.get(`https://five9minutes-backend.onrender.com/api/category`);
         
         // Process the data
         setCategories(response.data);
+
+        const catData = response.data
         
         // Calculate category counts
         const counts = {};
-        response.data.forEach(category => {
-          // Match product category case-insensitively
-          const count = productData.filter(product => 
+        catData.forEach(category => {
+          const count = catData.filter(product => 
             product.category?.toLowerCase() === category.name?.toLowerCase() ||
             product.category?.toString() === category._id?.toString()
           ).length;
@@ -40,7 +41,7 @@ export default function CategoriesPage() {
         setCategoryCounts(counts);
       } catch (err) {
         console.error('Error fetching categories:', err);
-        setError('Failed to load categories. Please try again later.');
+        setError('Failed to load categories. Check your internet connection, and try again later.');
       } finally {
         setIsLoading(false);
       }
@@ -49,18 +50,18 @@ export default function CategoriesPage() {
     fetchCategories();
   }, []);
 
-  if (isLoading) {
-    return (
-      <div className="bg-black min-h-screen flex items-center justify-center">
-        <div className="text-yellow-500 text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status">
-            <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">Loading...</span>
-          </div>
-          <p className="mt-4">Loading categories...</p>
-        </div>
-      </div>
-    );
-  }
+  // if (isLoading) {
+  //   return (
+  //     <div className="bg-black min-h-screen flex items-center justify-center">
+  //       <div className="text-yellow-500 text-center">
+  //         <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status">
+  //           <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">Loading...</span>
+  //         </div>
+  //         <p className="mt-4">Loading categories...</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   if (error) {
     return (

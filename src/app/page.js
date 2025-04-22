@@ -9,86 +9,89 @@ import WhatWeOffer from "../app/components/WhatWeOffer";
 import { motion } from "framer-motion";
 import Feedback from "../app/components/Feedback";
 import products from "../../public/Products/products.json";
+import { useState, useEffect, useRef } from "react";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function Home() {
   const router = useRouter();
+  const [categories, setCategories] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const fetchAttempted = useRef(false);
 
-  // Define categories manually with image URLs
-  const categories = [
-    {
-      id: 'business-cards',
-      name: 'Business Cards',
-      image: '/categories/business_card.png',
-      description: 'Professional cards for networking and brand representation'
-    },
-    {
-      id: 'flyers',
-      name: 'Flyers',
-      image: '/categories/flyers.png',
-      description: 'Eye-catching promotional materials for events and marketing'
-    },
-    {
-      id: 'brochures',
-      name: 'Brochures',
-      image: '/categories/bronchures.png',
-      description: 'Informative multi-page materials for detailed product or service information'
-    },
-    {
-      id: 'posters',
-      name: 'Posters',
-      image: '/categories/posters.png',
-      description: 'Large format prints for advertising and decoration'
-    },
-    {
-      id: 'stickers',
-      name: 'Stickers',
-      image: '/categories/stickers.png',
-      description: 'Adhesive designs for branding and personalization'
-    },
-    {
-      id: 'invitation-cards',
-      name: 'Invitation Cards',
-      image: '/categories/invitation_cards.png',
-      description: 'Elegant cards for special events and occasions'
-    },
-    {
-      id: 'stationery',
-      name: 'Stationery',
-      image: '/categories/stationery.png',
-      description: 'Professional office supplies for business communication'
-    },
-    {
-      id: 'banners',
-      name: 'Banners',
-      image: '/categories/banners.png',
-      description: 'Large displays for events and promotions'
-    },
-    {
-      id: 'apparel',
-      name: 'Apparel',
-      image: '/categories/apparells.png',
-      description: 'Custom printed clothing for teams and brands'
-    },
-    {
-      id: 'merchandise',
-      name: 'Merchandise',
-      image: '/categories/merchandise.png',
-      description: 'Branded products for marketing and gifts'
-    }
-  ];
+  useEffect(() => {
+    if (fetchAttempted.current) return;
+  
+    const fetchCategories = async () => {
+      fetchAttempted.current = true;
+      setIsLoading(true);
+  
+      try {
+        const controller = new AbortController();
+        // const timeoutId = setTimeout(() => controller.abort(), 15000);
+        const response = await fetch(`https://five9minutes-backend.onrender.com/api/category`, {
+          signal: controller.signal,
+        });
+  
+        // clearTimeout(timeoutId);
+  
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Server responded with ${response.status}: ${errorText}`);
+        }
+  
+        const json = await response.json();
+        setCategories(json.data);
+        setError(null);
+      } catch (error) {
+        setError(error.message);
+        if (error.name === "AbortError") {
+          toast.error("Request timed out. Server may be slow to respond.");
+        } else if (error.message.includes("Failed to fetch")) {
+          toast.error("Network error. Please check your internet connection.");
+        } else {
+          toast.error("Failed to load categories. Please try again later.");
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+  
+    fetchCategories(); // ✅ <-- this was missing
+  }, []);
+  
 
-  // Count products in each category
+  // Count products in each category - moved this logic into a useMemo to avoid recalculation
   const categoryCounts = {};
-  categories.forEach(category => {
-    // Match product category case-insensitively
-    const count = products.filter(product =>
-      product.category.toLowerCase() === category.name.toLowerCase() ||
-      product.category.toLowerCase() === category.id.toLowerCase()
-    ).length;
-    categoryCounts[category.id] = count;
-  });
+  if (categories.length > 0) {
+    categories.forEach(category => {
+      if (!category || !category.id) return;
+      
+      // Match product category case-insensitively
+      const count = products.filter(product =>
+        product.category && (
+          product.category.toLowerCase() === (category.name || '').toLowerCase() ||
+          product.category.toLowerCase() === category.id.toLowerCase()
+        )
+      ).length;
+      categoryCounts[category.id] = count;
+    });
+  }
+
   return (
     <div className="bg-black text-white min-h-screen">
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+      />
       {/* Hero Section */}
       <section className="flex flex-col md:flex-row items-center justify-between py-16 md:py-24 md:min-h-screen">
         {/* Left Section: Image */}
@@ -147,47 +150,103 @@ export default function Home() {
           <p className="text-white mt-4 max-w-2xl mx-auto">Discover our carefully curated selection of premium print categories designed to meet your specific needs.</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {categories.map((category) => (
-            <Link
-              key={category.id}
-              href={`/Pages/Categories/${encodeURIComponent(category.id)}`}
-              className="group relative rounded-xl overflow-hidden shadow-xl transition-all duration-300 hover:shadow-2xl hover:translate-y-1 bg-white flex flex-col"
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
+          </div>
+        ) : error ? (
+          <div className="text-center p-8 border border-red-500 rounded-lg">
+            <p className="text-red-400 mb-4">We couldn't load the categories at this time.</p>
+            <button 
+              onClick={() => {
+                fetchAttempted.current = false;
+                setError(null);
+              
+                const retryFetch = async () => {
+                  try {
+                    setIsLoading(true);
+                    const controller = new AbortController();
+                    // const timeoutId = setTimeout(() => controller.abort(), 15000);
+              
+                    const response = await fetch(`https://five9minutes-backend.onrender.com/api/category`, {
+                      signal: controller.signal,
+                    });
+              
+                    // clearTimeout(timeoutId);
+              
+                    if (!response.ok) throw new Error("Failed to fetch");
+                    const json = await response.json();
+                    setCategories(json.data);
+                    setError(null);
+                  } catch (error) {
+                    setError(error.message);
+                    toast.error("Failed to reload. Please try again later.");
+                  } finally {
+                    setIsLoading(false);
+                  }
+                };
+              
+                retryFetch();
+              }}
+              
+              className="px-4 py-2 bg-yellow-500 text-black rounded-md hover:bg-yellow-600"
             >
-              {/* Category Image with gradient overlay */}
-              <div className="h-56 w-full relative">
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
-                <Image
-                  src={category.image}
-                  alt={category.name}
-                  fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                  className="object-cover transition-transform duration-500 group-hover:scale-110"
-                  loading="lazy"
-                />
-              </div>
+              Try Again
+            </button>
+          </div>
+        ) : categories.length === 0 ? (
+          <div className="text-center p-8">
+            <p className="text-gray-400">No categories available at the moment.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {categories.map((category) => (
+              <Link
+                key={category.id}
+                href={`/Pages/Categories/${encodeURIComponent(category.id)}`}
+                className="group relative rounded-xl overflow-hidden shadow-xl transition-all duration-300 hover:shadow-2xl hover:translate-y-1 bg-white flex flex-col"
+              >
+                {/* Category Image with gradient overlay */}
+                <div className="h-56 w-full relative">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
+                  {category.imageUrl ? (
+                    <Image
+                      src={category.imageUrl}
+                      alt={category.name || 'Category image'}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                      className="object-cover transition-transform duration-500 group-hover:scale-110"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                      <span className="text-gray-400">No Image</span>
+                    </div>
+                  )}
+                </div>
 
-              {/* Bottom content card with clean styling */}
-              <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
-                <div className="flex justify-between items-end">
-                  <div>
-                    <h2 className="text-xl font-bold text-white mb-1">{category.name}</h2>
-                    <p className="text-gray-200 text-sm line-clamp-2">{category.description}</p>
-                  </div>
-                  <div className="bg-yellow-500 text-black font-medium text-sm px-3 py-1 rounded-full flex items-center justify-center">
-                    {categoryCounts[category.id] || 0}
-                    <span className="hidden sm:inline ml-1">
-                      {(categoryCounts[category.id] || 0) === 1 ? 'item' : 'items'}
-                    </span>
+                {/* Bottom content card with clean styling */}
+                <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
+                  <div className="flex justify-between items-end">
+                    <div>
+                      <h2 className="text-xl font-bold text-white mb-1">{category.name || 'Unnamed Category'}</h2>
+                      <p className="text-gray-200 text-sm line-clamp-2">{category.description || 'No description available'}</p>
+                    </div>
+                    <div className="bg-yellow-500 text-black font-medium text-sm px-3 py-1 rounded-full flex items-center justify-center">
+                      {categoryCounts[category.id] || 0}
+                      <span className="hidden sm:inline ml-1">
+                        {(categoryCounts[category.id] || 0) === 1 ? 'item' : 'items'}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Hover element - subtle indicator */}
-              <div className="absolute inset-0 border-2 border-transparent group-hover:border-yellow-500 rounded-xl transition-colors duration-300 pointer-events-none z-10"></div>
-            </Link>
-          ))}
-        </div>
+                {/* Hover element - subtle indicator */}
+                <div className="absolute inset-0 border-2 border-transparent group-hover:border-yellow-500 rounded-xl transition-colors duration-300 pointer-events-none z-10"></div>
+              </Link>
+            ))}
+          </div>
+        )}
 
         <div className="text-center mt-10">
           <Link href="/Products" className="inline-flex items-center px-6 py-3 bg-yellow-500 hover:bg-yellow-600 transition-colors text-black font-medium rounded-full">
@@ -216,8 +275,6 @@ export default function Home() {
           </button>
         </div>
       </section>
-
-
 
       {/* Feedback Section */}
       <section>

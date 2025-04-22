@@ -107,7 +107,7 @@ export default function VendorRegister() {
   
     setLoading(true);
     try {
-      const res = await fetch(`https://five9minutes-backend.onrender.com/api/vendor/signup`, {
+      const res = await fetch(`${process.env.API_URL}/vendor/signup`, {
         method: 'POST', 
         headers: {
           'Content-Type': 'application/json', 
