@@ -1,75 +1,62 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
-// import productData from "../../../../public/Products/products.json";
 
 export default function CategoriesPage() {
   const router = useRouter();
   const [categories, setCategories] = useState([]);
-  const [categoryCounts, setCategoryCounts] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const fetchAttempted = useRef(false);
 
-  // Fetch categories data
-  useEffect(() => {
-    const fetchCategories = async () => {
-      setIsLoading(true);
-      try {
-        // Replace with your actual API URL - using an environment variable in client components requires special setup
-        const response = await axios.get(`https://five9minutes-backend.onrender.com/api/category`);
-        
-        // Process the data
-        setCategories(response.data);
+  const fetchCategories = async () => {
+    fetchAttempted.current = true;
+    setIsLoading(true);
 
-        const catData = response.data
-        
-        // Calculate category counts
-        const counts = {};
-        catData.forEach(category => {
-          const count = catData.filter(product => 
-            product.category?.toLowerCase() === category.name?.toLowerCase() ||
-            product.category?.toString() === category._id?.toString()
-          ).length;
-          
-          counts[category._id] = count;
-        });
-        
-        setCategoryCounts(counts);
-      } catch (err) {
-        console.error('Error fetching categories:', err);
-        setError('Failed to load categories. Check your internet connection, and try again later.');
-      } finally {
-        setIsLoading(false);
+    try {
+      const controller = new AbortController();
+      const response = await fetch(
+        `https://five9minutes-backend.onrender.com/api/category`,
+        { signal: controller.signal }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Server responded with ${response.status}: ${errorText}`);
       }
-    };
 
-    fetchCategories();
+      const json = await response.json();
+      setCategories(json.data || []);
+      setError(null);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!fetchAttempted.current) {
+      fetchCategories();
+    }
   }, []);
 
-  // if (isLoading) {
-  //   return (
-  //     <div className="bg-black min-h-screen flex items-center justify-center">
-  //       <div className="text-yellow-500 text-center">
-  //         <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status">
-  //           <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">Loading...</span>
-  //         </div>
-  //         <p className="mt-4">Loading categories...</p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  const retry = () => {
+    fetchAttempted.current = false;
+    setError(null);
+    fetchCategories();
+  };
 
   if (error) {
     return (
       <div className="bg-black min-h-screen flex items-center justify-center">
         <div className="bg-gray-800 p-6 rounded-lg max-w-md mx-auto text-center">
           <p className="text-red-400 mb-4">{error}</p>
-          <button 
-            onClick={() => window.location.reload()}
+          <button
+            onClick={retry}
             className="px-4 py-2 bg-yellow-500 text-black rounded-md hover:bg-yellow-600 transition-colors"
           >
             Try Again
@@ -81,65 +68,91 @@ export default function CategoriesPage() {
 
   return (
     <div className="bg-black min-h-screen p-6">
-      {/* Header Section */}
       <div className="w-[90%] h-60 bg-yellow-500 text-black text-center mx-auto flex items-center justify-center shadow-md rounded-lg mb-8">
         <h1 className="text-3xl font-bold">Shop by Category</h1>
       </div>
 
-      {/* Categories Grid */}
-      {categories.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {categories.map((category) => (
-            <Link 
-              key={category._id}
-              href={`/Pages/Categories/${encodeURIComponent(category.name)}`}
-              className="relative group overflow-hidden rounded-lg shadow-lg transition-transform transform hover:scale-105 bg-gray-800"
-            >
-              {/* Category Image */}
-              <div className="h-48 w-full bg-gray-700 relative">
-                <Image
-                  src={category.imageUrl || '/images/placeholder.png'}
-                  alt={category.name}
-                  fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                  className="object-cover group-hover:opacity-80 transition-opacity"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = '/images/placeholder.png';
-                  }}
-                />
-              </div>
-              
-              {/* Category Info Overlay */}
-              <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center p-4 transition-opacity group-hover:bg-opacity-60">
-                <div className="text-center">
-                  <h2 className="text-xl font-semibold text-white">{category.name}</h2>
-                  <p className="text-gray-200 text-sm mt-1">{category.description || 'Explore our products in this category'}</p>
-                  <p className="text-yellow-400 mt-2">
-                    {categoryCounts[category._id] || 0} {(categoryCounts[category._id] || 0) === 1 ? 'product' : 'products'}
-                  </p>
-                </div>
-              </div>
-            </Link>
-          ))}
+      <div className="container mx-auto py-10 px-4">
+        <div className="mb-8 text-center">
+          <h2 className="text-3xl font-bold text-white mb-2">Explore Our Categories</h2>
+          <div className="w-24 h-1 bg-yellow-500 mx-auto"></div>
+          <p className="text-white mt-4 max-w-2xl mx-auto">
+            Discover our carefully curated selection of premium print categories designed to meet your specific needs.
+          </p>
         </div>
-      ) : (
-        <div className="text-center py-12">
-          <p className="text-gray-400 text-lg">No categories found</p>
-        </div>
-      )}
 
-      {/* Promotional Section */}
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
+          </div>
+        ) : categories.length === 0 ? (
+          <div className="text-center p-8">
+            <p className="text-gray-400">No categories available at the moment.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {categories.map((category) => (
+              <Link
+                key={category._id}
+                href={`/Pages/Categories/${encodeURIComponent(category.name)}`}
+                className="group relative rounded-xl overflow-hidden shadow-xl transition-all duration-300 hover:shadow-2xl hover:translate-y-1 bg-white flex flex-col"
+              >
+                <div className="h-56 w-full relative">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
+                  {category.imageUrl ? (
+                    <Image
+                      src={category.imageUrl}
+                      alt={category.name || 'Category image'}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                      className="object-cover transition-transform duration-500 group-hover:scale-110"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                      <span className="text-gray-400">No Image</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
+                  <div className="flex justify-between items-end">
+                    <div>
+                      <h2 className="text-xl font-bold text-white mb-1">{category.name || 'Unnamed Category'}</h2>
+                      <p className="text-gray-200 text-sm line-clamp-2">
+                        {category.description || 'No description available'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="absolute inset-0 border-2 border-transparent group-hover:border-yellow-500 rounded-xl transition-colors duration-300 pointer-events-none z-10"></div>
+              </Link>
+            ))}
+          </div>
+        )}
+
+        <div className="text-center mt-10">
+          <Link
+            href="/Products"
+            className="inline-flex items-center px-6 py-3 bg-yellow-500 hover:bg-yellow-600 transition-colors text-black font-medium rounded-full"
+          >
+            View All Categories
+            <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </Link>
+        </div>
+      </div>
+
       <section className="bg-white py-16 mt-12 rounded-lg">
         <div className="max-w-4xl mx-auto text-center px-4">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Check out our Latest Promotions!
-          </h2>
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">Check out our Latest Promotions!</h2>
           <p className="text-lg text-gray-600 mb-8">
             Don't miss out on exclusive offers and exciting discounts. Grab them while they last!
           </p>
           <button
-            onClick={() => router.push("/Products")}
+            onClick={() => router.push('/Products')}
             className="px-8 py-3 bg-yellow-500 text-black font-semibold rounded-full hover:bg-yellow-600 transition duration-300 shadow-lg"
           >
             Shop Now

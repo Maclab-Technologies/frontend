@@ -4,35 +4,53 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 export default async function CategoryPage({ params }) {
-  // Check if params exists and has category property
-  if (!params || !params.category) {
+  const { category } = await params;
+
+  if (!category) {
     notFound();
   }
-  
-  const decodedCategory = decodeURIComponent(params.category);
+
+  const decodedCategory = decodeURIComponent(category);
+
+  console.log("Decoded category:", decodedCategory);
+
 
   try {
-    const baseUrl = process.env.API_URL;
-    
-    if (!baseUrl) {
-      throw new Error("API URL is not configured");
+    const baseUrl = process.env.API_URL || "https://five9minutes-backend.onrender.com/api";
+
+    const res = await fetch(`${baseUrl}/category/products/${decodedCategory}`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch category products: ${res.statusText}`);
     }
 
-    const response = await axios.get(`${baseUrl}/category/product/${decodedCategory}`);
-    const fetchedProducts = response.data;
+    const json = await res.json();
 
-    // Ensure we have valid products array
-    if (!Array.isArray(fetchedProducts)) {
+    if (!json.success || !Array.isArray(json.data)) {
       throw new Error("Invalid product data received");
     }
 
+    const fetchedProducts = json.data;
+
+    
+    if (!Array.isArray(fetchedProducts)) {
+      throw new Error("Invalid product data received");
+    }
+    
+
     const filteredProducts = fetchedProducts.filter(
-      product => product.category?.toLowerCase() === decodedCategory.toLowerCase()
+      (product) => product.category === decodedCategory
     );
 
-    if (filteredProducts.length === 0) {
-      notFound();
+    if (fetchedProducts.length === 0) {
+      return <p className="text-center p-10">No products found in {decodedCategory}</p>;
     }
+    
 
     return (
       <div className="bg-gray-50 min-h-screen">
@@ -58,89 +76,56 @@ export default async function CategoryPage({ params }) {
             <h2 className="text-2xl font-bold text-gray-800">
               {filteredProducts.length} {filteredProducts.length === 1 ? 'Product' : 'Products'} Found
             </h2>
-            {/* Optional: Add sorting filters here */}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {filteredProducts.map((product) => {
               const imagesArray = Array.isArray(product.images) ? product.images : [product.images];
               const mainImage = imagesArray[0] || "/fallback-image.png";
-              
-              // Format price properly
               const formattedPrice = typeof product.price === 'string' 
-                ? product.price.replace(/\D/g, '') // Remove non-digits if string
+                ? product.price.replace(/\D/g, '') 
                 : product.price;
-              
               const price = !isNaN(formattedPrice) 
                 ? parseFloat(formattedPrice).toLocaleString() 
                 : '0';
 
               return (
-                <Link
-                  key={product._id || product.id}
-                  href={`/Products/${product._id || product.id}`}
-                  className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden group relative"
-                >
-                  {/* Product image */}
-                  <div className="w-full h-64 relative overflow-hidden">
-                    <Image
-                      src={mainImage}
-                      alt={product.name}
-                      fill
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-110"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = "/fallback-image.png";
-                      }}
-                    />
-                    {/* Stock indicator */}
-                    {(product.stock <= 5 && product.stock > 0) && (
-                      <span className="absolute top-3 left-3 bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
-                        Low Stock
-                      </span>
-                    )}
-                    {product.stock === 0 && (
-                      <span className="absolute top-3 left-3 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                        Out of Stock
-                      </span>
-                    )}
-                  </div>
+                <Link key={product._id || product.id} href={`/Products/${product._id || product.id}`} passHref>
+                  <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden group relative">
+                    <div className="w-full h-64 relative overflow-hidden">
+                      <Image
+                        src={mainImage}
+                        alt={product.name}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                        className="object-cover transition-transform duration-500 group-hover:scale-110"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = "/fallback-image.png";
+                        }}
+                      />
+                    </div>
 
-                  {/* Product info */}
-                  <div className="p-4 flex-grow flex flex-col">
-                    <h3 className="text-lg font-medium text-gray-900 mb-2 line-clamp-2">
-                      {product.name}
-                    </h3>
-                    <div className="flex items-center text-sm text-gray-500 mb-1">
-                      <span className="inline-block w-3 h-3 rounded-full bg-green-500 mr-2"></span>
-                      <span>Vendor: {product.vendor || 'Unknown'}</span>
-                    </div>
-                    <div className="flex items-center text-sm text-gray-500">
-                      <span className="inline-block w-3 h-3 rounded-full bg-blue-500 mr-2"></span>
-                      <span>Stock: {product.stock || 0}</span>
-                    </div>
-                    <div className="mt-auto pt-4">
-                      <p className="text-xl font-bold text-yellow-600">
-                        ₦{price}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  {/* Call to action overlay */}
-                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white py-3 px-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                    <div className="flex justify-center items-center space-x-2">
-                      <span>View Details</span>
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                      </svg>
+                    <div className="p-4 flex-grow flex flex-col">
+                      <h3 className="text-lg font-medium text-gray-900 mb-2 line-clamp-2">{product.name}</h3>
+                      <div className="flex items-center text-sm text-gray-500 mb-1">
+                        <span className="inline-block w-3 h-3 rounded-full bg-green-500 mr-2"></span>
+                        <span>Vendor: {product.vendor || 'Unknown'}</span>
+                      </div>
+                      <div className="flex items-center text-sm text-gray-500">
+                        <span className="inline-block w-3 h-3 rounded-full bg-blue-500 mr-2"></span>
+                        <span>Stock: {product.stock || 0}</span>
+                      </div>
+                      <div className="mt-auto pt-4">
+                        <p className="text-xl font-bold text-yellow-600">₦{price}</p>
+                      </div>
                     </div>
                   </div>
                 </Link>
               );
             })}
           </div>
-          
+
           {/* No results fallback */}
           {filteredProducts.length === 0 && (
             <div className="text-center py-16">

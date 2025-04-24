@@ -10,8 +10,8 @@ import Link from "next/link";
 
 export default function VendorLogin() {
   const [formData, setFormData] = useState({
-    email: "",
-    password: "",
+    businessEmail: "",
+    businessPassword: "",
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -21,14 +21,14 @@ export default function VendorLogin() {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email";
+    if (!formData.businessEmail) {
+      newErrors.businessEmail = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.businessEmail)) {
+      newErrors.businessEmail = "Please enter a valid email";
     }
 
-    if (!formData.password) {
-      newErrors.password = "Password is required";
+    if (!formData.businessPassword) {
+      newErrors.businessPassword = "Password is required";
     }
 
     setErrors(newErrors);
@@ -50,56 +50,66 @@ export default function VendorLogin() {
   const handleEmailLogin = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-
+  
     setLoading(true);
+    const baseUrl = process.env.API_URL || 'https://five9minutes-backend.onrender.com/api';
+  
     try {
-      const data = await signInWithEmailAndPassword(
-        auth,
-        formData.email,
-        formData.password
-      );
-      console.log(data.user.accessToken)
-      localStorage.setItem('vendor_token', data.user.accessToken)
-      
+      const res = await fetch(`https://five9minutes-backend.onrender.com/api/vendor/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+  
+      const data = await res.json();
+  
+      if (!res.ok || !data.token) {
+        throw new Error(data.message || 'Login failed');
+      }
+  
+      localStorage.setItem('vendor_token', data.token);
+  
       toast.success(
         <div>
           <p className="font-bold">Login successful!</p>
           <p className="text-sm">Redirecting to your dashboard...</p>
         </div>,
-        { 
+        {
           autoClose: 2000,
-          icon: "🔐"
+          icon: '🔐',
         }
       );
-      
-      setTimeout(() => router.push("/Vendor/Dashboard"), 1500);
+  
+      setTimeout(() => router.push('/Vendor/Dashboard'), 1500);
     } catch (error) {
-      console.error("Login error:", error);
-      
+      console.error('Login error:', error);
+  
       const errorMessages = {
-        "auth/invalid-credential": "Invalid email or password",
-        "auth/user-not-found": "No account found with this email",
-        "auth/wrong-password": "Incorrect password",
-        "auth/too-many-requests": "Account temporarily locked due to too many attempts",
-        "auth/network-request-failed": "Network error. Please check your connection.",
-        default: "Login failed. Please try again.",
+        'auth/invalid-credential': 'Invalid email or password',
+        'auth/user-not-found': 'No account found with this email',
+        'auth/wrong-password': 'Incorrect password',
+        'auth/too-many-requests': 'Account temporarily locked due to too many attempts',
+        'auth/network-request-failed': 'Network error. Please check your connection.',
+        default: 'Login failed. Please try again.',
       };
-      
+  
       toast.error(
         <div>
           <p className="font-bold">Login Failed</p>
-          <p className="text-sm">{errorMessages[error.code] || errorMessages.default}</p>
+          <p className="text-sm">{errorMessages[error.code] || error.message || errorMessages.default}</p>
         </div>,
-        { 
+        {
           autoClose: 5000,
-          icon: "❌"
+          icon: '❌',
         }
       );
     } finally {
       setLoading(false);
     }
   };
-
+  
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
@@ -118,7 +128,7 @@ export default function VendorLogin() {
       
       setTimeout(() => router.push("/Vendor/Dashboard"), 1500);
     } catch (error) {
-      console.error("Google login error:", error);
+      console.error("Failed to login", error);
       
       const errorMessages = {
         "auth/popup-closed-by-user": "Login popup was closed",
@@ -176,14 +186,14 @@ export default function VendorLogin() {
               </label>
               <input
                 type="email"
-                name="email"
-                className={`w-full px-3 py-2 border ${errors.email ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500`}
+                name="businessEmail"
+                className={`w-full px-3 py-2 border ${errors.businessEmail ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500`}
                 placeholder="your@email.com"
-                value={formData.email}
+                value={formData.businessEmail}
                 onChange={handleInputChange}
               />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+              {errors.businessEmail && (
+                <p className="mt-1 text-sm text-red-600">{errors.businessEmail}</p>
               )}
             </div>
 
@@ -193,23 +203,23 @@ export default function VendorLogin() {
               </label>
               <div className="relative">
                 <input
-                  type={showPassword ? "text" : "password"} // Toggle password visibility
-                  name="password"
-                  className={`w-full px-3 py-2 border ${errors.password ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500`}
+                  type={showPassword ? "text" : "password"} 
+                  name="businessPassword"
+                  className={`w-full px-3 py-2 border ${errors.businessPassword ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500`}
                   placeholder="Enter your password"
-                  value={formData.password}
+                  value={formData.businessPassword}
                   onChange={handleInputChange}
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)} // Toggle state
+                  onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 px-3 flex items-center text-sm text-gray-600"
                 >
                   {showPassword ? "Hide" : "Show"}
                 </button>
               </div>
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+              {errors.businessPassword && (
+                <p className="mt-1 text-sm text-red-600">{errors.businessPassword}</p>
               )}
               <div className="text-right mt-1">
                 <Link

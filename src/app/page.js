@@ -202,8 +202,8 @@ export default function Home() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {categories.map((category) => (
               <Link
-                key={category.id}
-                href={`/Pages/Categories/${encodeURIComponent(category.id)}`}
+                key={category.name}
+                href={`/Pages/Categories/${encodeURIComponent(category.name)}`}
                 className="group relative rounded-xl overflow-hidden shadow-xl transition-all duration-300 hover:shadow-2xl hover:translate-y-1 bg-white flex flex-col"
               >
                 {/* Category Image with gradient overlay */}
