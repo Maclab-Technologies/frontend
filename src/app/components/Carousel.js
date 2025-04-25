@@ -62,7 +62,7 @@ const Carousel = () => {
     };
 
     if (isAutoPlaying) {
-      autoPlayRef.current = setInterval(autoPlay, 5000); // Change slide every 5 seconds
+      autoPlayRef.current = setInterval(autoPlay, 4000); // Change slide every 5 seconds
     }
 
     return () => {
