@@ -5,9 +5,6 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-// You need to install lucide-react package
-// Run: npm install lucide-react
-// or: yarn add lucide-react
 import { 
   ArrowLeft, 
   Minus, 
@@ -39,28 +36,27 @@ export default function ProductDetail() {
       router.push("/Products");
       return;
     }
-    comsole.log(id)
+    
+    console.log(id); // Fixed typo from 'comsole' to 'console'
 
     fetch(`https://five9minutes-backend.onrender.com/api/products/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch product details.");
-        return res.json(); // Changed from res.data to res.json()
+        return res.json();
       })
       .then((data) => {
-        // Check if data is an array or a single object
         if (Array.isArray(data)) {
-          const foundProduct = data.find((p) => p.id === id);
+          const foundProduct = data.find((p) => p.id === id || p._id === id);
           if (foundProduct) {
             setProduct(foundProduct);
-            setSelectedImage(foundProduct.images[0]);
+            setSelectedImage(foundProduct.images?.[0]);
           } else {
             toast.error("Product not found!");
             router.push("/Products");
           }
         } else if (data && typeof data === 'object') {
-          // If it's already a single product object
-          setProduct(data);
-          setSelectedImage(data.images?.[0]);
+          setProduct(data.data || data);
+          setSelectedImage((data.data || data).images?.[0]);
         } else {
           toast.error("Invalid product data received");
           router.push("/Products");
@@ -74,7 +70,6 @@ export default function ProductDetail() {
       .finally(() => setLoading(false));
   }, [id, router]);
 
-  // Reset image loading state when a new image is selected
   useEffect(() => {
     if (selectedImage) {
       setImageLoading(true);
@@ -119,21 +114,29 @@ export default function ProductDetail() {
       return;
     }
 
+    if (product.stock <= 0) {
+      toast.error("This product is out of stock", {
+        position: "top-center",
+        autoClose: 3000,
+        theme: "dark",
+      });
+      return;
+    }
+
     setProcessingAction(true);
 
     try {
       const cartItem = {
-        id: product.id,
+        id: product.id || product._id,
         name: product.name,
         price: product.price,
-        image: selectedImage || product.images[0],
+        image: selectedImage || product.images?.[0],
         quantity,
         designOption,
       };
 
       let existingCart = [];
       
-      // Use try/catch to safely parse localStorage
       try {
         existingCart = JSON.parse(localStorage.getItem("cart") || "[]");
       } catch (e) {
@@ -142,7 +145,7 @@ export default function ProductDetail() {
       }
 
       const existingItemIndex = existingCart.findIndex((item) => 
-        item.id === product.id && item.designOption === designOption
+        (item.id === product.id || item.id === product._id) && item.designOption === designOption
       );
 
       if (existingItemIndex !== -1) {
@@ -153,16 +156,14 @@ export default function ProductDetail() {
 
       localStorage.setItem("cart", JSON.stringify(existingCart));
       
-      // Dispatch event for other components that might be listening for cart updates
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new Event("cartUpdated"));
       }
       
-      // Store current design info for the design pages
       const designInfo = {
-        productId: product.id,
+        productId: product.id || product._id,
         productName: product.name,
-        productImage: selectedImage || product.images[0],
+        productImage: selectedImage || product.images?.[0],
         quantity: quantity,
         price: product.price,
         designOption: designOption
@@ -176,7 +177,6 @@ export default function ProductDetail() {
         theme: "dark",
       });
 
-      // Get the route for the selected design option
       const designRoute = getDesignRoute(designOption);
       if (designRoute) {
         setTimeout(() => {
@@ -223,7 +223,6 @@ export default function ProductDetail() {
     <div className="bg-gradient-to-b from-black to-gray-900 min-h-screen">
       <ToastContainer />
       
-      {/* Breadcrumb Navigation */}
       <div className="container mx-auto pt-6 px-4">
         <button 
           onClick={() => router.push("/Products")}
@@ -238,7 +237,6 @@ export default function ProductDetail() {
         <div className="bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
           <div className="flex flex-col lg:flex-row">
             
-            {/* Left Side: Product Images */}
             <div className="lg:w-1/2 p-6 md:p-8">
               <div className="relative aspect-square bg-gray-900 rounded-xl overflow-hidden">
                 {imageLoading && (
@@ -247,8 +245,8 @@ export default function ProductDetail() {
                   </div>
                 )}
                 <Image 
-                  src={selectedImage || (product?.images?.[0] || "")} 
-                  alt={product?.name} 
+                  src={selectedImage || (product?.images?.[0] || "/fallback-image.png")} 
+                  alt={product?.name || "Product Image"} 
                   width={600} 
                   height={600}
                   className="object-contain w-full h-full"
@@ -278,11 +276,10 @@ export default function ProductDetail() {
               </div>
             </div>
 
-            {/* Right Side: Product Details */}
             <div className="lg:w-1/2 p-6 md:p-8 lg:border-l border-gray-700">
               <div className="mb-2 text-yellow-400 text-sm font-medium flex items-center">
                 <Tag size={14} className="mr-1" />
-                {product?.category}
+                {product?.category || "Uncategorized"}
               </div>
               
               <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
@@ -290,37 +287,36 @@ export default function ProductDetail() {
               </h1>
               
               <div className="text-2xl md:text-3xl font-bold text-yellow-400 mb-4">
-                ₦{parseInt(product?.price).toLocaleString()}
+                ₦{parseInt(product?.price || 0).toLocaleString()}
               </div>
               
               <div className="mb-6 text-gray-300">
-                {product?.description}
+                {product?.description || "No description available."}
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-sm mb-8">
                 <div className="flex items-center">
                   <Box size={16} className="text-gray-400 mr-2" />
                   <span className="text-gray-400 mr-2">Material:</span>
-                  <span className="text-white">{product?.material}</span>
+                  <span className="text-white">{product?.material || "N/A"}</span>
                 </div>
                 <div className="flex items-center">
                   <Paintbrush size={16} className="text-gray-400 mr-2" />
                   <span className="text-gray-400 mr-2">Color:</span>
-                  <span className="text-white">{product?.color}</span>
+                  <span className="text-white">{product?.color || "N/A"}</span>
                 </div>
                 <div className="flex items-center">
                   <Building size={16} className="text-gray-400 mr-2" />
                   <span className="text-gray-400 mr-2">Vendor:</span>
-                  <span className="text-white">{product?.vendor}</span>
+                  <span className="text-white">{product?.vendor || "N/A"}</span>
                 </div>
                 <div className="flex items-center">
                   <ShieldCheck size={16} className="text-gray-400 mr-2" />
                   <span className="text-gray-400 mr-2">Ownership:</span>
-                  <span className="text-white">{product?.ownership}</span>
+                  <span className="text-white">{product?.ownership || "N/A"}</span>
                 </div>
               </div>
               
-              {/* Quantity Selector */}
               <div className="mb-8">
                 <label className="block text-gray-300 text-sm font-medium mb-2">
                   Quantity
@@ -346,7 +342,6 @@ export default function ProductDetail() {
                 </div>
               </div>
 
-              {/* Design Options */}
               <div className="mb-8">
                 <h2 className="text-white text-lg font-medium mb-3">Choose Design Option:</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -388,21 +383,22 @@ export default function ProductDetail() {
                 </div>
               </div>
 
-              {/* Action Button: Add to Cart */}
               <button
                 className={`w-full py-3 px-4 rounded-lg font-bold text-lg flex items-center justify-center transition focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50 ${
-                  processingAction 
+                  processingAction || product.stock <= 0
                     ? "bg-gray-500 text-gray-300 cursor-not-allowed" 
                     : "bg-yellow-400 text-black hover:bg-yellow-500"
                 }`}
                 onClick={handleAddToCart}
-                disabled={processingAction}
+                disabled={processingAction || product.stock <= 0}
               >
                 {processingAction ? (
                   <>
                     <div className="w-5 h-5 border-2 border-gray-300 border-t-transparent rounded-full animate-spin mr-2"></div>
                     Processing...
                   </>
+                ) : product.stock <= 0 ? (
+                  <>Out of Stock</>
                 ) : (
                   <>
                     <ShoppingCart className="mr-2" size={20} />

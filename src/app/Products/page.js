@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { FiSearch, FiFilter, FiX, FiShoppingCart } from "react-icons/fi";
 import { FaSortAmountDown, FaTag } from "react-icons/fa";
+import { toast } from "react-toastify";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
@@ -21,8 +22,13 @@ export default function ProductsPage() {
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
-        const data = await response.data;
-        setProducts(data);
+        const data = await response.json();
+        
+        // Ensure we have an array of products
+        const productArray = Array.isArray(data) ? data : 
+                            Array.isArray(data.data) ? data.data : [];
+        
+        setProducts(productArray);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -34,49 +40,58 @@ export default function ProductsPage() {
   }, []);
 
   // Filter products based on search, category, and vendor
-  let displayProducts = products.filter((product) => {
+  const displayProducts = Array.isArray(products) ? products.filter((product) => {
     return (
-      product.name.toLowerCase().includes(filters.search.toLowerCase()) &&
+      product.name?.toLowerCase().includes(filters.search.toLowerCase()) &&
       (filters.category ? product.category === filters.category : true) &&
       (filters.vendor ? product.vendor === filters.vendor : true)
     );
-  });
+  }) : [];
 
   // Sort products based on selected sort order
+  let sortedProducts = [...displayProducts];
+  
   if (sortOrder === "price-low") {
-    displayProducts = [...displayProducts].sort((a, b) => a.price - b.price);
+    sortedProducts.sort((a, b) => a.price - b.price);
   } else if (sortOrder === "price-high") {
-    displayProducts = [...displayProducts].sort((a, b) => b.price - a.price);
+    sortedProducts.sort((a, b) => b.price - a.price);
   } else if (sortOrder === "name-asc") {
-    displayProducts = [...displayProducts].sort((a, b) => a.name.localeCompare(b.name));
+    sortedProducts.sort((a, b) => a.name?.localeCompare(b.name || ""));
   } else if (sortOrder === "name-desc") {
-    displayProducts = [...displayProducts].sort((a, b) => b.name.localeCompare(a.name));
+    sortedProducts.sort((a, b) => (b.name || "").localeCompare(a.name || ""));
   }
 
-  // Build unique arrays for filtering options
-  const categories = [...new Set(products.map((product) => product.category))];
-  const vendors = [
-    ...new Set(products.map((product) => product.vendor).filter((vendor) => vendor !== "N/A")),
-  ];
+  // Build unique arrays for filtering options - Added null checks
+  const categories = Array.isArray(products) ? 
+    [...new Set(products.filter(p => p && p.category).map(product => product.category))] : [];
+    
+  const vendors = Array.isArray(products) ? 
+    [...new Set(products.filter(p => p && p.vendor && p.vendor !== "N/A").map(product => product.vendor))] : [];
 
   const resetFilters = () => {
     setFilters({ search: "", category: "", vendor: "" });
     setSortOrder("default");
   };
 
-    const handleAddToCart = () => {
-      if (!products) return;
-      
-      if (!designOption) {
-        toast.warning("Please select a design option first", {
-          position: "top-center",
-          autoClose: 3000,
-          theme: "dark",
-        });
-        return;
-      }
+  const handleAddToCart = (product) => {
+    if (!product) return;
+    
+    if (product.stock <= 0) {
+      toast.error("This product is out of stock", {
+        position: "top-center",
+        autoClose: 3000,
+        theme: "dark",
+      });
+      return;
     }
-  
+    
+    // Add your cart functionality here
+    toast.success(`Added ${product.name} to cart`, {
+      position: "top-center",
+      autoClose: 3000,
+      theme: "dark",
+    });
+  };
 
   // Loading and error states with better styling
   if (loading) return (
@@ -277,12 +292,12 @@ export default function ProductsPage() {
       <div className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl text-white">
-            <span className="font-bold">{displayProducts.length}</span> Products Found
+            <span className="font-bold">{sortedProducts.length}</span> Products Found
           </h2>
         </div>
 
         {/* Product Grid */}
-        {displayProducts.length === 0 ? (
+        {sortedProducts.length === 0 ? (
           <div className="bg-gray-800/50 rounded-lg p-8 text-center">
             <h3 className="text-xl text-white mb-2">No products found</h3>
             <p className="text-gray-400 mb-4">Try adjusting your search or filter criteria</p>
@@ -295,20 +310,20 @@ export default function ProductsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {displayProducts.map((product) => {
-              const imagesArray = Array.isArray(product.images) ? product.images : [product.images];
+            {sortedProducts.map((product) => {
+              const imagesArray = product.images ? (Array.isArray(product.images) ? product.images : [product.images]) : [];
               const mainImage = imagesArray[0] || "/fallback-image.png";
 
               return (
                 <div
-                  key={product.id}
+                  key={product._id || product.id}
                   className="bg-gray-800 rounded-lg overflow-hidden shadow-lg transition-all duration-300 hover:shadow-yellow-500/20 hover:translate-y-[-5px]"
                 >
                   {/* Product Image */}
                   <div className="relative h-48 overflow-hidden bg-gray-900">
                     <Image
                       src={mainImage}
-                      alt={product.name}
+                      alt={product.name || "Product"}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       className="object-cover"
@@ -331,29 +346,29 @@ export default function ProductsPage() {
                   <div className="p-4">
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="text-lg font-semibold text-white line-clamp-1">
-                        {product.name}
+                        {product.name || "Product Name"}
                       </h3>
                       <span className="bg-yellow-500 text-black font-bold rounded px-2 py-1 text-sm">
-                        ₦{product.price.toLocaleString()}
+                        ₦{(product.price || 0).toLocaleString()}
                       </span>
                     </div>
                     
                     <div className="text-sm text-gray-400 mb-4">
-                      <p className="mb-1">Category: {product.category}</p>
+                      <p className="mb-1">Category: {product.category || "Uncategorized"}</p>
                       {product.color && <p className="mb-1">Color: {product.color}</p>}
-                      <p>Available: {product.stock} in stock</p>
+                      <p>Available: {product.stock || 0} in stock</p>
                     </div>
                     
                     <div className="flex space-x-2">
-                      <Link href={`/Products/${product.id}`} className="flex-1">
+                      <Link href={`/Products/${product._id || product.id}`} className="flex-1">
                         <button className="w-full px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition">
                           Details
                         </button>
                       </Link>
                       
-                      {/* <button 
+                      <button 
                         disabled={product.stock === 0}
-                        onClick={handleAddToCart}
+                        onClick={() => handleAddToCart(product)}
                         className={`flex items-center justify-center px-4 py-2 rounded-md transition ${
                           product.stock === 0 
                             ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
@@ -361,7 +376,7 @@ export default function ProductsPage() {
                         }`}
                       >
                         <FiShoppingCart className="mr-1" /> Buy
-                      </button> */}
+                      </button>
                     </div>
                   </div>
                 </div>
