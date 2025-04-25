@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation';
-import axios from 'axios';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -10,19 +9,15 @@ export default async function CategoryPage({ params }) {
     notFound();
   }
 
-  const decodedCategory = decodeURIComponent(category);
-
-  console.log("Decoded category:", decodedCategory);
-
+  // const decodedCategory = decodeURIComponent(category);
 
   try {
-    const baseUrl = process.env.API_URL || "https://five9minutes-backend.onrender.com/api";
+    const baseUrl = "https://five9minutes-backend.onrender.com/api";
 
-    const res = await fetch(`${baseUrl}/category/products/${decodedCategory}`, {
+    const res = await fetch(`${baseUrl}/category/${category}`, {
       headers: {
         "Content-Type": "application/json",
       },
-      cache: "no-store",
     });
 
     if (!res.ok) {
@@ -43,12 +38,12 @@ export default async function CategoryPage({ params }) {
     }
     
 
-    const filteredProducts = fetchedProducts.filter(
-      (product) => product.category === decodedCategory
-    );
+    // const filteredProducts = fetchedProducts.filter(
+    //   (product) => product.category === decodedCategory
+    // );
 
     if (fetchedProducts.length === 0) {
-      return <p className="text-center p-10">No products found in {decodedCategory}</p>;
+      return <p className="text-center p-10">No products found in {category}</p>;
     }
     
 
@@ -59,11 +54,11 @@ export default async function CategoryPage({ params }) {
           <div className="container mx-auto px-4">
             <div className="flex flex-col items-center justify-center text-center">
               <h1 className="text-4xl md:text-5xl font-bold text-black capitalize mb-4">
-                {decodedCategory}
+                {category}
               </h1>
               <div className="h-1 w-20 bg-black mb-6"></div>
               <p className="text-gray-800 max-w-xl mx-auto">
-                Explore our selection of high-quality {decodedCategory.toLowerCase()} products, 
+                Explore our selection of high-quality {category.toLowerCase()} products, 
                 designed to meet your every need with premium quality and fast delivery.
               </p>
             </div>
@@ -74,12 +69,12 @@ export default async function CategoryPage({ params }) {
         <div className="container mx-auto px-4 pb-16">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-bold text-gray-800">
-              {filteredProducts.length} {filteredProducts.length === 1 ? 'Product' : 'Products'} Found
+              {fetchedProducts.length} {fetchedProducts.length === 1 ? 'Product' : 'Products'} Found
             </h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {filteredProducts.map((product) => {
+            {fetchedProducts.map((product) => {
               const imagesArray = Array.isArray(product.images) ? product.images : [product.images];
               const mainImage = imagesArray[0] || "/fallback-image.png";
               const formattedPrice = typeof product.price === 'string' 
@@ -90,7 +85,7 @@ export default async function CategoryPage({ params }) {
                 : '0';
 
               return (
-                <Link key={product._id || product.id} href={`/Products/${product._id || product.id}`} passHref>
+                <Link key={product._id} href={`/Products/${product._id}`} passHref>
                   <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden group relative">
                     <div className="w-full h-64 relative overflow-hidden">
                       <Image
@@ -127,7 +122,7 @@ export default async function CategoryPage({ params }) {
           </div>
 
           {/* No results fallback */}
-          {filteredProducts.length === 0 && (
+          {fetchedProducts.length === 0 && (
             <div className="text-center py-16">
               <p className="text-gray-500 text-lg mb-4">No products found in this category.</p>
               <Link href="/Products" className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700">

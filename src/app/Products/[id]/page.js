@@ -5,6 +5,9 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+// You need to install lucide-react package
+// Run: npm install lucide-react
+// or: yarn add lucide-react
 import { 
   ArrowLeft, 
   Minus, 
@@ -36,19 +39,30 @@ export default function ProductDetail() {
       router.push("/Products");
       return;
     }
+    comsole.log(id)
 
     fetch(`https://five9minutes-backend.onrender.com/api/products/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch product details.");
-        return res.data;
+        return res.json(); // Changed from res.data to res.json()
       })
       .then((data) => {
-        const foundProduct = data.find((p) => p.id === id);
-        if (foundProduct) {
-          setProduct(foundProduct);
-          setSelectedImage(foundProduct.images[0]);
+        // Check if data is an array or a single object
+        if (Array.isArray(data)) {
+          const foundProduct = data.find((p) => p.id === id);
+          if (foundProduct) {
+            setProduct(foundProduct);
+            setSelectedImage(foundProduct.images[0]);
+          } else {
+            toast.error("Product not found!");
+            router.push("/Products");
+          }
+        } else if (data && typeof data === 'object') {
+          // If it's already a single product object
+          setProduct(data);
+          setSelectedImage(data.images?.[0]);
         } else {
-          toast.error("Product not found!");
+          toast.error("Invalid product data received");
           router.push("/Products");
         }
       })
@@ -117,7 +131,16 @@ export default function ProductDetail() {
         designOption,
       };
 
-      const existingCart = JSON.parse(localStorage.getItem("cart") || "[]");
+      let existingCart = [];
+      
+      // Use try/catch to safely parse localStorage
+      try {
+        existingCart = JSON.parse(localStorage.getItem("cart") || "[]");
+      } catch (e) {
+        console.error("Error parsing cart data:", e);
+        existingCart = [];
+      }
+
       const existingItemIndex = existingCart.findIndex((item) => 
         item.id === product.id && item.designOption === designOption
       );
@@ -131,7 +154,9 @@ export default function ProductDetail() {
       localStorage.setItem("cart", JSON.stringify(existingCart));
       
       // Dispatch event for other components that might be listening for cart updates
-      window.dispatchEvent(new Event("cartUpdated"));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event("cartUpdated"));
+      }
       
       // Store current design info for the design pages
       const designInfo = {

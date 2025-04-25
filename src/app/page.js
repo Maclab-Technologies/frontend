@@ -233,9 +233,9 @@ export default function Home() {
                       <p className="text-gray-200 text-sm line-clamp-2">{category.description || 'No description available'}</p>
                     </div>
                     <div className="bg-yellow-500 text-black font-medium text-sm px-3 py-1 rounded-full flex items-center justify-center">
-                      {categoryCounts[category.id] || 0}
+                      {categoryCounts[category.name] || 0}
                       <span className="hidden sm:inline ml-1">
-                        {(categoryCounts[category.id] || 0) === 1 ? 'item' : 'items'}
+                        {(categoryCounts[category.name] || 0) === 1 ? 'item' : 'items'}
                       </span>
                     </div>
                   </div>
