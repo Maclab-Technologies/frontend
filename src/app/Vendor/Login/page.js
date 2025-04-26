@@ -1,22 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { auth, googleProvider } from "../../utils/firebaseconfig";
-import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import { auth } from "../../utils/firebaseconfig";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 
 export default function VendorLogin() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     businessEmail: "",
-    businessPassword: "",
+    password: "",
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const [showPassword, setShowPassword] = useState(false); // New state for showing/hiding password
-  const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
+  const [formProgress, setFormProgress] = useState(0);
+
+  useEffect(() => {
+    if (!auth) {
+      console.error("Firebase auth is not initialized");
+      toast.error("Authentication service is not available. Please refresh the page.");
+      return;
+    }
+    
+    // Calculate form progress
+    calculateFormProgress();
+  }, [formData]);
+
+  const calculateFormProgress = () => {
+    const requiredFields = ['businessEmail', 'password'];
+    
+    const filledFields = requiredFields.filter(field => 
+      formData[field] && formData[field].trim() !== ''
+    ).length;
+    
+    const progress = Math.floor((filledFields / requiredFields.length) * 100);
+    setFormProgress(progress);
+  };
 
   const validateForm = () => {
     const newErrors = {};
@@ -27,8 +51,8 @@ export default function VendorLogin() {
       newErrors.businessEmail = "Please enter a valid email";
     }
 
-    if (!formData.businessPassword) {
-      newErrors.businessPassword = "Password is required";
+    if (!formData.password) {
+      newErrors.password = "Password is required";
     }
 
     setErrors(newErrors);
@@ -47,148 +71,87 @@ export default function VendorLogin() {
     }
   };
 
-  const handleEmailLogin = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
   
     setLoading(true);
-    const baseUrl = process.env.API_URL || 'https://five9minutes-backend.onrender.com/api';
-  
     try {
-      const res = await fetch(`https://five9minutes-backend.onrender.com/api/vendor/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        formData.businessEmail,
+        formData.password
+      );
+      
+      // Get and store authentication token
+      const token = await userCredential.user.getIdToken();
+      localStorage.setItem("firebase_token", token);
+  
+      toast.success("Login successful! Redirecting to dashboard...", { 
+        autoClose: 1000,
+        onClose: () => router.push("/Vendor/Dashboard")
       });
-  
-      const data = await res.json();
-  
-      if (!res.ok || !data.token) {
-        throw new Error(data.message || 'Login failed');
+      
+    } catch (error) {
+      console.error("Login error:", error);
+      
+      let errorMessage = "Login failed. Please try again.";
+      if (error.code) {
+        switch (error.code) {
+          case "auth/user-not-found":
+            errorMessage = "No account found with this email. Please register first.";
+            break;
+          case "auth/wrong-password":
+            errorMessage = "Incorrect password. Please try again.";
+            break;
+          case "auth/invalid-email":
+            errorMessage = "Please enter a valid email address";
+            break;
+          case "auth/too-many-requests":
+            errorMessage = "Too many failed login attempts. Please try again later.";
+            break;
+          case "auth/network-request-failed":
+            errorMessage = "Network error. Please check your connection.";
+            break;
+        }
       }
-  
-      localStorage.setItem('vendor_token', data.token);
-  
-      toast.success(
-        <div>
-          <p className="font-bold">Login successful!</p>
-          <p className="text-sm">Redirecting to your dashboard...</p>
-        </div>,
-        {
-          autoClose: 2000,
-          icon: '🔐',
-        }
-      );
-  
-      setTimeout(() => router.push('/Vendor/Dashboard'), 1500);
-    } catch (error) {
-      console.error('Login error:', error);
-  
-      const errorMessages = {
-        'auth/invalid-credential': 'Invalid email or password',
-        'auth/user-not-found': 'No account found with this email',
-        'auth/wrong-password': 'Incorrect password',
-        'auth/too-many-requests': 'Account temporarily locked due to too many attempts',
-        'auth/network-request-failed': 'Network error. Please check your connection.',
-        default: 'Login failed. Please try again.',
-      };
-  
-      toast.error(
-        <div>
-          <p className="font-bold">Login Failed</p>
-          <p className="text-sm">{errorMessages[error.code] || error.message || errorMessages.default}</p>
-        </div>,
-        {
-          autoClose: 5000,
-          icon: '❌',
-        }
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  const handleGoogleLogin = async () => {
-    setLoading(true);
-    try {
-      await signInWithPopup(auth, googleProvider);
-      
-      toast.success(
-        <div>
-          <p className="font-bold">Google login successful!</p>
-          <p className="text-sm">Redirecting to your dashboard...</p>
-        </div>,
-        { 
-          autoClose: 2000,
-          icon: "✅"
-        }
-      );
-      
-      setTimeout(() => router.push("/Vendor/Dashboard"), 1500);
-    } catch (error) {
-      console.error("Failed to login", error);
-      
-      const errorMessages = {
-        "auth/popup-closed-by-user": "Login popup was closed",
-        "auth/network-request-failed": "Network error. Please check your connection.",
-        "auth/cancelled-popup-request": "Login process was cancelled",
-        default: "Google login failed. Please try again.",
-      };
-      
-      toast.error(
-        <div>
-          <p className="font-bold">Google Login Failed</p>
-          <p className="text-sm">{errorMessages[error.code] || errorMessages.default}</p>
-        </div>,
-        { 
-          autoClose: 5000,
-          icon: "❌"
-        }
-      );
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <ToastContainer
-        position="top-center"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="colored"
-        toastClassName="border border-gray-200 shadow-lg"
-      />
+    <div className="min-h-screen bg-gradient-to-b from-yellow-50 to-yellow-100 flex items-center justify-center p-4">
+      <ToastContainer position="top-center" />
 
-      <div className="w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden">
-        <div className="bg-yellow-400 p-6 text-center">
-          <h1 className="text-2xl font-bold text-gray-800">
-            Vendor Login
-          </h1>
-          <p className="text-gray-700 mt-1">
-            Access your 59Minutes vendor account
-          </p>
+      <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden border-t-4 border-t-yellow-400">
+        <div className="bg-yellow-400 p-8 text-center">
+          <h1 className="text-3xl font-bold text-black">Vendor Login</h1>
+          <p className="text-black mt-2">Access your 59Minutes vendor dashboard</p>
+          
+          {/* Progress bar */}
+          <div className="mt-6 w-full bg-yellow-200 rounded-full h-2">
+            <div 
+              className="bg-black h-2 rounded-full transition-all duration-300 ease-in-out" 
+              style={{ width: `${formProgress}%` }}
+            ></div>
+          </div>
+          <p className="text-xs text-black mt-1">Form completion: {formProgress}%</p>
         </div>
 
-        <div className="p-6">
-          <form onSubmit={handleEmailLogin} className="space-y-4">
+        <div className="px-8 pb-8">
+          <form onSubmit={handleLogin} className="space-y-5">
+            {/* Business Email */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email Address <span className="text-red-500">*</span>
+              <label className="block text-sm font-medium text-black mb-1">
+                Business Email <span className="text-red-500">*</span>
               </label>
               <input
                 type="email"
                 name="businessEmail"
-                className={`w-full px-3 py-2 border ${errors.businessEmail ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500`}
-                placeholder="your@email.com"
+                className={`w-full px-4 py-3 border ${errors.businessEmail ? "border-red-500 ring-1 ring-red-500" : "border-black"} rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition duration-200`}
+                placeholder="business@example.com"
                 value={formData.businessEmail}
                 onChange={handleInputChange}
               />
@@ -197,85 +160,83 @@ export default function VendorLogin() {
               )}
             </div>
 
+            {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-black mb-1">
                 Password <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <input
-                  type={showPassword ? "text" : "password"} 
-                  name="businessPassword"
-                  className={`w-full px-3 py-2 border ${errors.businessPassword ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500`}
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  className={`w-full px-4 py-3 border ${errors.password ? "border-red-500 ring-1 ring-red-500" : "border-black"} rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition duration-200`}
                   placeholder="Enter your password"
-                  value={formData.businessPassword}
+                  value={formData.password}
                   onChange={handleInputChange}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 px-3 flex items-center text-sm text-gray-600"
+                  className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-600 hover:text-black"
                 >
-                  {showPassword ? "Hide" : "Show"}
+                  {showPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
                 </button>
               </div>
-              {errors.businessPassword && (
-                <p className="mt-1 text-sm text-red-600">{errors.businessPassword}</p>
+              {errors.password && (
+                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
               )}
-              <div className="text-right mt-1">
+              <div className="text-right mt-2">
                 <Link
                   href="/Vendor/Forget"
-                  className="text-xs text-yellow-600 hover:text-yellow-500 hover:underline"
+                  className="text-sm text-yellow-600 hover:text-yellow-800 hover:underline font-medium"
                 >
                   Forgot password?
                 </Link>
               </div>
             </div>
 
+            {/* Security Information Box */}
+            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mt-4">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-600">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-gray-700">
+                    Your connection is secure. We never store your password in plain text.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-colors ${
-                loading ? "opacity-75 cursor-not-allowed" : ""
-              }`}
+              className={`w-full py-3 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400 transition-colors ${loading ? "opacity-75 cursor-not-allowed" : ""}`}
             >
               {loading ? (
                 <span className="flex items-center justify-center">
-                  <svg
-                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
+                  <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
                   Signing in...
                 </span>
               ) : (
-                "Login to Your Account"
+                "Login to Dashboard"
               )}
             </button>
           </form>
 
-          
-
-          <div className="mt-6 text-center text-sm">
-            <p className="text-gray-600">
+          <div className="mt-6 text-center text-sm border-t border-gray-200 pt-6">
+            <p className="text-black">
               Don't have an account?{" "}
               <Link
                 href="/Vendor/Register"
-                className="font-medium text-yellow-600 hover:text-yellow-500"
+                className="font-medium text-yellow-600 hover:text-yellow-800"
               >
                 Register here
               </Link>
