@@ -20,7 +20,7 @@ export default function VendorDashboard() {
   const [productPrice, setProductPrice] = useState("");
   const [productMaterial, setProductMaterial] = useState("");
   const [selectedColors, setSelectedColors] = useState([]);
-  const [productImages, setProductImages] = useState([]);
+  const [productImages, setProductImages] = useState([]); 
   
   // State for bank details in Withdraw tab
   const [bankName, setBankName] = useState("");
