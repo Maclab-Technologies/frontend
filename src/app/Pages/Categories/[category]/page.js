@@ -9,16 +9,10 @@ export default async function CategoryPage({ params }) {
     notFound();
   }
 
-  // const decodedCategory = decodeURIComponent(category);
-
   try {
     const baseUrl = "https://five9minutes-backend.onrender.com/api";
 
-    const res = await fetch(`${baseUrl}/category/${category}`, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const res = await fetch(`${baseUrl}/category/${category}`);
 
     if (!res.ok) {
       throw new Error(`Failed to fetch category products: ${res.statusText}`);
@@ -37,7 +31,6 @@ export default async function CategoryPage({ params }) {
       throw new Error("Invalid product data received");
     }
     
-
     // const filteredProducts = fetchedProducts.filter(
     //   (product) => product.category === decodedCategory
     // );
@@ -94,10 +87,10 @@ export default async function CategoryPage({ params }) {
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                         className="object-cover transition-transform duration-500 group-hover:scale-110"
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = "/fallback-image.png";
-                        }}
+                        // onError={(e) => {
+                        //   e.target.onerror = null;
+                        //   e.target.src = "/fallback-image.png";
+                        // }}
                       />
                     </div>
 
