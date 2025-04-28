@@ -1,3 +1,4 @@
+// Products/page.js 
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
@@ -5,8 +6,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { FiSearch, FiFilter, FiX, FiShoppingCart, FiRefreshCw } from "react-icons/fi";
 import { FaSortAmountDown, FaTag } from "react-icons/fa";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import debounce from "lodash.debounce";
+import "react-toastify/dist/ReactToastify.css";
 
 // Utility function to validate product data
 const validateProduct = (product) => {
@@ -15,18 +17,16 @@ const validateProduct = (product) => {
   return {
     _id: product._id || Math.random().toString(36).substring(2, 9),
     id: product._id || Math.random().toString(36).substring(2, 9),
-    name: product.name || "Unnamed Product",
-    description: product.description || "",
-    price: product.price || 0,
-    category: product.category || "Uncategorized",
-    vendor: product.vendor || "Unknown",
-    images: Array.isArray(product.images) ? product.images : 
-            product.image ? [product.image] : 
+    name: String(product.name || "Unnamed Product"),
+    description: String(product.description || ""),
+    price: typeof product.price === 'number' ? product.price : 0,
+    category: String(product.category || "Uncategorized"),
+    vendor: String(product.vendor || "Unknown"),
+    images: Array.isArray(product.images) ? product.images.filter(img => typeof img === 'string') : 
+            typeof product.image === 'string' ? [product.image] : 
             ["/fallback-image.png"],
     stock: typeof product.stock === 'number' ? product.stock : 0,
-    status: product.status || "unknown",
-    // Add other necessary fields with defaults
-    ...product
+    status: String(product.status || "unknown"),
   };
 };
 
@@ -46,15 +46,28 @@ export default function ProductsPage() {
   const fetchProducts = useCallback(async () => {
     try {
       const now = Date.now();
-      const cachedData = localStorage.getItem(cacheKey);
-      const cacheExpiry = localStorage.getItem(`${cacheKey}-expiry`);
+      let cachedData;
+      let cacheExpiry;
+      
+      // Safely check localStorage (it may not be available in SSR)
+      if (typeof window !== 'undefined') {
+        cachedData = localStorage.getItem(cacheKey);
+        cacheExpiry = localStorage.getItem(`${cacheKey}-expiry`);
+      }
 
       // Use cache if valid
       if (cachedData && cacheExpiry && now < parseInt(cacheExpiry)) {
-        const parsedData = JSON.parse(cachedData);
-        setProducts(parsedData);
-        setLoading(false);
-        return;
+        try {
+          const parsedData = JSON.parse(cachedData);
+          if (Array.isArray(parsedData)) {
+            setProducts(parsedData);
+            setLoading(false);
+            return;
+          }
+        } catch (cacheError) {
+          console.error("Cache parsing error:", cacheError);
+          // Continue to fetch fresh data
+        }
       }
 
       const response = await fetch(`https://five9minutes-backend.onrender.com/api/products`);
@@ -72,9 +85,15 @@ export default function ProductsPage() {
       console.log('Fetched products:', productArray);
       setProducts(productArray);
       
-      // Cache handling
-      localStorage.setItem(cacheKey, JSON.stringify(productArray));
-      localStorage.setItem(`${cacheKey}-expiry`, String(now + 300000));
+      // Cache handling (safely)
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify(productArray));
+          localStorage.setItem(`${cacheKey}-expiry`, String(now + 300000));
+        } catch (storageError) {
+          console.error("localStorage error:", storageError);
+        }
+      }
     } catch (err) {
       console.error("Fetch error:", err);
       setError(err.message);
@@ -108,8 +127,11 @@ export default function ProductsPage() {
     return products.filter((product) => {
       if (!product) return false;
       
-      const matchesSearch = product.name?.toLowerCase().includes(filters.search.toLowerCase()) || 
-                          product.description?.toLowerCase().includes(filters.search.toLowerCase());
+      const searchTerm = filters.search.toLowerCase();
+      const name = String(product.name || "").toLowerCase();
+      const description = String(product.description || "").toLowerCase();
+      
+      const matchesSearch = name.includes(searchTerm) || description.includes(searchTerm);
       const matchesCategory = !filters.category || product.category === filters.category;
       const matchesVendor = !filters.vendor || product.vendor === filters.vendor;
       
@@ -118,17 +140,19 @@ export default function ProductsPage() {
   }, [products, filters]);
 
   const sortedProducts = useMemo(() => {
+    if (!Array.isArray(filteredProducts)) return [];
+    
     const productsToSort = [...filteredProducts];
     
     switch (sortOrder) {
       case "price-low":
-        return productsToSort.sort((a, b) => (a.price || 0) - (b.price || 0));
+        return productsToSort.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
       case "price-high":
-        return productsToSort.sort((a, b) => (b.price || 0) - (a.price || 0));
+        return productsToSort.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
       case "name-asc":
-        return productsToSort.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+        return productsToSort.sort((a, b) => String(a.name || "").localeCompare(String(b.name || "")));
       case "name-desc":
-        return productsToSort.sort((a, b) => (b.name || "").localeCompare(a.name || ""));
+        return productsToSort.sort((a, b) => String(b.name || "").localeCompare(String(a.name || "")));
       default:
         return productsToSort;
     }
@@ -140,14 +164,14 @@ export default function ProductsPage() {
     
     const uniqueCategories = [...new Set(
       products
-        .filter(p => p?.category)
+        .filter(p => p && typeof p.category === 'string')
         .map(p => p.category)
         .filter(Boolean)
     )];
     
     const uniqueVendors = [...new Set(
       products
-        .filter(p => p?.vendor)
+        .filter(p => p && typeof p.vendor === 'string')
         .map(p => p.vendor)
         .filter(Boolean)
     )];
@@ -182,34 +206,184 @@ export default function ProductsPage() {
 
   const refreshData = useCallback(() => {
     setIsRefreshing(true);
-    localStorage.removeItem(cacheKey);
-    localStorage.removeItem(`${cacheKey}-expiry`);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(cacheKey);
+      localStorage.removeItem(`${cacheKey}-expiry`);
+    }
     fetchProducts();
   }, [fetchProducts]);
 
+  // Handle search input change
+  const handleSearchChange = (e) => {
+    debouncedSearch(e.target.value);
+  };
+
+  // Client-side error handling for images
+  const handleImageError = (e) => {
+    e.currentTarget.src = "/fallback-image.png";
+  };
+
   if (loading && !isRefreshing) return (
     <div className="bg-gradient-to-b from-gray-900 to-black min-h-screen">
-      {/* ... keep your existing loading skeleton ... */}
+      <div className="container mx-auto px-4 py-16">
+        <div className="flex justify-center items-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-yellow-500"></div>
+        </div>
+        <div className="text-center mt-4 text-yellow-500">Loading products...</div>
+      </div>
     </div>
   );
   
   if (error) return (
     <div className="bg-gradient-to-b from-gray-900 to-black min-h-screen flex items-center justify-center">
-      {/* ... keep your existing error display ... */}
+      <div className="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full">
+        <h2 className="text-2xl font-bold text-red-400 mb-4">Error Loading Products</h2>
+        <p className="text-white mb-6">{error}</p>
+        <button 
+          onClick={refreshData}
+          className="bg-yellow-500 text-black px-4 py-3 rounded-md hover:bg-yellow-400 transition w-full flex items-center justify-center gap-2"
+        >
+          <FiRefreshCw /> Try Again
+        </button>
+      </div>
     </div>
   );
 
   return (
     <div className="bg-gradient-to-b from-gray-900 to-black min-h-screen">
-      {/* ... keep your existing header section ... */}
+      <ToastContainer position="top-center" />
+      
+      {/* Header Section */}
+      <header className="bg-gray-800 shadow-md py-4">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold text-white">Product Catalog</h1>
+            <div className="flex gap-3">
+              <button 
+                onClick={refreshData}
+                className="bg-gray-700 text-white px-3 py-2 rounded-md hover:bg-gray-600 transition flex items-center gap-1"
+                disabled={isRefreshing}
+              >
+                <FiRefreshCw className={isRefreshing ? "animate-spin" : ""} /> 
+                {isRefreshing ? "Refreshing..." : "Refresh"}
+              </button>
+              <button 
+                className="bg-yellow-500 text-black px-3 py-2 rounded-md hover:bg-yellow-400 transition flex items-center gap-1"
+              >
+                <FiShoppingCart /> Cart
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
 
-      {/* ... keep your existing search and filter bar ... */}
+      {/* Search and Filter Bar */}
+      <div className="bg-gray-800 border-t border-gray-700 py-4">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Search Input */}
+            <div className="relative flex-grow">
+              <input
+                type="text"
+                placeholder="Search products..."
+                className="w-full px-4 py-2 bg-gray-700 text-white rounded-md border border-gray-600 focus:outline-none focus:border-yellow-500"
+                onChange={handleSearchChange}
+                defaultValue={filters.search}
+              />
+              <FiSearch className="absolute right-3 top-3 text-gray-400" />
+            </div>
+            
+            {/* Filter Button */}
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="px-4 py-2 bg-gray-700 text-white rounded-md border border-gray-600 hover:bg-gray-600 transition flex items-center gap-2"
+            >
+              <FiFilter /> Filters
+              {(filters.category || filters.vendor) && (
+                <span className="bg-yellow-500 text-black text-xs rounded-full px-2 py-0.5">
+                  {(filters.category ? 1 : 0) + (filters.vendor ? 1 : 0)}
+                </span>
+              )}
+            </button>
+            
+            {/* Sort Dropdown */}
+            <div className="relative">
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+                className="appearance-none w-full px-4 py-2 bg-gray-700 text-white rounded-md border border-gray-600 focus:outline-none focus:border-yellow-500 pr-10"
+              >
+                <option value="default">Default Sort</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+                <option value="name-asc">Name: A to Z</option>
+                <option value="name-desc">Name: Z to A</option>
+              </select>
+              <FaSortAmountDown className="absolute right-3 top-3 text-gray-400 pointer-events-none" />
+            </div>
+          </div>
+          
+          {/* Expanded Filters */}
+          {showFilters && (
+            <div className="mt-4 p-4 bg-gray-700 rounded-md border border-gray-600 animate-fadeIn">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-white font-medium">Filter Options</h3>
+                <button 
+                  onClick={resetFilters}
+                  className="text-yellow-400 hover:text-yellow-300 text-sm flex items-center gap-1"
+                >
+                  <FiX /> Reset All
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Category Filter */}
+                <div>
+                  <label className="block text-gray-300 mb-2 text-sm">
+                    Category
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={filters.category}
+                      onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
+                      className="appearance-none w-full px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-600 focus:outline-none focus:border-yellow-500"
+                    >
+                      <option value="">All Categories</option>
+                      {categories && categories.map(category => (
+                        <option key={category} value={category}>{String(category)}</option>
+                      ))}
+                    </select>
+                    <FaTag className="absolute right-3 top-2.5 text-gray-400 pointer-events-none" />
+                  </div>
+                </div>
+                
+                {/* Vendor Filter */}
+                <div>
+                  <label className="block text-gray-300 mb-2 text-sm">
+                    Vendor
+                  </label>
+                  <select
+                    value={filters.vendor}
+                    onChange={(e) => setFilters(prev => ({ ...prev, vendor: e.target.value }))}
+                    className="w-full px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-600 focus:outline-none focus:border-yellow-500"
+                  >
+                    <option value="">All Vendors</option>
+                    {vendors && vendors.map(vendor => (
+                      <option key={vendor} value={vendor}>{String(vendor)}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Results Count */}
       <div className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl text-white">
-            Showing <span className="font-bold">{sortedProducts.length}</span> of <span className="font-bold">{products.length}</span> Products
+            Showing <span className="font-bold">{Array.isArray(sortedProducts) ? sortedProducts.length : 0}</span> of <span className="font-bold">{Array.isArray(products) ? products.length : 0}</span> Products
           </h2>
           
           {isRefreshing && (
@@ -221,7 +395,7 @@ export default function ProductsPage() {
         </div>
 
         {/* Product Grid */}
-        {sortedProducts.length === 0 ? (
+        {!Array.isArray(sortedProducts) || sortedProducts.length === 0 ? (
           <div className="bg-gray-800/50 rounded-lg p-8 text-center border border-gray-700">
             <h3 className="text-xl text-white mb-2">No products found</h3>
             <p className="text-gray-400 mb-4">Try adjusting your search or filter criteria</p>
@@ -245,33 +419,41 @@ export default function ProductsPage() {
             {sortedProducts.map((product) => {
               if (!product) return null;
               
-              const mainImage = product.images?.[0] || "/fallback-image.png";
+              const productId = String(product._id || product.id || "");
+              const productName = String(product.name || "Unnamed Product");
+              const productCategory = String(product.category || "Uncategorized");
+              const productStock = Number(product.stock) || 0;
+              const productPrice = Number(product.price) || 0;
+              
+              // Safely determine the main image
+              let mainImage = "/fallback-image.png";
+              if (Array.isArray(product.images) && product.images.length > 0 && typeof product.images[0] === 'string') {
+                mainImage = product.images[0];
+              }
 
               return (
                 <div
-                  key={product._id || product.id}
+                  key={productId}
                   className="bg-gray-800 rounded-lg overflow-hidden shadow-lg transition-all duration-300 hover:shadow-yellow-500/20 hover:translate-y-[-5px] group"
                 >
                   {/* Product Image */}
                   <div className="relative h-48 overflow-hidden bg-gray-900">
                     <Image
                       src={mainImage}
-                      alt={product.name || "Product"}
+                      alt={productName}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
                       placeholder="blur"
                       blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
-                      // onError={(e) => {
-                      //   e.currentTarget.src = "/fallback-image.png";
-                      // }}
+                      onError={handleImageError}
                     />
-                    {product.stock < 5 && product.stock > 0 && (
+                    {productStock < 5 && productStock > 0 && (
                       <div className="absolute top-0 right-0 bg-orange-500 text-white text-xs font-bold px-2 py-1">
-                        Only {product.stock} left!
+                        Only {productStock} left!
                       </div>
                     )}
-                    {product.stock === 0 && (
+                    {productStock === 0 && (
                       <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
                         <span className="bg-red-600 text-white font-bold px-4 py-2 rounded-md">OUT OF STOCK</span>
                       </div>
@@ -282,23 +464,23 @@ export default function ProductsPage() {
                   <div className="p-4">
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="text-lg font-semibold text-white line-clamp-1">
-                        {product.name}
+                        {productName}
                       </h3>
                       <span className="bg-yellow-500 text-black font-bold rounded px-2 py-1 text-sm whitespace-nowrap">
-                        ₦{(product.price || 0).toLocaleString()}
+                        ₦{productPrice.toLocaleString()}
                       </span>
                     </div>
                     
                     <div className="text-sm text-gray-400 mb-4 space-y-1">
-                      <p className="truncate">Category: {product.category}</p>
-                      <p className={product.stock > 5 ? "text-green-400" : product.stock > 0 ? "text-orange-400" : "text-red-400"}>
-                        {product.stock > 5 ? "In Stock" : product.stock > 0 ? "Low Stock" : "Out of Stock"}
+                      <p className="truncate">Category: {productCategory}</p>
+                      <p className={productStock > 5 ? "text-green-400" : productStock > 0 ? "text-orange-400" : "text-red-400"}>
+                        {productStock > 5 ? "In Stock" : productStock > 0 ? "Low Stock" : "Out of Stock"}
                       </p>
                     </div>
                     
                     <div className="flex space-x-2">
                       <Link 
-                        href={`/products/${product._id || product.id}`} 
+                        href={`/products/${productName}`}
                         className="flex-1 transition hover:opacity-90"
                         passHref
                       >
@@ -308,14 +490,14 @@ export default function ProductsPage() {
                       </Link>
                       
                       <button 
-                        disabled={product.stock === 0}
+                        disabled={productStock === 0}
                         onClick={() => handleAddToCart(product)}
                         className={`flex items-center justify-center px-4 py-2 rounded-md transition ${
-                          product.stock === 0 
+                          productStock === 0 
                             ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
                             : 'bg-yellow-500 text-black hover:bg-yellow-400'
                         }`}
-                        aria-label={`Add ${product.name} to cart`}
+                        aria-label={`Add ${productName} to cart`}
                       >
                         <FiShoppingCart className="mr-1" /> Buy
                       </button>

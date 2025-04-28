@@ -1,3 +1,4 @@
+// Products/[id]/page.js 
 "use client";
 
 import { useState, useEffect } from "react";
@@ -37,7 +38,7 @@ export default function ProductDetail() {
       return;
     }
     
-    console.log(id); // Fixed typo from 'comsole' to 'console'
+    console.log(id); 
 
     useEffect(() => {
       const fetchProduct = async () => {
