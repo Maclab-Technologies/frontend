@@ -421,7 +421,7 @@ export default function ProductsPage() {
               
               const productId = String(product._id || product.id || "");
               const productName = String(product.name || "Unnamed Product");
-              const productCategory = String(product.category || "Uncategorized");
+              const productCategory = String(product.category.name || "Uncategorized");
               const productStock = Number(product.stock) || 0;
               const productPrice = Number(product.price) || 0;
               
@@ -480,7 +480,7 @@ export default function ProductsPage() {
                     
                     <div className="flex space-x-2">
                       <Link 
-                        href={`/products/${productName}`}
+                        href={`/Products/${productName}`}
                         className="flex-1 transition hover:opacity-90"
                         passHref
                       >
