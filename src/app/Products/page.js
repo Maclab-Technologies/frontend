@@ -70,11 +70,17 @@ export default function ProductsPage() {
         }
       }
 
-      const response = await fetch(`https://five9minutes-backend.onrender.com/api/products`);
+      const baseUrl = `https://five9minutes-backend.onrender.com/api`;
+
+      const response = await fetch(`${baseUrl}/products`);
+
+      console.log(response);
+
       if (!response.ok) {
         throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
       }
-      
+    
+      // Fixed: Use proper fetch API response handling
       const responseData = await response.json();
       
       // Validate and normalize products data
@@ -116,7 +122,10 @@ export default function ProductsPage() {
     fetchProducts();
     
     return () => {
-      debouncedSearch.cancel();
+      // Fix: Properly cancel the debounced function to prevent memory leaks
+      if (debouncedSearch && typeof debouncedSearch.cancel === 'function') {
+        debouncedSearch.cancel();
+      }
     };
   }, [fetchProducts, debouncedSearch]);
 
@@ -131,7 +140,7 @@ export default function ProductsPage() {
       const name = String(product.name || "").toLowerCase();
       const description = String(product.description || "").toLowerCase();
       
-      const matchesSearch = name.includes(searchTerm) || description.includes(searchTerm);
+      const matchesSearch = !searchTerm || name.includes(searchTerm) || description.includes(searchTerm);
       const matchesCategory = !filters.category || product.category === filters.category;
       const matchesVendor = !filters.vendor || product.vendor === filters.vendor;
       
@@ -480,7 +489,7 @@ export default function ProductsPage() {
                     
                     <div className="flex space-x-2">
                       <Link 
-                        href={`/products/${productName}`}
+                        href={`/products/${productId}`}
                         className="flex-1 transition hover:opacity-90"
                         passHref
                       >

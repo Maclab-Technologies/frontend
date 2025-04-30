@@ -14,11 +14,11 @@ export default function VendorRegister() {
   const [formData, setFormData] = useState({
     businessName: "",
     businessEmail: "",
-    businessPhone: "",
-    shopAddress1: "",
-    shopAddress2: "",
+    businessPhoneNumber: "",
+    businessAddress: "",
+    businessAddress2: "",
     businessDescription: "",
-    password: "",
+    businessPassword: "",
     confirmPassword: "",
     agreeToTerms: false,
   });
@@ -43,10 +43,10 @@ export default function VendorRegister() {
     const requiredFields = [
       'businessName', 
       'businessEmail', 
-      'businessPhone', 
-      'shopAddress1', 
+      'businessPhoneNumber', 
+      'businessAddress', 
       'businessDescription', 
-      'password', 
+      'businessPassword', 
       'confirmPassword'
     ];
     
@@ -73,14 +73,14 @@ export default function VendorRegister() {
       newErrors.businessEmail = "Please enter a valid email";
     }
 
-    if (!formData.businessPhone) {
-      newErrors.businessPhone = "Business phone is required";
-    } else if (!/^[\d\s\+\-\(\)]{10,15}$/.test(formData.businessPhone)) {
-      newErrors.businessPhone = "Please enter a valid phone number";
+    if (!formData.businessPhoneNumber) {
+      newErrors.businessPhoneNumber = "Business phone is required";
+    } else if (!/^[\d\s\+\-\(\)]{10,15}$/.test(formData.businessPhoneNumber)) {
+      newErrors.businessPhoneNumber = "Please enter a valid phone number";
     }
 
-    if (!formData.shopAddress1) {
-      newErrors.shopAddress1 = "Shop address is required";
+    if (!formData.businessAddress) {
+      newErrors.businessAddress = "Shop address is required";
     }
 
     if (!formData.businessDescription) {
@@ -89,19 +89,19 @@ export default function VendorRegister() {
       newErrors.businessDescription = "Description must be at least 20 characters";
     }
 
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-    } else if (!/[A-Z]/.test(formData.password)) {
-      newErrors.password = "Password must contain at least one uppercase letter";
-    } else if (!/[0-9]/.test(formData.password)) {
-      newErrors.password = "Password must contain at least one number";
+    if (!formData.businessPassword) {
+      newErrors.businessPassword = "Password is required";
+    } else if (formData.businessPassword.length < 6) {
+      newErrors.businessPassword = "Password must be at least 6 characters";
+    } else if (!/[A-Z]/.test(formData.businessPassword)) {
+      newErrors.businessPassword = "Password must contain at least one uppercase letter";
+    } else if (!/[0-9]/.test(formData.businessPassword)) {
+      newErrors.businessPassword = "Password must contain at least one number";
     }
 
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = "Please confirm your password";
-    } else if (formData.password !== formData.confirmPassword) {
+    } else if (formData.businessPassword !== formData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
     }
 
@@ -130,59 +130,57 @@ export default function VendorRegister() {
     if (!validateForm()) return;
   
     setLoading(true);
-    try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        formData.businessEmail,
-        formData.password
-      );
-      
-      // Store vendor information in localStorage for later use
-      localStorage.setItem("vendor_temp_data", JSON.stringify({
-        businessName: formData.businessName,
-        businessEmail: formData.businessEmail,
-        businessPhone: formData.businessPhone,
-        shopAddress: {
-          line1: formData.shopAddress1,
-          line2: formData.shopAddress2 || ""
-        },
-        businessDescription: formData.businessDescription
-      }));
-
-      // Get and store authentication token
-      const token = await userCredential.user.getIdToken();
-      localStorage.setItem("firebase_token", token);
   
-      toast.success("Registration successful! Redirecting to dashboard...", { 
-        autoClose: 1000,
-        onClose: () => router.push("/Vendor/Dashboard")
+    try {
+      const baseURL = `https://five9minutes-backend.onrender.com/api`;
+  
+      const response = await fetch(`${baseURL}/vendor/signup`, {
+        method: 'POST',
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(formData)
       });
-      
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        const message = data?.message || "Registration failed. Please try again.";
+        throw new Error(message);
+      }
+  
+      if (data?.token) {
+        localStorage.setItem("vendor_token", data.token);
+      }
+  
+      if (data?.vendor) {
+        localStorage.setItem("vendor_data", JSON.stringify(data.data));
+      }
+  
+      toast.success("Registration successful! Redirecting to dashboard...", {
+        autoClose: 1000,
+        onClose: () => router.push("/Vendor/Dashboard"),
+      });
+  
     } catch (error) {
       console.error("Registration error:", error);
-      
-      let errorMessage = "Registration failed. Please try again.";
-      if (error.code) {
-        switch (error.code) {
-          case "auth/email-already-in-use":
-            errorMessage = "Email already registered. Try logging in.";
-            break;
-          case "auth/invalid-email":
-            errorMessage = "Please enter a valid email address";
-            break;
-          case "auth/weak-password":
-            errorMessage = "Password must be at least 6 characters with uppercase and numbers";
-            break;
-          case "auth/network-request-failed":
-            errorMessage = "Network error. Please check your connection.";
-            break;
-        }
-      }
-      toast.error(errorMessage);
+  
+      const errorCode = error.code || "";
+      const errorMessageMap = {
+        "auth/email-already-in-use": "Email already registered. Try logging in.",
+        "auth/invalid-email": "Please enter a valid email address",
+        "auth/weak-password": "Password must be at least 6 characters with uppercase and numbers",
+        "auth/network-request-failed": "Network error. Please check your connection.",
+      };
+  
+      const fallback = error.message || "Registration failed. Please try again.";
+      toast.error(errorMessageMap[errorCode] || fallback);
+  
     } finally {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-yellow-50 to-yellow-100 flex items-center justify-center p-4">
@@ -248,14 +246,14 @@ export default function VendorRegister() {
               </label>
               <input
                 type="tel"
-                name="businessPhone"
-                className={`w-full px-4 py-3 border ${errors.businessPhone ? "border-red-500 ring-1 ring-red-500" : "border-black"} rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition duration-200`}
+                name="businessPhoneNumber"
+                className={`w-full px-4 py-3 border ${errors.businessPhoneNumber ? "border-red-500 ring-1 ring-red-500" : "border-black"} rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition duration-200`}
                 placeholder="+234 (123) 456-7890"
-                value={formData.businessPhone}
+                value={formData.businessPhoneNumber}
                 onChange={handleInputChange}
               />
-              {errors.businessPhone && (
-                <p className="mt-1 text-sm text-red-600">{errors.businessPhone}</p>
+              {errors.businessPhoneNumber && (
+                <p className="mt-1 text-sm text-red-600">{errors.businessPhoneNumber}</p>
               )}
             </div>
 
@@ -268,14 +266,14 @@ export default function VendorRegister() {
                 </label>
                 <input
                   type="text"
-                  name="shopAddress1"
-                  className={`w-full px-4 py-3 border ${errors.shopAddress1 ? "border-red-500 ring-1 ring-red-500" : "border-black"} rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition duration-200`}
+                  name="businessAddress"
+                  className={`w-full px-4 py-3 border ${errors.businessAddress ? "border-red-500 ring-1 ring-red-500" : "border-black"} rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition duration-200`}
                   placeholder="Street address, P.O. box, company name"
-                  value={formData.shopAddress1}
+                  value={formData.businessAddress}
                   onChange={handleInputChange}
                 />
-                {errors.shopAddress1 && (
-                  <p className="mt-1 text-sm text-red-600">{errors.shopAddress1}</p>
+                {errors.businessAddress && (
+                  <p className="mt-1 text-sm text-red-600">{errors.businessAddress}</p>
                 )}
               </div>
 
@@ -286,10 +284,10 @@ export default function VendorRegister() {
                 </label>
                 <input
                   type="text"
-                  name="shopAddress2"
+                  name="businessAddress2"
                   className="w-full px-4 py-3 border border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition duration-200"
                   placeholder="Apartment, suite, unit, building, floor, etc."
-                  value={formData.shopAddress2}
+                  value={formData.businessAddress2}
                   onChange={handleInputChange}
                 />
               </div>
@@ -326,10 +324,10 @@ export default function VendorRegister() {
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
-                    name="password"
-                    className={`w-full px-4 py-3 border ${errors.password ? "border-red-500 ring-1 ring-red-500" : "border-black"} rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition duration-200`}
+                    name="businessPassword"
+                    className={`w-full px-4 py-3 border ${errors.businessPassword ? "border-red-500 ring-1 ring-red-500" : "border-black"} rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition duration-200`}
                     placeholder="At least 6 characters"
-                    value={formData.password}
+                    value={formData.businessPassword}
                     onChange={handleInputChange}
                   />
                   <button
@@ -340,8 +338,8 @@ export default function VendorRegister() {
                     {showPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
                   </button>
                 </div>
-                {errors.password && (
-                  <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+                {errors.businessPassword && (
+                  <p className="mt-1 text-sm text-red-600">{errors.businessPassword}</p>
                 )}
               </div>
 
@@ -380,12 +378,12 @@ export default function VendorRegister() {
             </div>
 
             {/* Password strength indicator */}
-            {formData.password && (
+            {formData.businessPassword && (
               <div className="password-strength">
                 <div className="flex gap-1">
-                  <div className={`h-1 flex-1 rounded-full ${formData.password.length >= 6 ? "bg-yellow-400" : "bg-gray-300"}`}></div>
-                  <div className={`h-1 flex-1 rounded-full ${/[A-Z]/.test(formData.password) ? "bg-yellow-400" : "bg-gray-300"}`}></div>
-                  <div className={`h-1 flex-1 rounded-full ${/[0-9]/.test(formData.password) ? "bg-yellow-400" : "bg-gray-300"}`}></div>
+                  <div className={`h-1 flex-1 rounded-full ${formData.businessPassword.length >= 6 ? "bg-yellow-400" : "bg-gray-300"}`}></div>
+                  <div className={`h-1 flex-1 rounded-full ${/[A-Z]/.test(formData.businessPassword) ? "bg-yellow-400" : "bg-gray-300"}`}></div>
+                  <div className={`h-1 flex-1 rounded-full ${/[0-9]/.test(formData.businessPassword) ? "bg-yellow-400" : "bg-gray-300"}`}></div>
                 </div>
               </div>
             )}

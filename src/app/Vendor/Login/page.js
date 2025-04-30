@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { auth } from "../../utils/firebaseconfig";
-import { signInWithEmailAndPassword } from "firebase/auth";
+// import { signInWithEmailAndPassword } from "firebase/auth";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
@@ -13,7 +13,7 @@ export default function VendorLogin() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     businessEmail: "",
-    password: "",
+    businessPassword: "",
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -32,7 +32,7 @@ export default function VendorLogin() {
   }, [formData]);
 
   const calculateFormProgress = () => {
-    const requiredFields = ['businessEmail', 'password'];
+    const requiredFields = ['businessEmail', 'businessPassword'];
     
     const filledFields = requiredFields.filter(field => 
       formData[field] && formData[field].trim() !== ''
@@ -51,8 +51,8 @@ export default function VendorLogin() {
       newErrors.businessEmail = "Please enter a valid email";
     }
 
-    if (!formData.password) {
-      newErrors.password = "Password is required";
+    if (!formData.businessPassword) {
+      newErrors.businessPassword = "Password is required";
     }
 
     setErrors(newErrors);
@@ -76,50 +76,67 @@ export default function VendorLogin() {
     if (!validateForm()) return;
   
     setLoading(true);
-    try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        formData.businessEmail,
-        formData.password
-      );
-      
-      // Get and store authentication token
-      const token = await userCredential.user.getIdToken();
-      localStorage.setItem("firebase_token", token);
   
-      toast.success("Login successful! Redirecting to dashboard...", { 
+    try {
+      const baseURL = `https://five9minutes-backend.onrender.com/api`;
+  
+      const response = await fetch(`${baseURL}/vendor/login`, {
+        method: 'POST',
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        const message = errorData?.message || "Login failed. Please try again.";
+        throw new Error(message);
+      }
+  
+      const data = await response.json();
+      console.log(data)
+  
+      // Ensure token is present
+      const token = data?.token;
+      if (!token) {
+        throw new Error("Authentication token missing from response.");
+      }
+  
+      // Store in localStorage
+      localStorage.setItem("vendor_token", token);
+      localStorage.setItem("vendor_data", JSON.stringify(data?.vendor || {}));
+  
+      toast.success("Login successful! Redirecting to dashboard...", {
         autoClose: 1000,
         onClose: () => router.push("/Vendor/Dashboard")
       });
-      
+  
     } catch (error) {
       console.error("Login error:", error);
-      
+  
+      // Friendly error messages
+      const backendMsg = error?.message?.toLowerCase();
       let errorMessage = "Login failed. Please try again.";
-      if (error.code) {
-        switch (error.code) {
-          case "auth/user-not-found":
-            errorMessage = "No account found with this email. Please register first.";
-            break;
-          case "auth/wrong-password":
-            errorMessage = "Incorrect password. Please try again.";
-            break;
-          case "auth/invalid-email":
-            errorMessage = "Please enter a valid email address";
-            break;
-          case "auth/too-many-requests":
-            errorMessage = "Too many failed login attempts. Please try again later.";
-            break;
-          case "auth/network-request-failed":
-            errorMessage = "Network error. Please check your connection.";
-            break;
-        }
+  
+      if (backendMsg?.includes("not found")) {
+        errorMessage = "No account found with this email. Please register first.";
+      } else if (backendMsg?.includes("invalid") || backendMsg?.includes("email")) {
+        errorMessage = "Please enter a valid email address.";
+      } else if (backendMsg?.includes("password")) {
+        errorMessage = "Incorrect password. Please try again.";
+      } else if (backendMsg?.includes("too many")) {
+        errorMessage = "Too many failed attempts. Please try again later.";
+      } else if (backendMsg?.includes("network")) {
+        errorMessage = "Network error. Check your internet connection.";
       }
+  
       toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-yellow-50 to-yellow-100 flex items-center justify-center p-4">
@@ -168,10 +185,10 @@ export default function VendorLogin() {
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
-                  name="password"
-                  className={`w-full px-4 py-3 border ${errors.password ? "border-red-500 ring-1 ring-red-500" : "border-black"} rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition duration-200`}
+                  name="businessPassword"
+                  className={`w-full px-4 py-3 border ${errors.businessPassword ? "border-red-500 ring-1 ring-red-500" : "border-black"} rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition duration-200`}
                   placeholder="Enter your password"
-                  value={formData.password}
+                  value={formData.businessPassword}
                   onChange={handleInputChange}
                 />
                 <button
@@ -182,8 +199,8 @@ export default function VendorLogin() {
                   {showPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
                 </button>
               </div>
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+              {errors.businessPassword && (
+                <p className="mt-1 text-sm text-red-600">{errors.businessPassword}</p>
               )}
               <div className="text-right mt-2">
                 <Link
