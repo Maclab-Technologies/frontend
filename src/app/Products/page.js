@@ -14,13 +14,21 @@ import "react-toastify/dist/ReactToastify.css";
 const validateProduct = (product) => {
   if (!product) return null;
   
+  // Ensure product has a valid ID
+  const productId = product._id || product.id || Math.random().toString(36).substring(2, 9);
+  
+  // Handle category which might be an object or string
+  const category = typeof product.category === 'object' && product.category
+    ? String(product.category.name || "Uncategorized")
+    : String(product.category || "Uncategorized");
+  
   return {
-    _id: product._id || Math.random().toString(36).substring(2, 9),
-    id: product._id || Math.random().toString(36).substring(2, 9),
+    _id: productId,
+    id: productId,
     name: String(product.name || "Unnamed Product"),
     description: String(product.description || ""),
     price: typeof product.price === 'number' ? product.price : 0,
-    category: String(product.category || "Uncategorized"),
+    category: category,
     vendor: String(product.vendor || "Unknown"),
     images: Array.isArray(product.images) ? product.images.filter(img => typeof img === 'string') : 
             typeof product.image === 'string' ? [product.image] : 
@@ -51,15 +59,19 @@ export default function ProductsPage() {
       
       // Safely check localStorage (it may not be available in SSR)
       if (typeof window !== 'undefined') {
-        cachedData = localStorage.getItem(cacheKey);
-        cacheExpiry = localStorage.getItem(`${cacheKey}-expiry`);
+        try {
+          cachedData = localStorage.getItem(cacheKey);
+          cacheExpiry = localStorage.getItem(`${cacheKey}-expiry`);
+        } catch (e) {
+          console.error("Error accessing localStorage:", e);
+        }
       }
 
       // Use cache if valid
       if (cachedData && cacheExpiry && now < parseInt(cacheExpiry)) {
         try {
           const parsedData = JSON.parse(cachedData);
-          if (Array.isArray(parsedData)) {
+          if (Array.isArray(parsedData) && parsedData.length > 0) {
             setProducts(parsedData);
             setLoading(false);
             return;
@@ -72,43 +84,67 @@ export default function ProductsPage() {
 
       const baseUrl = `https://five9minutes-backend.onrender.com/api`;
 
-      const response = await fetch(`${baseUrl}/products`);
-
-      console.log(response);
+      const response = await fetch(`${baseUrl}/products`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
 
       if (!response.ok) {
         throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
       }
     
-      // Fixed: Use proper fetch API response handling
       const responseData = await response.json();
       
       // Validate and normalize products data
-      const productArray = Array.isArray(responseData?.data?.products) 
-        ? responseData.data.products.map(validateProduct).filter(Boolean)
-        : [];
+      let productArray = [];
+      
+      if (responseData?.data?.products && Array.isArray(responseData.data.products)) {
+        productArray = responseData.data.products
+          .map(validateProduct)
+          .filter(Boolean);
+      } else if (Array.isArray(responseData)) {
+        productArray = responseData
+          .map(validateProduct)
+          .filter(Boolean);
+      } else if (responseData?.products && Array.isArray(responseData.products)) {
+        productArray = responseData.products
+          .map(validateProduct)
+          .filter(Boolean);
+      }
       
       console.log('Fetched products:', productArray);
-      setProducts(productArray);
       
-      // Cache handling (safely)
-      if (typeof window !== 'undefined') {
-        try {
-          localStorage.setItem(cacheKey, JSON.stringify(productArray));
-          localStorage.setItem(`${cacheKey}-expiry`, String(now + 300000));
-        } catch (storageError) {
-          console.error("localStorage error:", storageError);
+      // Only update state if we got valid data
+      if (productArray.length > 0) {
+        setProducts(productArray);
+        setError(null);
+        
+        // Cache handling (safely)
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem(cacheKey, JSON.stringify(productArray));
+            localStorage.setItem(`${cacheKey}-expiry`, String(now + 300000)); // 5 minutes
+          } catch (storageError) {
+            console.error("localStorage error:", storageError);
+          }
         }
+      } else {
+        throw new Error("No product data found in response");
       }
     } catch (err) {
       console.error("Fetch error:", err);
-      setError(err.message);
-      setProducts([]); // Ensure products is always an array
+      setError(err.message || "Failed to load products");
+      // Don't clear products if we already have some cached
+      if (products.length === 0) {
+        setProducts([]);
+      }
     } finally {
       setLoading(false);
       setIsRefreshing(false);
     }
-  }, []);
+  }, [products.length]);
 
   // Debounced search
   const debouncedSearch = useMemo(
@@ -122,7 +158,7 @@ export default function ProductsPage() {
     fetchProducts();
     
     return () => {
-      // Fix: Properly cancel the debounced function to prevent memory leaks
+      // Clean up the debounced function
       if (debouncedSearch && typeof debouncedSearch.cancel === 'function') {
         debouncedSearch.cancel();
       }
@@ -139,10 +175,18 @@ export default function ProductsPage() {
       const searchTerm = filters.search.toLowerCase();
       const name = String(product.name || "").toLowerCase();
       const description = String(product.description || "").toLowerCase();
+      const category = String(product.category || "").toLowerCase();
       
-      const matchesSearch = !searchTerm || name.includes(searchTerm) || description.includes(searchTerm);
-      const matchesCategory = !filters.category || product.category === filters.category;
-      const matchesVendor = !filters.vendor || product.vendor === filters.vendor;
+      const matchesSearch = !searchTerm || 
+        name.includes(searchTerm) || 
+        description.includes(searchTerm) ||
+        category.includes(searchTerm);
+        
+      const matchesCategory = !filters.category || 
+        product.category === filters.category;
+        
+      const matchesVendor = !filters.vendor || 
+        product.vendor === filters.vendor;
       
       return matchesSearch && matchesCategory && matchesVendor;
     });
@@ -216,8 +260,12 @@ export default function ProductsPage() {
   const refreshData = useCallback(() => {
     setIsRefreshing(true);
     if (typeof window !== 'undefined') {
-      localStorage.removeItem(cacheKey);
-      localStorage.removeItem(`${cacheKey}-expiry`);
+      try {
+        localStorage.removeItem(cacheKey);
+        localStorage.removeItem(`${cacheKey}-expiry`);
+      } catch (e) {
+        console.error("Error clearing localStorage:", e);
+      }
     }
     fetchProducts();
   }, [fetchProducts]);
@@ -243,7 +291,7 @@ export default function ProductsPage() {
     </div>
   );
   
-  if (error) return (
+  if (error && products.length === 0) return (
     <div className="bg-gradient-to-b from-gray-900 to-black min-h-screen flex items-center justify-center">
       <div className="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full">
         <h2 className="text-2xl font-bold text-red-400 mb-4">Error Loading Products</h2>
@@ -399,6 +447,18 @@ export default function ProductsPage() {
             <div className="flex items-center gap-2 text-yellow-400">
               <FiRefreshCw className="animate-spin" />
               <span>Refreshing data...</span>
+            </div>
+          )}
+          
+          {error && products.length > 0 && (
+            <div className="text-red-400 flex items-center gap-2">
+              <span>Error: {error}</span>
+              <button 
+                onClick={refreshData}
+                className="bg-red-500 text-white px-2 py-1 rounded text-sm hover:bg-red-400"
+              >
+                Retry
+              </button>
             </div>
           )}
         </div>

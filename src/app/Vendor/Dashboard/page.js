@@ -1,3 +1,4 @@
+//  https://five9minutes-backend.onrender.com/ that is our backend deployments use it to solve this our frontend for vendors dashboard remove those fake data replace them with Api fetch let them be functional those Create products and the rest let them works with the api routes let prepare it to be professiona as a frontend engineer 
 "use client";
 
 import { useEffect, useState } from "react";
@@ -900,10 +901,10 @@ export default function VendorDashboard() {
             transform transition-transform duration-300 ease-in-out rounded
             ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full'} 
             lg:relative lg:translate-x-0 lg:w-64
-            mt-16 lg:mt-0
+            mt-14 lg:mt-0
           `}>
             {/* Close button for mobile */}
-            <div className="lg:hidden absolute top-2 right-2">
+            <div className="lg:hidden absolute top-1 right-2">
               <button
                 onClick={() => setMobileNavOpen(false)}
                 className="p-2 text-gray-400 hover:text-white focus:outline-none"
