@@ -7,8 +7,8 @@ const Carousel = () => {
   const banners = [
     {
       id: 1,
-      desktopImage: '/images/banners/desktop-banner-1.jpg',
-      mobileImage: '/images/banners/mobile-banner-1.jpg',
+      desktopImage: '/images/BANNER1.png',
+      // mobileImage: '/images/banners/mobile-banner-1.jpg',
       title: 'Premium Print Solutions',
       subtitle: 'Fast, reliable printing for your business needs',
       ctaLink: '/Products',
