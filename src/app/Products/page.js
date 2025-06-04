@@ -82,7 +82,7 @@ export default function ProductsPage() {
         }
       }
 
-      const baseUrl = `https://five9minutes-backend.onrender.com/api`;
+      const baseUrl = `${process.env.NEXT_PUBLIC_API_URL}`;
 
       const response = await fetch(`${baseUrl}/products`, {
         method: 'GET',
@@ -294,7 +294,22 @@ export default function ProductsPage() {
   if (error && products.length === 0) return (
     <div className="bg-gradient-to-b from-gray-900 to-black min-h-screen flex items-center justify-center">
       <div className="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full">
-        <h2 className="text-2xl font-bold text-red-400 mb-4">Error Loading Products</h2>
+        <h2 className="text-2xl font-bold text-red-400 mb-4">No product found!</h2>
+        <p className="text-white mb-6">{error}</p>
+        <button 
+          onClick={refreshData}
+          className="bg-yellow-500 text-black px-4 py-3 rounded-md hover:bg-yellow-400 transition w-full flex items-center justify-center gap-2"
+        >
+          <FiRefreshCw /> Try Again
+        </button>
+      </div>
+    </div>
+  );
+
+  if (error) return (
+    <div className="bg-gradient-to-b from-gray-900 to-black min-h-screen flex items-center justify-center">
+      <div className="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full">
+        <h2 className="text-2xl font-bold text-red-400 mb-4">Something went wrong</h2>
         <p className="text-white mb-6">{error}</p>
         <button 
           onClick={refreshData}

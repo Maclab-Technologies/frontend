@@ -31,7 +31,7 @@ export default function Home() {
       try {
         const controller = new AbortController();
         // const timeoutId = setTimeout(() => controller.abort(), 15000);
-        const response = await fetch(`https://five9minutes-backend.onrender.com/api/category`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`, {
           signal: controller.signal,
         });
 

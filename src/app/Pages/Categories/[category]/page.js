@@ -10,9 +10,9 @@ export default async function CategoryPage({ params }) {
   }
 
   try {
-    const baseUrl = "https://five9minutes-backend.onrender.com/api";
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
-    const res = await fetch(`${baseUrl}/category/${category}`);
+    const res = await fetch(`${baseUrl}/categories/${category}`);
 
     if (!res.ok) {
       throw new Error(`Failed to fetch category products: ${res.statusText}`);
@@ -78,7 +78,7 @@ export default async function CategoryPage({ params }) {
                 : '0';
 
               return (
-                <Link key={product._id} href={`/Products/${product._id}`} passHref>
+                <Link key={product._id} href={`/Products/${product.id}`} passHref>
                   <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden group relative">
                     <div className="w-full h-64 relative overflow-hidden">
                       <Image

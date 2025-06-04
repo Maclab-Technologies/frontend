@@ -58,7 +58,7 @@ export default function ProductDetail() {
     const fetchProduct = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`https://five9minutes-backend.onrender.com/api/products/${id}`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${id}`);
         if (!res.ok) {
           throw new Error("Failed to fetch product details.");
         }

@@ -17,9 +17,10 @@ export default function CategoriesPage() {
     setIsLoading(true);
 
     try {
+
       const controller = new AbortController();
       const response = await fetch(
-        `https://five9minutes-backend.onrender.com/api/category`,
+        `${process.env.NEXT_PUBLIC_API_URL}/categories`,
         { signal: controller.signal }
       );
 
