@@ -177,7 +177,7 @@ export default function Home() {
                     try {
                       setIsLoading(true);
                       const controller = new AbortController();
-                      const response = await fetch(`https://five9minutes-backend.onrender.com/api/category`, {
+                      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/category`, {
                         signal: controller.signal,
                       });
 
@@ -243,7 +243,7 @@ export default function Home() {
 
                     {/* Category Count Badge */}
                     <div className="absolute top-4 right-4 bg-yellow-500 text-black font-semibold text-sm px-3 py-1 rounded-full shadow-md z-10">
-                      {categoryCounts[category.name] || 0} {(categoryCounts[category.name] || 0) === 1 ? 'product' : 'products'}
+                      {category.productCount || 0} {(category.productCount || 0) === 1 ? 'product' : 'products'}
                     </div>
                   </div>
 
