@@ -9,150 +9,207 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function VendorDashboard() {
-  const router = useRouter();
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("Dashboard");
-  
-  // Form states for Create Product
-  const [productName, setProductName] = useState("");
-  const [productDescription, setProductDescription] = useState("");
-  const [productPrice, setProductPrice] = useState("");
-  const [discout, setDiscount] = useState("");
-  const [category, setCategory] = useState("");
-  const [stock, setStock] = useState("");
-  const [productMaterial, setProductMaterial] = useState("");
-  const [selectedColors, setSelectedColors] = useState([]);
-  const [productImages, setProductImages] = useState([]); 
-  
-  // State for bank details in Withdraw tab
-  const [bankName, setBankName] = useState("");
-  const [accountNumber, setAccountNumber] = useState("");
-  const [accountName, setAccountName] = useState("");
-  const [withdrawAmount, setWithdrawAmount] = useState("");
-  
-  // Mock Data
-  const [products, setProducts] = useState([]);
-  const [orders, setOrders] = useState([]);
-  const [earnings, setEarnings] = useState({
-    available: 10,
-    total: 10,
-    pending: 10,
-  });
-  const [payouts, setPayouts] = useState([]);
+ const router = useRouter();
+const [mobileNavOpen, setMobileNavOpen] = useState(false);
+const [user, setUser] = useState(null);
+const [loading, setLoading] = useState(true);
+const [activeTab, setActiveTab] = useState("Dashboard");
 
-  // Load user data and initial content
-  useEffect(() => {
-    const unsubscribe = () => {
-      let token = localStorage.getItem('vendor_token');
-      let vendorData = localStorage.getItem('vendor_data');
-      if (!token || !vendorData) {
-        router.push("/Vendor/Login");
-      } else {
-        setUser(vendorData);
-        // Load mock data
-        loadMockData();
-      }
-      setLoading(false);
-    };
+// Form states for Create Product
+const [productName, setProductName] = useState("");
+const [productDescription, setProductDescription] = useState("");
+const [productPrice, setProductPrice] = useState("");
+const [discount, setDiscount] = useState(""); // Fixed typo: discout -> discount
+const [category, setCategory] = useState("");
+const [stock, setStock] = useState("");
+const [productMaterial, setProductMaterial] = useState("");
+const [selectedColors, setSelectedColors] = useState([]);
+const [productImages, setProductImages] = useState([]); 
 
-    return () => unsubscribe();
-  }, [router]);
+// State for bank details in Withdraw tab
+const [bankName, setBankName] = useState("");
+const [accountNumber, setAccountNumber] = useState("");
+const [accountName, setAccountName] = useState("");
+const [withdrawAmount, setWithdrawAmount] = useState("");
 
-  const loadMockData = () => {
-    setProducts([
-      { id: 1, name: "Business Cards", description: "Premium business cards, 300gsm", stock: 100, price: 4500, colors: ["Blue", "White", "Black"], material: "Gloss Coated", images: ["/api/placeholder/400/300"] },
-      { id: 2, name: "Flyers", description: "Full color A5 flyers", stock: 250, price: 7500, colors: ["Full Color"], material: "Matt Paper", images: ["/api/placeholder/400/300"] },
-      { id: 3, name: "Posters", description: "Large format posters, various sizes", stock: 50, price: 15000, colors: ["Full Color"], material: "Synthetic Paper", images: ["/api/placeholder/400/300"] },
-    ]);
-    
-    setOrders([
-      { id: "ORD-1001", clientName: "John Doe", date: "2023-06-15", status: "Completed", total: "₦12,599", files: ["brochure-design.pdf"], designLink: "https://design.example.com/1001" },
-      { id: "ORD-1002", clientName: "Jane Smith", date: "2023-06-20", status: "Processing", total: "₦8,950", files: ["logo-specs.pdf"], designLink: "" },
-      { id: "ORD-1003", clientName: "Robert Johnson", date: "2023-06-22", status: "Pending", total: "₦23,500", files: ["business-card.pdf", "letterhead.pdf"], designLink: "" }
-    ]);
-    
-    setEarnings({
-      available: 56000,
-      total: 125000,
-      pending: 23000
-    });
-    
-    setPayouts([
-      { id: "PYT-001", date: "2023-05-30", amount: "₦45,000", status: "Paid", txnId: "TXN4587952" },
-      { id: "PYT-002", date: "2023-06-15", amount: "₦32,000", status: "Paid", txnId: "TXN4692301" },
-      { id: "PYT-003", date: "2023-06-28", amount: "₦18,000", status: "Pending", txnId: "TXN4721905" }
-    ]);
-  };
+// Mock Data
+const [products, setProducts] = useState([]);
+const [orders, setOrders] = useState([]);
+const [earnings, setEarnings] = useState({
+  available: 10,
+  total: 10,
+  pending: 10,
+});
+const [payouts, setPayouts] = useState([]);
+const [vendorData, setVendorData] = useState(null);
+const [vendorToken, setVendorToken] = useState(null);
 
-  const handleLogout = async () => {
+// Load user data and initial content
+useEffect(() => {
+  const loadInitialData = async () => {
     try {
-      localStorage.removeItem('vendor_token')
-      toast.success("Logged out successfully");
-      router.push("/Vendor/Login");
+      let token = localStorage.getItem('vendor_token');
+      let vendorDataString = localStorage.getItem('vendor_data');
+      
+      if (!token || !vendorDataString) {
+        router.push("/Vendor/Login");
+        return;
+      }
+
+      const parsedVendorData = JSON.parse(vendorDataString); // Parse JSON string
+      setVendorData(parsedVendorData);
+      setVendorToken(token);
+      setUser(parsedVendorData);
+
+      // Getting vendor Products 
+      const vendorProductsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/get-products/${parsedVendorData.id}`, {
+        method: 'GET',
+        headers: {
+          "content-type": "application/json",
+        }
+      });
+      
+      console.log("Vendor Products Response:", vendorProductsResponse);
+      
+      if (!vendorProductsResponse.ok) { // Fixed typo: vendorRespone -> vendorProductsResponse
+        toast.error('Something went wrong, try again later.'); // Fixed: danger -> error
+        return;
+      }
+      
+      const vendorProductsData = await vendorProductsResponse.json();
+      setProducts(vendorProductsData?.data?.products || []);
+
+      // Load mock data
+      loadMockData();
+      
     } catch (error) {
-      toast.error("Error signing out");
-      console.error("Logout error:", error);
+      console.error("Error loading initial data:", error);
+      toast.error("Failed to load data");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
+  loadInitialData();
+}, [router]);
 
-    // Optional: limit number of images to 5
-    if (files.length + productImages.length > 5) {
-      alert('You can only upload up to 5 images.');
-      return;
-    }
-
-    // Optional: check file types
-    const validImages = files.filter(file =>
-      ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'].includes(file.type)
-    );
-
-    setProductImages(prev => [...prev, ...validImages]);
-  };
-
+const loadMockData = () => {
+  setOrders([
+    { id: "ORD-1001", clientName: "John Doe", date: "2023-06-15", status: "Completed", total: "₦12,599", files: ["brochure-design.pdf"], designLink: "https://design.example.com/1001" },
+    { id: "ORD-1002", clientName: "Jane Smith", date: "2023-06-20", status: "Processing", total: "₦8,950", files: ["logo-specs.pdf"], designLink: "" },
+    { id: "ORD-1003", clientName: "Robert Johnson", date: "2023-06-22", status: "Pending", total: "₦23,500", files: ["business-card.pdf", "letterhead.pdf"], designLink: "" }
+  ]);
   
-  const handleCreateProduct = async(e) => {
-    e.preventDefault();
-    
-    if (!productName || !productDescription || !productPrice || !productMaterial || selectedColors.length === 0) {
-      toast.error("Please fill all required fields");
-      return;
-    }
-    
+  setEarnings({
+    available: 56000,
+    total: 125000,
+    pending: 23000
+  });
+  
+  setPayouts([
+    { id: "PYT-001", date: "2023-05-30", amount: "₦45,000", status: "Paid", txnId: "TXN4587952" },
+    { id: "PYT-002", date: "2023-06-15", amount: "₦32,000", status: "Paid", txnId: "TXN4692301" },
+    { id: "PYT-003", date: "2023-06-28", amount: "₦18,000", status: "Pending", txnId: "TXN4721905" }
+  ]);
+};
+
+const handleLogout = async () => {
+  try {
+    localStorage.removeItem('vendor_token');
+    localStorage.removeItem('vendor_data'); // Also remove vendor data
+    toast.success("Logged out successfully");
+    router.push("/Vendor/Login");
+  } catch (error) {
+    toast.error("Error signing out");
+    console.error("Logout error:", error);
+  }
+};
+
+const handleImageUpload = (e) => {
+  const files = Array.from(e.target.files);
+
+  // Optional: limit number of images to 5
+  if (files.length + productImages.length > 5) {
+    toast.error('You can only upload up to 5 images.'); // Use toast instead of alert
+    return;
+  }
+
+  // Optional: check file types
+  const validImages = files.filter(file =>
+    ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'].includes(file.type)
+  );
+
+  if (validImages.length !== files.length) {
+    toast.warning('Some files were not valid image formats and were skipped.');
+  }
+
+  setProductImages(prev => [...prev, ...validImages]);
+};
+
+const handleCreateProduct = async (e) => {
+  e.preventDefault();
+  
+  if (!productName || !productDescription || !productPrice || !productMaterial || selectedColors.length === 0) {
+    toast.error("Please fill all required fields");
+    return;
+  }
+  
+  try {
     const newProduct = {
-      id: products.length + 1,
       name: productName,
       description: productDescription,
       price: parseFloat(productPrice),
-      discout: parseFloat(discout) || 0,
-      catrgory: category,
-      stock: parseInt(stock),
-      color: selectedColors,
+      discount: parseFloat(discount) || 0, // Fixed typo: discout -> discount
+      category: category, // Fixed typo: catrgory -> category
+      stock: parseInt(stock) || 0,
+      colors: selectedColors, // Changed color to colors for clarity
       material: productMaterial,
-      images: productImages.length > 0 ? productImages : ["/api/placeholder/400/300"],
+      // Note: Handle image upload separately in a real application
+      images: productImages.length > 0 ? productImages : [],
+    };
+
+    // Creating new product
+    const formData = new FormData();
+    
+    // Append product data
+    Object.keys(newProduct).forEach(key => {
+      if (key === 'colors') {
+        formData.append(key, JSON.stringify(newProduct[key]));
+      } else if (key === 'images') {
+        // Handle file uploads
+        productImages.forEach((image, index) => {
+          formData.append(`images`, image);
+        });
+      } else {
+        formData.append(key, newProduct[key]);
+      }
+    });
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/add-product/${vendorData.id}`, {
+      method: 'POST',
+      headers: {
+        "Authorization": `Bearer ${vendorToken}`
+        // Don't set Content-Type for FormData, let the browser set it
+      },
+      body: formData
+    });
+
+    console.log("Response from server:", response);
+
+    if (!response.ok) {
+      throw new Error('Failed to create product');
+    }
+
+    const responseData = await response.json();
+    
+    // Add the product with server response data to local state
+    const createdProduct = {
+      id: responseData.id || Date.now(), // Use server ID or fallback
+      ...newProduct,
     };
     
-    setProducts([...products, newProduct]);
+    setProducts(prev => [...prev, createdProduct]);
 
-    console.log("New product created:", newProduct);
-
-    const vendor = localStorage.getItem('vendor_data');
-
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/add-product/${vendor.id}`, 
-       {
-        method: 'POST',
-        headers: {
-          "Authorization": "Bearer " + localStorage.getItem('vendor_token')
-        },
-        body: JSON.stringify(newProduct)
-      });
-
-    console.log(response);
-    
     toast.success("Product created successfully!");
     
     // Reset form
@@ -165,8 +222,12 @@ export default function VendorDashboard() {
     setProductMaterial("");
     setSelectedColors([]);
     setProductImages([]);
-  };
-  
+    
+  } catch (error) {
+    console.error("Error creating product:", error);
+    toast.error("Failed to create product. Please try again.");
+  }
+};
   const handleColorToggle = (color) => {
     if (selectedColors.includes(color)) {
       setSelectedColors(selectedColors.filter(c => c !== color));

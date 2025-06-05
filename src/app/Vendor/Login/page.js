@@ -94,7 +94,6 @@ export default function VendorLogin() {
       }
   
       const data = await response.json();
-      console.log(data)
   
       // Ensure token is present
       const token = data?.token;
