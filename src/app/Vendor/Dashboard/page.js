@@ -19,6 +19,9 @@ export default function VendorDashboard() {
   const [productName, setProductName] = useState("");
   const [productDescription, setProductDescription] = useState("");
   const [productPrice, setProductPrice] = useState("");
+  const [discout, setDiscount] = useState("");
+  const [catergory, setCategory] = useState("");
+  const [stock, setStock] = useState("");
   const [productMaterial, setProductMaterial] = useState("");
   const [selectedColors, setSelectedColors] = useState([]);
   const [productImages, setProductImages] = useState([]); 
@@ -41,16 +44,18 @@ export default function VendorDashboard() {
 
   // Load user data and initial content
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (!user) {
+    const unsubscribe = () => {
+      let token = localStorage.getItem('vendor_token');
+      let vendorData = localStorage.getItem('vendor_data');
+      if (!token || !vendorData) {
         router.push("/Vendor/Login");
       } else {
-        setUser(user);
+        setUser(vendorData);
         // Load mock data
         loadMockData();
       }
       setLoading(false);
-    });
+    };
 
     return () => unsubscribe();
   }, [router]);
@@ -123,15 +128,17 @@ export default function VendorDashboard() {
       name: productName,
       description: productDescription,
       price: parseFloat(productPrice),
-      colors: selectedColors,
+      discout: parseFloat(discout) || 0,
+      catergory: catergory,
+      stock: parseInt(stock),
+      color: selectedColors,
       material: productMaterial,
-      stock: 100,
       images: productImages.length > 0 ? productImages : ["/api/placeholder/400/300"],
     };
     
     setProducts([...products, newProduct]);
 
-    const response = await axios(`${process.env.API_KEY}/products/add-product/${vendorId}`, products, {
+    const response = await axios(`${process.env.NEXT_PUBLIC_API_URL}/products/add-product/${vendorId}`, products, {
         headers: {
           "Authorization": "Bearer " + localStorage.getItem('vendor_token')
         }
@@ -145,6 +152,9 @@ export default function VendorDashboard() {
     setProductName("");
     setProductDescription("");
     setProductPrice("");
+    setDiscount("");
+    setCategory("");
+    setStock("");
     setProductMaterial("");
     setSelectedColors([]);
     setProductImages([]);

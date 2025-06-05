@@ -78,9 +78,8 @@ export default function VendorLogin() {
     setLoading(true);
   
     try {
-      const baseURL = `https://five9minutes-backend.onrender.com/api`;
-  
-      const response = await fetch(`${baseURL}/vendor/login`, {
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/vendors/login`, {
         method: 'POST',
         headers: {
           "Content-Type": "application/json"

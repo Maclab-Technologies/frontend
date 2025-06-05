@@ -132,9 +132,9 @@ export default function VendorRegister() {
     setLoading(true);
   
     try {
-      const baseURL = `https://five9minutes-backend.onrender.com/api`;
+      const baseURL = `${process.env.NEXT_PUBLIC_API_BASE_URL}`;
   
-      const response = await fetch(`${baseURL}/vendor/signup`, {
+      const response = await fetch(`${baseURL}/vendors/signup`, {
         method: 'POST',
         headers: {
           "Content-Type": "application/json"
