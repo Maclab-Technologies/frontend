@@ -15,7 +15,7 @@ const validateProduct = (product) => {
   if (!product) return null;
   
   // Ensure product has a valid ID
-  const productId = product._id || product.id || Math.random().toString(36).substring(2, 9);
+  const productId = product.id || "unknown-id";
   
   // Handle category which might be an object or string
   const category = typeof product.category === 'object' && product.category
@@ -113,8 +113,6 @@ export default function ProductsPage() {
           .map(validateProduct)
           .filter(Boolean);
       }
-      
-      console.log('Fetched products:', productArray);
       
       // Only update state if we got valid data
       if (productArray.length > 0) {
@@ -503,7 +501,7 @@ export default function ProductsPage() {
             {sortedProducts.map((product) => {
               if (!product) return null;
               
-              const productId = String(product._id || product.id || "");
+              const productId = String(product.id);
               const productName = String(product.name || "Unnamed Product");
               const productCategory = String(product.category || "Uncategorized");
               const productStock = Number(product.stock) || 0;

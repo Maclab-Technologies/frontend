@@ -26,6 +26,7 @@ export default async function CategoryPage({ params }) {
 
     const fetchedProducts = json.data;
 
+    console.log("Fetched products:", fetchedProducts);
     
     if (!Array.isArray(fetchedProducts)) {
       throw new Error("Invalid product data received");
@@ -78,7 +79,7 @@ export default async function CategoryPage({ params }) {
                 : '0';
 
               return (
-                <Link key={product._id} href={`/Products/${product.id}`} passHref>
+                <Link key={product.id} href={`/Products/${product.id}`} passHref>
                   <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden group relative">
                     <div className="w-full h-64 relative overflow-hidden">
                       <Image

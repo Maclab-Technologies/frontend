@@ -20,7 +20,7 @@ export default function VendorDashboard() {
   const [productDescription, setProductDescription] = useState("");
   const [productPrice, setProductPrice] = useState("");
   const [discout, setDiscount] = useState("");
-  const [catergory, setCategory] = useState("");
+  const [category, setCategory] = useState("");
   const [stock, setStock] = useState("");
   const [productMaterial, setProductMaterial] = useState("");
   const [selectedColors, setSelectedColors] = useState([]);
@@ -129,7 +129,7 @@ export default function VendorDashboard() {
       description: productDescription,
       price: parseFloat(productPrice),
       discout: parseFloat(discout) || 0,
-      catergory: catergory,
+      catrgory: category,
       stock: parseInt(stock),
       color: selectedColors,
       material: productMaterial,
@@ -138,10 +138,17 @@ export default function VendorDashboard() {
     
     setProducts([...products, newProduct]);
 
-    const response = await axios(`${process.env.NEXT_PUBLIC_API_URL}/products/add-product/${vendorId}`, products, {
+    console.log("New product created:", newProduct);
+
+    const vendor = localStorage.getItem('vendor_data');
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/add-product/${vendor.id}`, 
+       {
+        method: 'POST',
         headers: {
           "Authorization": "Bearer " + localStorage.getItem('vendor_token')
-        }
+        },
+        body: JSON.stringify(newProduct)
       });
 
     console.log(response);
@@ -405,7 +412,7 @@ export default function VendorDashboard() {
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">Price (₦)</label>
               <input
-                type="number"
+                type="text"
                 value={productPrice}
                 onChange={(e) => setProductPrice(e.target.value)}
                 className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
@@ -418,21 +425,73 @@ export default function VendorDashboard() {
 
           <div>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">Price (₦)</label>
-              <select
-                value={productPrice}
-                onChange={(e) => setProductPrice(e.target.value)}
-                className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                placeholder="Price in Naira"
-                min="0"
-                required
-              >
-                <option value></option>
-              </select>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
+                <textarea
+                  value={productDescription}
+                  onChange={(e) => setProductDescription(e.target.value)}
+                  className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  placeholder="Product description"
+                  min="0"
+                  required
+                  rows={6}      // Increase height
+                  cols={50}     // Increase width
+                >
+                </textarea>
             </div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Category</label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                required
+              >
+                <option value="">Select Category</option>
+                <option value="Apparel">Apparel</option>
+                <option value="Banners">Banners</option>
+                <option value="Brochures">Brochures</option>
+                <option value="Business Cards">Business Cards</option>
+                <option value="Flyers">Flyers</option>
+                <option value="Invitation Cards">Invitation Cards</option>
+                <option value="Merchandise">Merchandise</option>
+                <option value="Posters">Posters</option>
+                <option value="Stationery">Stationery</option>
+                <option value="Stickers">Stickers</option>
+                <option value="shirt design">shirt design</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Min Order</label>
+              <div className="flex gap-2">
+                <select
+                  value={stock}
+                  onChange={e => setStock(e.target.value)}
+                  className="bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                >
+                  <option value="">Min: 10</option>
+                  <option value="10">10</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                  <option value="500">500</option>
+                  <option value="1000">1000</option>
+                </select>
+                <input
+                  type="number"
+                  min="1"
+                  value={stock}
+                  onChange={e => setStock(e.target.value)}
+                  className="w-32 bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  placeholder="custom"
+                />
+              </div>
+            </div>
+          </div>
+          
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">Material</label>
               <input
@@ -466,7 +525,8 @@ export default function VendorDashboard() {
               </div>
             </div>
           </div>
-          
+
+          {/* Upload pictures */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">
               Upload Images (Max 5)

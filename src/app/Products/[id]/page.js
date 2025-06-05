@@ -67,7 +67,7 @@ export default function ProductDetail() {
 
         console.log(data)
         if (Array.isArray(data)) {
-          const foundProduct = data.find((p) => p.id === id || p._id === id);
+          const foundProduct = data.find((p) => p.id === id );
           if (foundProduct) {
             const normalizedProduct = normalizeMongoId(foundProduct);
             setProduct(normalizedProduct);
@@ -154,7 +154,7 @@ export default function ProductDetail() {
 
     try {
       const cartItem = {
-        id: product.id || (product._id?.toString()),
+        id: product.id,
         name: product.name,
         price: product.price,
         image: selectedImage || product.images?.[0],
@@ -172,7 +172,7 @@ export default function ProductDetail() {
       }
 
       const existingItemIndex = existingCart.findIndex((item) => 
-        (item.id === product.id || item.id === product._id?.toString()) && item.designOption === designOption
+        (item.id === product.id) && item.designOption === designOption
       );
 
       if (existingItemIndex !== -1) {
@@ -188,7 +188,7 @@ export default function ProductDetail() {
       }
       
       const designInfo = {
-        productId: product.id || product._id?.toString(),
+        productId: product.id,
         productName: product.name,
         productImage: selectedImage || product.images?.[0],
         quantity: quantity,
