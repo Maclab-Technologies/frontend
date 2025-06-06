@@ -45,189 +45,186 @@ const [vendorData, setVendorData] = useState(null);
 const [vendorToken, setVendorToken] = useState(null);
 
 // Load user data and initial content
-useEffect(() => {
-  const loadInitialData = async () => {
-    try {
-      let token = localStorage.getItem('vendor_token');
-      let vendorDataString = localStorage.getItem('vendor_data');
-      
-      if (!token || !vendorDataString) {
-        router.push("/Vendor/Login");
-        return;
-      }
+  useEffect(() => {
+    const loadInitialData = async () => {
+      try {
+        const token = localStorage.getItem('vendor_token');
+        const data = JSON.parse(localStorage.getItem('vendor_data'));
 
-      const parsedVendorData = JSON.parse(vendorDataString); // Parse JSON string
-      setVendorData(parsedVendorData);
-      setVendorToken(token);
-      setUser(parsedVendorData);
-
-      // Getting vendor Products 
-      const vendorProductsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/get-products/${parsedVendorData.id}`, {
-        method: 'GET',
-        headers: {
-          "content-type": "application/json",
+        if (!token || !data) {
+          router.push("/Vendor/Login");
+          return;
         }
-      });
-      
-      console.log("Vendor Products Response:", vendorProductsResponse);
-      
-      if (!vendorProductsResponse.ok) { // Fixed typo: vendorRespone -> vendorProductsResponse
-        toast.error('Something went wrong, try again later.'); // Fixed: danger -> error
-        return;
-      }
-      
-      const vendorProductsData = await vendorProductsResponse.json();
-      setProducts(vendorProductsData?.data?.products || []);
 
-      // Load mock data
-      loadMockData();
-      
+        setVendorToken(token);
+        setVendorData(data);
+
+        // Fetch vendor products
+        const vendorProductsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/vendor/${data.id}`, {
+          method: 'GET',
+          headers: {
+            "content-type": "application/json",
+            "Authorization": 'Bearer ' + token
+          }
+        });
+
+        if (!vendorProductsResponse.ok) {
+          toast.error('Something went wrong, try again later.');
+          return;
+        }
+
+        const vendorProductsData = await vendorProductsResponse.json();
+        setProducts(vendorProductsData?.data);
+
+        // Load mock data
+        loadMockData();
+
+      } catch (error) {
+        console.error("Error loading initial data:", error);
+        toast.error("Failed to load data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadInitialData();
+  }, [router]);
+
+  const loadMockData = () => {
+    setOrders([
+      { id: "ORD-1001", clientName: "John Doe", date: "2023-06-15", status: "Completed", total: "₦12,599", files: ["brochure-design.pdf"], designLink: "https://design.example.com/1001" },
+      { id: "ORD-1002", clientName: "Jane Smith", date: "2023-06-20", status: "Processing", total: "₦8,950", files: ["logo-specs.pdf"], designLink: "" },
+      { id: "ORD-1003", clientName: "Robert Johnson", date: "2023-06-22", status: "Pending", total: "₦23,500", files: ["business-card.pdf", "letterhead.pdf"], designLink: "" }
+    ]);
+    
+    setEarnings({
+      available: 56000,
+      total: 125000,
+      pending: 23000
+    });
+    
+    setPayouts([
+      { id: "PYT-001", date: "2023-05-30", amount: "₦45,000", status: "Paid", txnId: "TXN4587952" },
+      { id: "PYT-002", date: "2023-06-15", amount: "₦32,000", status: "Paid", txnId: "TXN4692301" },
+      { id: "PYT-003", date: "2023-06-28", amount: "₦18,000", status: "Pending", txnId: "TXN4721905" }
+    ]);
+  };
+
+  const handleLogout = async () => {
+    try {
+      localStorage.removeItem('vendor_token');
+      localStorage.removeItem('vendor_data'); // Also remove vendor data
+      toast.success("Logged out successfully");
+      router.push("/Vendor/Login");
     } catch (error) {
-      console.error("Error loading initial data:", error);
-      toast.error("Failed to load data");
-    } finally {
-      setLoading(false);
+      toast.error("Error signing out");
+      console.error("Logout error:", error);
     }
   };
 
-  loadInitialData();
-}, [router]);
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
 
-const loadMockData = () => {
-  setOrders([
-    { id: "ORD-1001", clientName: "John Doe", date: "2023-06-15", status: "Completed", total: "₦12,599", files: ["brochure-design.pdf"], designLink: "https://design.example.com/1001" },
-    { id: "ORD-1002", clientName: "Jane Smith", date: "2023-06-20", status: "Processing", total: "₦8,950", files: ["logo-specs.pdf"], designLink: "" },
-    { id: "ORD-1003", clientName: "Robert Johnson", date: "2023-06-22", status: "Pending", total: "₦23,500", files: ["business-card.pdf", "letterhead.pdf"], designLink: "" }
-  ]);
-  
-  setEarnings({
-    available: 56000,
-    total: 125000,
-    pending: 23000
-  });
-  
-  setPayouts([
-    { id: "PYT-001", date: "2023-05-30", amount: "₦45,000", status: "Paid", txnId: "TXN4587952" },
-    { id: "PYT-002", date: "2023-06-15", amount: "₦32,000", status: "Paid", txnId: "TXN4692301" },
-    { id: "PYT-003", date: "2023-06-28", amount: "₦18,000", status: "Pending", txnId: "TXN4721905" }
-  ]);
-};
-
-const handleLogout = async () => {
-  try {
-    localStorage.removeItem('vendor_token');
-    localStorage.removeItem('vendor_data'); // Also remove vendor data
-    toast.success("Logged out successfully");
-    router.push("/Vendor/Login");
-  } catch (error) {
-    toast.error("Error signing out");
-    console.error("Logout error:", error);
-  }
-};
-
-const handleImageUpload = (e) => {
-  const files = Array.from(e.target.files);
-
-  // Optional: limit number of images to 5
-  if (files.length + productImages.length > 5) {
-    toast.error('You can only upload up to 5 images.'); // Use toast instead of alert
-    return;
-  }
-
-  // Optional: check file types
-  const validImages = files.filter(file =>
-    ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'].includes(file.type)
-  );
-
-  if (validImages.length !== files.length) {
-    toast.warning('Some files were not valid image formats and were skipped.');
-  }
-
-  setProductImages(prev => [...prev, ...validImages]);
-};
-
-const handleCreateProduct = async (e) => {
-  e.preventDefault();
-  
-  if (!productName || !productDescription || !productPrice || !productMaterial || selectedColors.length === 0) {
-    toast.error("Please fill all required fields");
-    return;
-  }
-  
-  try {
-    const newProduct = {
-      name: productName,
-      description: productDescription,
-      price: parseFloat(productPrice),
-      discount: parseFloat(discount) || 0, // Fixed typo: discout -> discount
-      category: category, // Fixed typo: catrgory -> category
-      stock: parseInt(stock) || 0,
-      colors: selectedColors, // Changed color to colors for clarity
-      material: productMaterial,
-      // Note: Handle image upload separately in a real application
-      images: productImages.length > 0 ? productImages : [],
-    };
-
-    // Creating new product
-    const formData = new FormData();
-    
-    // Append product data
-    Object.keys(newProduct).forEach(key => {
-      if (key === 'colors') {
-        formData.append(key, JSON.stringify(newProduct[key]));
-      } else if (key === 'images') {
-        // Handle file uploads
-        productImages.forEach((image, index) => {
-          formData.append(`images`, image);
-        });
-      } else {
-        formData.append(key, newProduct[key]);
-      }
-    });
-
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/add-product/${vendorData.id}`, {
-      method: 'POST',
-      headers: {
-        "Authorization": `Bearer ${vendorToken}`
-        // Don't set Content-Type for FormData, let the browser set it
-      },
-      body: formData
-    });
-
-    console.log("Response from server:", response);
-
-    if (!response.ok) {
-      throw new Error('Failed to create product');
+    // Optional: limit number of images to 5
+    if (files.length + productImages.length > 5) {
+      toast.error('You can only upload up to 5 images.'); // Use toast instead of alert
+      return;
     }
 
-    const responseData = await response.json();
-    
-    // Add the product with server response data to local state
-    const createdProduct = {
-      id: responseData.id || Date.now(), // Use server ID or fallback
-      ...newProduct,
-    };
-    
-    setProducts(prev => [...prev, createdProduct]);
+    // Optional: check file types
+    const validImages = files.filter(file =>
+      ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'].includes(file.type)
+    );
 
-    toast.success("Product created successfully!");
+    if (validImages.length !== files.length) {
+      toast.warning('Some files were not valid image formats and were skipped.');
+    }
+
+    setProductImages(prev => [...prev, ...validImages]);
+  };
+
+  const handleCreateProduct = async (e) => {
+    e.preventDefault();
     
-    // Reset form
-    setProductName("");
-    setProductDescription("");
-    setProductPrice("");
-    setDiscount("");
-    setCategory("");
-    setStock("");
-    setProductMaterial("");
-    setSelectedColors([]);
-    setProductImages([]);
+    if (!productName || !productDescription || !productPrice || !productMaterial || selectedColors.length === 0) {
+      toast.error("Please fill all required fields");
+      return;
+    }
     
-  } catch (error) {
-    console.error("Error creating product:", error);
-    toast.error("Failed to create product. Please try again.");
-  }
-};
+    try {
+      const newProduct = {
+        name: productName,
+        description: productDescription,
+        price: parseFloat(productPrice),
+        discount: parseFloat(discount) || 0,
+        category: category,
+        stock: parseInt(stock) || 0,
+        material: productMaterial,
+        color: selectedColors,
+        images: productImages.length > 0 ? productImages : [],
+      };
+
+      // Creating new product
+      const formData = new FormData();
+      
+      // Append product data
+      Object.keys(newProduct).forEach(key => {
+        if (key === 'colors') {
+          formData.append(key, JSON.stringify(newProduct[key]));
+        } else if (key === 'images') {
+          // Handle file uploads
+          productImages.forEach((image, index) => {
+            formData.append(`images`, image);
+          });
+        } else {
+          formData.append(key, newProduct[key]);
+        }
+      });
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/add-product/${vendorData.id}`, {
+        method: 'POST',
+        headers: {
+          "Authorization": `Bearer ${vendorToken}`
+          // Don't set Content-Type for FormData, let the browser set it
+        },
+        body: formData
+      });
+
+      console.log("Response from server:", response);
+
+      if (!response.ok) {
+        throw new Error('Failed to create product');
+      }
+
+      const responseData = await response.json();
+      
+      // Add the product with server response data to local state
+      const createdProduct = {
+        id: responseData.id || Date.now(), // Use server ID or fallback
+        ...newProduct,
+      };
+      
+      setProducts(prev => [...prev, createdProduct]);
+
+      toast.success("Product created successfully!");
+      
+      // Reset form
+      setProductName("");
+      setProductDescription("");
+      setProductPrice("");
+      setDiscount("");
+      setCategory("");
+      setStock("");
+      setProductMaterial("");
+      setSelectedColors([]);
+      setProductImages([]);
+      
+    } catch (error) {
+      console.error("Error creating product:", error);
+      toast.error("Failed to create product. Please try again.");
+    }
+  };
+
   const handleColorToggle = (color) => {
     if (selectedColors.includes(color)) {
       setSelectedColors(selectedColors.filter(c => c !== color));
@@ -236,8 +233,16 @@ const handleCreateProduct = async (e) => {
     }
   };
   
-  const handleDeleteProduct = (id) => {
-    setProducts(products.filter(product => product.id !== id));
+  const handleDeleteProduct = async (id) => {
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${id}`, {
+      method: 'DELETE',
+      headers: {
+        "Authorization": `Bearer ${vendorToken}`,
+        "Content-Type": "application/json"
+      }
+    });
+    if(!response.ok) toast.error("Failed to delete product");
     toast.success("Product deleted");
   };
   
@@ -457,6 +462,8 @@ const handleCreateProduct = async (e) => {
         <h1 className="text-2xl font-bold mb-6">Create New Product</h1>
         
         <form onSubmit={handleCreateProduct} className="space-y-6">
+
+          {/* Product name and category */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">Product Name</label>
@@ -470,39 +477,7 @@ const handleCreateProduct = async (e) => {
               />
             </div>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">Price (₦)</label>
-              <input
-                type="text"
-                value={productPrice}
-                onChange={(e) => setProductPrice(e.target.value)}
-                className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                placeholder="Price in Naira"
-                min="0"
-                required
-              />
-            </div>
-          </div>
-
-          <div>
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
-                <textarea
-                  value={productDescription}
-                  onChange={(e) => setProductDescription(e.target.value)}
-                  className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                  placeholder="Product description"
-                  min="0"
-                  required
-                  rows={6}      // Increase height
-                  cols={50}     // Increase width
-                >
-                </textarea>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
+             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">Category</label>
               <select
                 value={category}
@@ -523,6 +498,53 @@ const handleCreateProduct = async (e) => {
                 <option value="Stickers">Stickers</option>
                 <option value="shirt design">shirt design</option>
               </select>
+            </div>
+          </div>
+
+          {/* Product description */}
+          <div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
+                <textarea
+                  value={productDescription}
+                  onChange={(e) => setProductDescription(e.target.value)}
+                  className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  placeholder="Product description"
+                  min="0"
+                  required
+                  rows={6}      // Increase height
+                  cols={50}     // Increase width
+                >
+                </textarea>
+            </div>
+          </div>
+          
+          {/* Product price, discount, and min order */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Price (₦)</label>
+              <input
+                type="text"
+                value={productPrice}
+                onChange={(e) => setProductPrice(e.target.value)}
+                className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                placeholder="Price in Naira"
+                min="0"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Discount (%)</label>
+              <input
+                type="text"
+                value={discount}
+                onChange={(e) => setDiscount(e.target.value)}
+                className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                placeholder="Price in Naira"
+                min="0"
+                required
+              />
             </div>
             
             <div>
@@ -552,7 +574,8 @@ const handleCreateProduct = async (e) => {
             </div>
           </div>
           
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Product materail and color */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">Material</label>
               <input
@@ -670,13 +693,13 @@ const handleCreateProduct = async (e) => {
                   </div>
                   <p className="text-sm text-gray-400 mb-3">{product.description}</p>
                   <div className="flex flex-wrap gap-1 mb-3">
-                    {product.colors.map((color, idx) => (
+                    {product.color.map((color, idx) => (
                       <span key={idx} className="px-2 py-0.5 bg-gray-700 text-xs rounded-full">{color}</span>
                     ))}
                   </div>
                   <div className="flex items-center justify-between text-sm text-gray-400 mb-4">
                     <span>Material: {product.material}</span>
-                    <span>In Stock: {product.stock}</span>
+                    <span>Min order: {product.stock}</span>
                   </div>
                   <div className="flex justify-between">
                     <button className="flex items-center text-blue-400 hover:text-blue-300">

@@ -555,6 +555,7 @@ export default function ProductsPage() {
                     
                     <div className="text-sm text-gray-400 mb-4 space-y-1">
                       <p className="truncate">Category: {productCategory}</p>
+                      <p className="truncate">Min order: {product.stock}</p>
                       <p className={productStock > 5 ? "text-green-400" : productStock > 0 ? "text-orange-400" : "text-red-400"}>
                         {productStock > 5 ? "In Stock" : productStock > 0 ? "Low Stock" : "Out of Stock"}
                       </p>
