@@ -155,7 +155,7 @@ export default function VendorLandingPage() {
               </svg>
             </Link>
             <Link
-              href="/vendor/login"
+              href="/Vendor/Login"
               className={`inline-flex items-center justify-center px-8 py-4 rounded-lg text-lg font-bold transition-all duration-300 ${
                 isHoverSecondary 
                   ? "bg-white text-gray-900 shadow-lg transform scale-105" 

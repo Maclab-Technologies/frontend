@@ -48,11 +48,11 @@ export default function Home() {
       } catch (error) {
         setError(error.message);
         if (error.name === "AbortError") {
-          toast.error("Request timed out. Server may be slow to respond.");
+          // toast.error("Request timed out. Server may be slow to respond.");
         } else if (error.message.includes("Failed to fetch")) {
-          toast.error("Network error. Please check your internet connection.");
+          // toast.error("Network error. Please check your internet connection.");
         } else {
-          toast.error("Failed to load categories. Please try again later.");
+          // toast.error("Failed to load categories. Please try again later.");
         }
       } finally {
         setIsLoading(false);
@@ -187,7 +187,7 @@ export default function Home() {
                       setError(null);
                     } catch (error) {
                       setError(error.message);
-                      toast.error("Failed to reload. Please try again later.");
+                      // toast.error("Failed to reload. Please try again later.");
                     } finally {
                       setIsLoading(false);
                     }

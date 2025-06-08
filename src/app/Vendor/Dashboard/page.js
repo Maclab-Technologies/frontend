@@ -1,4 +1,4 @@
-//  https://five9minutes-backend.onrender.com/ that is our backend deployments use it to solve this our frontend for vendors dashboard remove those fake data replace them with Api fetch let them be functional those Create products and the rest let them works with the api routes let prepare it to be professiona as a frontend engineer 
+//  https://five9minutes-backend.onrender.com/ 
 "use client";
 
 import { useEffect, useState } from "react";
