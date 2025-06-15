@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-//  https://five9minutes-backend.onrender.com/ 
-=======
 // Updated Vendor Dashboard with reusable product form and fixed delete modal
->>>>>>> f092646 (dashboard)
 "use client";
 
 import { useEffect, useState } from "react";
