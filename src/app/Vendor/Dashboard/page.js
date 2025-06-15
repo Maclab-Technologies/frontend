@@ -1,55 +1,499 @@
+<<<<<<< HEAD
 //  https://five9minutes-backend.onrender.com/ 
+=======
+// Updated Vendor Dashboard with reusable product form and fixed delete modal
+>>>>>>> f092646 (dashboard)
 "use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { FaHome, FaBoxOpen, FaClipboardList, FaPlus, FaMoneyBillWave, FaWallet, FaHistory, FaSignOutAlt, FaBars, FaTimes, FaUser, FaFileDownload, FaFileUpload, FaCheck, FaClock, FaTrash, FaEdit, FaDollarSign } from "react-icons/fa";
+import {
+  FaHome,
+  FaBoxOpen,
+  FaClipboardList,
+  FaPlus,
+  FaMoneyBillWave,
+  FaWallet,
+  FaHistory,
+  FaSignOutAlt,
+  FaBars,
+  FaTimes,
+  FaUser,
+  FaFileDownload,
+  FaFileUpload,
+  FaCheck,
+  FaClock,
+  FaTrash,
+  FaEdit,
+  FaDollarSign,
+} from "react-icons/fa";
 import { auth } from "../../utils/firebaseconfig";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+// Reusable Product Form Component
+const ProductForm = ({
+  product = null,
+  onSubmit,
+  onCancel,
+  isSubmitting = false,
+}) => {
+  const [productName, setProductName] = useState(product?.name || "");
+  const [productDescription, setProductDescription] = useState(
+    product?.description || ""
+  );
+  const [productPrice, setProductPrice] = useState(product?.price || "");
+  const [discount, setDiscount] = useState(product?.discount || "");
+  const [category, setCategory] = useState(product?.category || "");
+  const [stock, setStock] = useState(product?.stock || "");
+  const [productMaterial, setProductMaterial] = useState(
+    product?.material || ""
+  );
+  const [selectedColors, setSelectedColors] = useState(
+    product?.color || []
+  );
+  const [productImages, setProductImages] = useState([]);
+  const [existingImages, setExistingImages] = useState(
+    product?.images || []
+  );
+
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+
+    if (files.length + productImages.length > 5) {
+      toast.error("You can only upload up to 5 images.");
+      return;
+    }
+
+    const validImages = files.filter((file) =>
+      ["image/png", "image/jpeg", "image/jpg", "image/gif"].includes(file.type)
+    );
+
+    if (validImages.length !== files.length) {
+      toast.warning("Some files were not valid image formats and were skipped.");
+    }
+
+    setProductImages((prev) => [...prev, ...validImages]);
+  };
+
+  const handleRemoveImage = (index, isExisting = false) => {
+    if (isExisting) {
+      setExistingImages(existingImages.filter((_, i) => i !== index));
+    } else {
+      setProductImages(productImages.filter((_, i) => i !== index));
+    }
+  };
+
+  const handleColorToggle = (color) => {
+    if (selectedColors.includes(color)) {
+      setSelectedColors(selectedColors.filter((c) => c !== color));
+    } else {
+      setSelectedColors([...selectedColors, color]);
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (
+      !productName ||
+      !productDescription ||
+      !productPrice ||
+      !productMaterial ||
+      selectedColors.length === 0
+    ) {
+      toast.error("Please fill all required fields");
+      return;
+    }
+
+    const productData = {
+      name: productName,
+      description: productDescription,
+      price: parseFloat(productPrice),
+      discount: parseFloat(discount) || 0,
+      category,
+      stock: parseInt(stock) || 0,
+      material: productMaterial,
+      color: selectedColors,
+      images: productImages,
+      existingImages,
+    };
+
+    onSubmit(productData);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Product name and category */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">
+            Product Name
+          </label>
+          <input
+            type="text"
+            value={productName}
+            onChange={(e) => setProductName(e.target.value)}
+            className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+            placeholder="e.g. Business Cards"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">
+            Category
+          </label>
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+            required
+          >
+            <option value="">Select Category</option>
+            <option value="Apparel">Apparel</option>
+            <option value="Banners">Banners</option>
+            <option value="Brochures">Brochures</option>
+            <option value="Business Cards">Business Cards</option>
+            <option value="Flyers">Flyers</option>
+            <option value="Invitation Cards">Invitation Cards</option>
+            <option value="Merchandise">Merchandise</option>
+            <option value="Posters">Posters</option>
+            <option value="Stationery">Stationery</option>
+            <option value="Stickers">Stickers</option>
+            <option value="shirt design">shirt design</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Product description */}
+      <div>
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">
+            Description
+          </label>
+          <textarea
+            value={productDescription}
+            onChange={(e) => setProductDescription(e.target.value)}
+            className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+            placeholder="Product description"
+            required
+            rows={6}
+          ></textarea>
+        </div>
+      </div>
+
+      {/* Product price, discount, and min order */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">
+            Price (₦)
+          </label>
+          <input
+            type="number"
+            value={productPrice}
+            onChange={(e) => setProductPrice(e.target.value)}
+            className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+            placeholder="Price in Naira"
+            min="0"
+            step="0.01"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">
+            Discount (%)
+          </label>
+          <input
+            type="number"
+            value={discount}
+            onChange={(e) => setDiscount(e.target.value)}
+            className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+            placeholder="0"
+            min="0"
+            max="100"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Stock Quantity
+          </label>
+          <div className="flex gap-2">
+            <select
+              value={stock}
+              onChange={(e) => setStock(e.target.value)}
+              className="bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+            >
+              <option value="">Select quantity</option>
+              <option value="10">10</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+              <option value="500">500</option>
+              <option value="1000">1000</option>
+            </select>
+            <input
+              type="number"
+              min="1"
+              value={stock}
+              onChange={(e) => setStock(e.target.value)}
+              className="w-32 bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              placeholder="Custom quantity"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Product material and color */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">
+            Material
+          </label>
+          <input
+            type="text"
+            value={productMaterial}
+            onChange={(e) => setProductMaterial(e.target.value)}
+            className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+            placeholder="e.g. Glossy Paper, Matte, etc."
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Available Colors
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {[
+              "Red",
+              "Blue",
+              "Green",
+              "Black",
+              "White",
+              "Yellow",
+              "Full Color",
+            ].map((color) => (
+              <button
+                key={color}
+                type="button"
+                onClick={() => handleColorToggle(color)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors
+                  ${
+                    selectedColors.includes(color)
+                      ? "bg-yellow-500 text-black"
+                      : "bg-gray-700 text-gray-300 border border-gray-600 hover:bg-gray-600"
+                  }`}
+              >
+                {color}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Upload pictures */}
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-1">
+          Upload Images (Max 5)
+        </label>
+        <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-600 border-dashed rounded-md">
+          <div className="space-y-1 text-center">
+            <FaFileUpload className="mx-auto h-12 w-12 text-gray-400" />
+            <div className="flex text-sm text-gray-400">
+              <label
+                htmlFor="file-upload"
+                className="relative cursor-pointer rounded-md font-medium text-yellow-400 hover:text-yellow-300 focus-within:outline-none"
+              >
+                <span>Upload files</span>
+                <input
+                  id="file-upload"
+                  name="file-upload"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="sr-only"
+                  onChange={handleImageUpload}
+                />
+              </label>
+              <p className="pl-1">or drag and drop</p>
+            </div>
+            <p className="text-xs text-gray-400">
+              PNG, JPG, GIF up to 5 files
+            </p>
+            {(productImages.length > 0 || existingImages.length > 0) && (
+              <p className="text-sm text-green-400">
+                {productImages.length + existingImages.length} images selected
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Image previews */}
+      <div className="flex flex-wrap gap-2 mt-4">
+        {existingImages.map((image, index) => (
+          <div key={`existing-${index}`} className="relative">
+            <img
+              src={image}
+              alt={`existing-${index}`}
+              className="w-24 h-24 object-cover rounded-md border border-gray-400"
+            />
+            <button
+              type="button"
+              onClick={() => handleRemoveImage(index, true)}
+              className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+        {productImages.map((file, index) => (
+          <div key={`new-${index}`} className="relative">
+            <img
+              src={URL.createObjectURL(file)}
+              alt={`upload-${index}`}
+              className="w-24 h-24 object-cover rounded-md border border-gray-400"
+            />
+            <button
+              type="button"
+              onClick={() => handleRemoveImage(index)}
+              className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex justify-end gap-3">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white font-medium rounded-md transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-medium rounded-md transition-colors disabled:opacity-70"
+        >
+          {isSubmitting ? (
+            <span className="flex items-center justify-center">
+              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              {product ? "Updating..." : "Creating..."}
+            </span>
+          ) : (
+            <span>{product ? "Update Product" : "Create Product"}</span>
+          )}
+        </button>
+      </div>
+    </form>
+  );
+};
+
+// Delete Confirmation Modal
+const DeleteConfirmationModal = ({
+  product,
+  onConfirm,
+  onCancel,
+  isDeleting = false,
+}) => {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-gray-800 border border-gray-600 rounded-lg p-6 max-w-md w-full mx-4">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-white">Confirm Delete</h2>
+          <button
+            onClick={onCancel}
+            className="text-gray-400 hover:text-white transition-colors"
+          >
+            <FaTimes />
+          </button>
+        </div>
+
+        <div className="mb-6">
+          <p className="text-gray-300 mb-2">
+            Are you sure you want to delete this product?
+          </p>
+          {product && (
+            <div className="bg-gray-900 p-3 rounded border border-gray-700">
+              <p className="font-semibold text-white">{product.name}</p>
+              <p className="text-sm text-gray-400">{product.description}</p>
+              <p className="text-yellow-400 font-bold">
+                ₦{product.price.toLocaleString()}
+              </p>
+            </div>
+          )}
+          <p className="text-red-400 text-sm mt-3">
+            This action cannot be undone.
+          </p>
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            onClick={onCancel}
+            className="flex-1 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-500 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={isDeleting}
+            className="flex-1 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-500 transition-colors disabled:opacity-70"
+          >
+            {isDeleting ? "Deleting..." : "Delete"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function VendorDashboard() {
- const router = useRouter();
-const [mobileNavOpen, setMobileNavOpen] = useState(false);
-const [user, setUser] = useState(null);
-const [loading, setLoading] = useState(true);
-const [activeTab, setActiveTab] = useState("Dashboard");
+  const router = useRouter();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("Dashboard");
 
-// Form states for Create Product
-const [productName, setProductName] = useState("");
-const [productDescription, setProductDescription] = useState("");
-const [productPrice, setProductPrice] = useState("");
-const [discount, setDiscount] = useState(""); // Fixed typo: discout -> discount
-const [category, setCategory] = useState("");
-const [stock, setStock] = useState("");
-const [productMaterial, setProductMaterial] = useState("");
-const [selectedColors, setSelectedColors] = useState([]);
-const [productImages, setProductImages] = useState([]); 
+  // State for bank details in Withdraw tab
+  const [bankName, setBankName] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [accountName, setAccountName] = useState("");
+  const [withdrawAmount, setWithdrawAmount] = useState("");
 
-// State for bank details in Withdraw tab
-const [bankName, setBankName] = useState("");
-const [accountNumber, setAccountNumber] = useState("");
-const [accountName, setAccountName] = useState("");
-const [withdrawAmount, setWithdrawAmount] = useState("");
+  // Data states
+  const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [earnings, setEarnings] = useState({
+    available: 0,
+    total: 0,
+    pending: 0,
+  });
+  const [payouts, setPayouts] = useState([]);
+  const [vendorData, setVendorData] = useState(null);
+  const [vendorToken, setVendorToken] = useState(null);
 
-// Mock Data
-const [products, setProducts] = useState([]);
-const [orders, setOrders] = useState([]);
-const [earnings, setEarnings] = useState({
-  available: 10,
-  total: 10,
-  pending: 10,
-});
-const [payouts, setPayouts] = useState([]);
-const [vendorData, setVendorData] = useState(null);
-const [vendorToken, setVendorToken] = useState(null);
+  // Modal states
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [productToDelete, setProductToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showProductForm, setShowProductForm] = useState(false);
+  const [productToEdit, setProductToEdit] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-// Load user data and initial content
+  // Load user data and initial content
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        const token = localStorage.getItem('vendor_token');
-        const data = JSON.parse(localStorage.getItem('vendor_data'));
+        const token = localStorage.getItem("vendor_token");
+        const data = JSON.parse(localStorage.getItem("vendor_data"));
 
         if (!token || !data) {
           router.push("/Vendor/Login");
@@ -60,25 +504,78 @@ const [vendorToken, setVendorToken] = useState(null);
         setVendorData(data);
 
         // Fetch vendor products
-        const vendorProductsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/vendor/${data.id}`, {
-          method: 'GET',
-          headers: {
-            "content-type": "application/json",
-            "Authorization": 'Bearer ' + token
+        const vendorProductsResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/products/vendor/${data.id}`,
+          {
+            method: "GET",
+            headers: {
+              "content-type": "application/json",
+              Authorization: "Bearer " + token,
+            },
           }
-        });
+        );
 
         if (!vendorProductsResponse.ok) {
-          toast.error('Something went wrong, try again later.');
-          return;
+          throw new Error("Failed to fetch products");
         }
 
         const vendorProductsData = await vendorProductsResponse.json();
-        setProducts(vendorProductsData?.data);
+        setProducts(vendorProductsData?.data || []);
 
-        // Load mock data
-        loadMockData();
+        // Fetch vendor orders
+        const vendorOrdersResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/orders/vendor/${data.id}`,
+          {
+            method: "GET",
+            headers: {
+              "content-type": "application/json",
+              Authorization: "Bearer " + token,
+            },
+          }
+        );
 
+        if (vendorOrdersResponse.ok) {
+          const vendorOrdersData = await vendorOrdersResponse.json();
+          setOrders(vendorOrdersData?.data || []);
+        }
+
+        // Fetch vendor earnings
+        const vendorEarningsResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/vendors/earnings/${data.id}`,
+          {
+            method: "GET",
+            headers: {
+              "content-type": "application/json",
+              Authorization: "Bearer " + token,
+            },
+          }
+        );
+
+        if (vendorEarningsResponse.ok) {
+          const vendorEarningsData = await vendorEarningsResponse.json();
+          setEarnings(vendorEarningsData?.data || {
+            available: 0,
+            total: 0,
+            pending: 0,
+          });
+        }
+
+        // Fetch vendor payouts
+        const vendorPayoutsResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/vendors/payouts/${data.id}`,
+          {
+            method: "GET",
+            headers: {
+              "content-type": "application/json",
+              Authorization: "Bearer " + token,
+            },
+          }
+        );
+
+        if (vendorPayoutsResponse.ok) {
+          const vendorPayoutsData = await vendorPayoutsResponse.json();
+          setPayouts(vendorPayoutsData?.data || []);
+        }
       } catch (error) {
         console.error("Error loading initial data:", error);
         toast.error("Failed to load data");
@@ -90,30 +587,10 @@ const [vendorToken, setVendorToken] = useState(null);
     loadInitialData();
   }, [router]);
 
-  const loadMockData = () => {
-    setOrders([
-      { id: "ORD-1001", clientName: "John Doe", date: "2023-06-15", status: "Completed", total: "₦12,599", files: ["brochure-design.pdf"], designLink: "https://design.example.com/1001" },
-      { id: "ORD-1002", clientName: "Jane Smith", date: "2023-06-20", status: "Processing", total: "₦8,950", files: ["logo-specs.pdf"], designLink: "" },
-      { id: "ORD-1003", clientName: "Robert Johnson", date: "2023-06-22", status: "Pending", total: "₦23,500", files: ["business-card.pdf", "letterhead.pdf"], designLink: "" }
-    ]);
-    
-    setEarnings({
-      available: 56000,
-      total: 125000,
-      pending: 23000
-    });
-    
-    setPayouts([
-      { id: "PYT-001", date: "2023-05-30", amount: "₦45,000", status: "Paid", txnId: "TXN4587952" },
-      { id: "PYT-002", date: "2023-06-15", amount: "₦32,000", status: "Paid", txnId: "TXN4692301" },
-      { id: "PYT-003", date: "2023-06-28", amount: "₦18,000", status: "Pending", txnId: "TXN4721905" }
-    ]);
-  };
-
   const handleLogout = async () => {
     try {
-      localStorage.removeItem('vendor_token');
-      localStorage.removeItem('vendor_data'); // Also remove vendor data
+      localStorage.removeItem("vendor_token");
+      localStorage.removeItem("vendor_data");
       toast.success("Logged out successfully");
       router.push("/Vendor/Login");
     } catch (error) {
@@ -122,168 +599,189 @@ const [vendorToken, setVendorToken] = useState(null);
     }
   };
 
-  const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-
-    // Optional: limit number of images to 5
-    if (files.length + productImages.length > 5) {
-      toast.error('You can only upload up to 5 images.'); // Use toast instead of alert
-      return;
-    }
-
-    // Optional: check file types
-    const validImages = files.filter(file =>
-      ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'].includes(file.type)
-    );
-
-    if (validImages.length !== files.length) {
-      toast.warning('Some files were not valid image formats and were skipped.');
-    }
-
-    setProductImages(prev => [...prev, ...validImages]);
-  };
-
-  const handleCreateProduct = async (e) => {
-    e.preventDefault();
-    
-    if (!productName || !productDescription || !productPrice || !productMaterial || selectedColors.length === 0) {
-      toast.error("Please fill all required fields");
-      return;
-    }
-    
+  const handleCreateProduct = async (productData) => {
+    setIsSubmitting(true);
     try {
-      const newProduct = {
-        name: productName,
-        description: productDescription,
-        price: parseFloat(productPrice),
-        discount: parseFloat(discount) || 0,
-        category: category,
-        stock: parseInt(stock) || 0,
-        material: productMaterial,
-        color: selectedColors,
-        images: productImages.length > 0 ? productImages : [],
-      };
-
-      // Creating new product
       const formData = new FormData();
       
       // Append product data
-      Object.keys(newProduct).forEach(key => {
-        if (key === 'colors') {
-          formData.append(key, JSON.stringify(newProduct[key]));
+      Object.keys(productData).forEach(key => {
+        if (key === 'color') {
+          formData.append(key, JSON.stringify(productData[key]));
         } else if (key === 'images') {
-          // Handle file uploads
-          productImages.forEach((image, index) => {
-            formData.append(`images`, image);
+          productData.images.forEach(image => {
+            formData.append('images', image);
           });
-        } else {
-          formData.append(key, newProduct[key]);
+        } else if (key !== 'existingImages') {
+          formData.append(key, productData[key]);
         }
       });
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/add-product/${vendorData.id}`, {
-        method: 'POST',
-        headers: {
-          "Authorization": `Bearer ${vendorToken}`
-          // Don't set Content-Type for FormData, let the browser set it
-        },
-        body: formData
-      });
-
-      console.log("Response from server:", response);
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/products/add-product/${vendorData.id}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${vendorToken}`,
+          },
+          body: formData,
+        }
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to create product');
+        throw new Error("Failed to create product");
       }
 
       const responseData = await response.json();
-      
-      // Add the product with server response data to local state
-      const createdProduct = {
-        id: responseData.id || Date.now(), // Use server ID or fallback
-        ...newProduct,
-      };
-      
-      setProducts(prev => [...prev, createdProduct]);
-
+      setProducts(prev => [...prev, responseData.data]);
       toast.success("Product created successfully!");
-      
-      // Reset form
-      setProductName("");
-      setProductDescription("");
-      setProductPrice("");
-      setDiscount("");
-      setCategory("");
-      setStock("");
-      setProductMaterial("");
-      setSelectedColors([]);
-      setProductImages([]);
-      
+      setShowProductForm(false);
     } catch (error) {
       console.error("Error creating product:", error);
       toast.error("Failed to create product. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleColorToggle = (color) => {
-    if (selectedColors.includes(color)) {
-      setSelectedColors(selectedColors.filter(c => c !== color));
-    } else {
-      setSelectedColors([...selectedColors, color]);
-    }
-  };
-  
-  const handleDeleteProduct = async (id) => {
+  const handleUpdateProduct = async (productData) => {
+    setIsSubmitting(true);
+    try {
+      const formData = new FormData();
+      
+      // Append product data
+      Object.keys(productData).forEach(key => {
+        if (key === 'color') {
+          formData.append(key, JSON.stringify(productData[key]));
+        } else if (key === 'images') {
+          productData.images.forEach(image => {
+            formData.append('images', image);
+          });
+        } else if (key === 'existingImages') {
+          formData.append('existingImages', JSON.stringify(productData[key]));
+        } else {
+          formData.append(key, productData[key]);
+        }
+      });
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${id}`, {
-      method: 'DELETE',
-      headers: {
-        "Authorization": `Bearer ${vendorToken}`,
-        "Content-Type": "application/json"
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/products/edit/${productToEdit.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${vendorToken}`,
+          },
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update product");
       }
-    });
-    if(!response.ok) toast.error("Failed to delete product");
-    toast.success("Product deleted");
+
+      const responseData = await response.json();
+      setProducts(prev =>
+        prev.map(p => (p.id === productToEdit.id ? responseData.data : p))
+      );
+      toast.success("Product updated successfully!");
+      setShowProductForm(false);
+      setProductToEdit(null);
+    } catch (error) {
+      console.error("Error updating product:", error);
+      toast.error("Failed to update product. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-  
+
+  const handleDeleteClick = (product) => {
+    setProductToDelete(product);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/products/${productToDelete.id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${vendorToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to delete product");
+      }
+
+      setProducts(prev => prev.filter(p => p.id !== productToDelete.id));
+      toast.success("Product deleted successfully");
+      setShowDeleteModal(false);
+      setProductToDelete(null);
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      toast.error("Failed to delete product");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setProductToDelete(null);
+  };
+
+  const handleEditProduct = (product) => {
+    setProductToEdit(product);
+    setShowProductForm(true);
+  };
+
+  const handleCancelEdit = () => {
+    setShowProductForm(false);
+    setProductToEdit(null);
+  };
+
   const handleSubmitWithdrawal = (e) => {
     e.preventDefault();
-    
+
     if (!bankName || !accountNumber || !accountName || !withdrawAmount) {
       toast.error("Please fill all bank details");
       return;
     }
-    
+
     if (parseFloat(withdrawAmount) > earnings.available) {
       toast.error("Withdrawal amount exceeds available balance");
       return;
     }
-    
+
     // In a real app, this would send a request to the backend
     const newPayout = {
       id: `PYT-00${payouts.length + 1}`,
-      date: new Date().toISOString().split('T')[0],
+      date: new Date().toISOString().split("T")[0],
       amount: `₦${parseFloat(withdrawAmount).toLocaleString()}`,
       status: "Pending",
-      txnId: `TXN${Math.floor(1000000 + Math.random() * 9000000)}`
+      txnId: `TXN${Math.floor(1000000 + Math.random() * 9000000)}`,
     };
-    
+
     setPayouts([newPayout, ...payouts]);
     setEarnings({
       ...earnings,
       available: earnings.available - parseFloat(withdrawAmount),
-      pending: earnings.pending + parseFloat(withdrawAmount)
+      pending: earnings.pending + parseFloat(withdrawAmount),
     });
-    
+
     toast.success("Withdrawal request submitted");
     setWithdrawAmount("");
   };
-  
+
   const handleDesignLinkSubmit = (orderId, link) => {
     setOrders(
-      orders.map(order => 
-        order.id === orderId 
-          ? {...order, designLink: link, status: "In Review"} 
+      orders.map((order) =>
+        order.id === orderId
+          ? { ...order, designLink: link, status: "In Review" }
           : order
       )
     );
@@ -296,9 +794,14 @@ const [vendorToken, setVendorToken] = useState(null);
       <div className="space-y-6">
         <div className="bg-gray-800 rounded-lg p-6 text-white">
           <h1 className="text-2xl font-bold mb-2">
-            Welcome back, <span className="text-yellow-400">{user?.displayName || "Vendor"}</span>
+            Welcome back,{" "}
+            <span className="text-yellow-400">
+              {vendorData?.name || "Vendor"}
+            </span>
           </h1>
-          <p className="text-gray-300 mb-6">Quick overview of your products and orders</p>
+          <p className="text-gray-300 mb-6">
+            Quick overview of your products and orders
+          </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-gray-700">
@@ -308,7 +811,9 @@ const [vendorToken, setVendorToken] = useState(null);
                 </div>
                 <div>
                   <p className="text-sm text-gray-300">Total Products</p>
-                  <p className="text-xl font-bold text-white">{products.length}</p>
+                  <p className="text-xl font-bold text-white">
+                    {products.length}
+                  </p>
                 </div>
               </div>
             </div>
@@ -319,7 +824,9 @@ const [vendorToken, setVendorToken] = useState(null);
                 </div>
                 <div>
                   <p className="text-sm text-gray-300">Total Orders</p>
-                  <p className="text-xl font-bold text-white">{orders.length}</p>
+                  <p className="text-xl font-bold text-white">
+                    {orders.length}
+                  </p>
                 </div>
               </div>
             </div>
@@ -330,7 +837,9 @@ const [vendorToken, setVendorToken] = useState(null);
                 </div>
                 <div>
                   <p className="text-sm text-gray-300">Available Balance</p>
-                  <p className="text-xl font-bold text-white">₦{earnings.available.toLocaleString()}</p>
+                  <p className="text-xl font-bold text-white">
+                    ₦{earnings.available.toLocaleString()}
+                  </p>
                 </div>
               </div>
             </div>
@@ -342,16 +851,25 @@ const [vendorToken, setVendorToken] = useState(null);
           <h2 className="text-lg font-bold mb-4">Recent Orders</h2>
           <div className="space-y-3">
             {orders.slice(0, 3).map((order) => (
-              <div key={order.id} className="bg-black bg-opacity-30 rounded-lg p-4 border border-gray-700 flex justify-between items-center">
+              <div
+                key={order.id}
+                className="bg-black bg-opacity-30 rounded-lg p-4 border border-gray-700 flex justify-between items-center"
+              >
                 <div>
                   <p className="text-sm font-medium">{order.id}</p>
                   <p className="text-xs text-gray-400">{order.date}</p>
                 </div>
-                <p className={`font-bold ${
-                  order.status === "Completed" ? "text-green-400" : 
-                  order.status === "Processing" ? "text-blue-400" : 
-                  order.status === "In Review" ? "text-purple-400" : "text-yellow-400"
-                }`}>
+                <p
+                  className={`font-bold ${
+                    order.status === "Completed"
+                      ? "text-green-400"
+                      : order.status === "Processing"
+                        ? "text-blue-400"
+                        : order.status === "In Review"
+                          ? "text-purple-400"
+                          : "text-yellow-400"
+                  }`}
+                >
                   {order.status}
                 </p>
                 <p className="text-sm">{order.total}</p>
@@ -361,61 +879,98 @@ const [vendorToken, setVendorToken] = useState(null);
         </div>
       </div>
     ),
-    
+
     Orders: (
       <div className="bg-gray-800 rounded-lg p-6 text-white">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Manage Orders</h1>
           <div className="flex space-x-2">
-            <button className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors bg-opacity-20 hover:bg-opacity-30 bg-white text-white`}>
+            <button
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors bg-opacity-20 hover:bg-opacity-30 bg-white text-white`}
+            >
               All
             </button>
-            <button className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors bg-opacity-20 hover:bg-opacity-30 bg-yellow-400 text-yellow-400`}>
+            <button
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors bg-opacity-20 hover:bg-opacity-30 bg-yellow-400 text-yellow-400`}
+            >
               Pending
             </button>
-            <button className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors bg-opacity-20 hover:bg-opacity-30 bg-purple-400 text-purple-400`}>
+            <button
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors bg-opacity-20 hover:bg-opacity-30 bg-purple-400 text-purple-400`}
+            >
               In Review
             </button>
-            <button className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors bg-opacity-20 hover:bg-opacity-30 bg-green-400 text-green-400`}>
+            <button
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors bg-opacity-20 hover:bg-opacity-30 bg-green-400 text-green-400`}
+            >
               Completed
             </button>
           </div>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-700">
             <thead>
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Order ID</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Client</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Date</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Amount</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Files</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  Order ID
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  Client
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  Date
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  Amount
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  Files
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700">
               {orders.map((order) => (
                 <tr key={order.id}>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-white">{order.id}</td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">{order.clientName}</td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">{order.date}</td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-white">
+                    {order.id}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">
+                    {order.clientName}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">
+                    {order.date}
+                  </td>
                   <td className="px-4 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full
-                      ${order.status === "Completed" ? "bg-green-100 text-green-800" : 
-                        order.status === "Processing" ? "bg-blue-100 text-blue-800" : 
-                        order.status === "In Review" ? "bg-purple-100 text-purple-800" : 
-                        "bg-yellow-100 text-yellow-800"}
-                    `}>
+                    <span
+                      className={`px-2 py-1 text-xs font-semibold rounded-full
+                      ${
+                        order.status === "Completed"
+                          ? "bg-green-100 text-green-800"
+                          : order.status === "Processing"
+                            ? "bg-blue-100 text-blue-800"
+                            : order.status === "In Review"
+                              ? "bg-purple-100 text-purple-800"
+                              : "bg-yellow-100 text-yellow-800"
+                      }
+                    `}
+                    >
                       {order.status}
                     </span>
                   </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">{order.total}</td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">
+                    {order.total}
+                  </td>
                   <td className="px-4 py-4 whitespace-nowrap text-sm">
                     <div className="flex space-x-2">
                       {order.files.map((file, index) => (
-                        <button 
+                        <button
                           key={index}
                           className="text-blue-400 hover:text-blue-300 flex items-center text-xs"
                         >
@@ -426,7 +981,8 @@ const [vendorToken, setVendorToken] = useState(null);
                     </div>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-sm">
-                    {order.status === "Pending" || order.status === "Processing" ? (
+                    {order.status === "Pending" ||
+                    order.status === "Processing" ? (
                       <div className="flex items-center">
                         <input
                           type="text"
@@ -434,8 +990,15 @@ const [vendorToken, setVendorToken] = useState(null);
                           className="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm w-48 mr-2"
                           defaultValue={order.designLink}
                         />
-                        <button 
-                          onClick={() => handleDesignLinkSubmit(order.id, document.querySelector(`input[placeholder="Enter design link"]`).value)}
+                        <button
+                          onClick={() =>
+                            handleDesignLinkSubmit(
+                              order.id,
+                              document.querySelector(
+                                `input[placeholder="Enter design link"]`
+                              ).value
+                            )
+                          }
                           className="bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-1 px-3 rounded text-xs"
                         >
                           Submit
@@ -459,255 +1022,105 @@ const [vendorToken, setVendorToken] = useState(null);
 
     "Create Product": (
       <div className="bg-gray-800 rounded-lg p-6 text-white">
-        <h1 className="text-2xl font-bold mb-6">Create New Product</h1>
-        
-        <form onSubmit={handleCreateProduct} className="space-y-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Create New Product</h1>
+          <button
+            onClick={() => setShowProductForm(true)}
+            className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-medium rounded-md transition-colors"
+          >
+            <FaPlus className="mr-1 inline" /> Create Product
+          </button>
+        </div>
 
-          {/* Product name and category */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">Product Name</label>
-              <input
-                type="text"
-                value={productName}
-                onChange={(e) => setProductName(e.target.value)}
-                className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                placeholder="e.g. Business Cards"
-                required
-              />
-            </div>
-            
-             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">Category</label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                required
-              >
-                <option value="">Select Category</option>
-                <option value="Apparel">Apparel</option>
-                <option value="Banners">Banners</option>
-                <option value="Brochures">Brochures</option>
-                <option value="Business Cards">Business Cards</option>
-                <option value="Flyers">Flyers</option>
-                <option value="Invitation Cards">Invitation Cards</option>
-                <option value="Merchandise">Merchandise</option>
-                <option value="Posters">Posters</option>
-                <option value="Stationery">Stationery</option>
-                <option value="Stickers">Stickers</option>
-                <option value="shirt design">shirt design</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Product description */}
-          <div>
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
-                <textarea
-                  value={productDescription}
-                  onChange={(e) => setProductDescription(e.target.value)}
-                  className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                  placeholder="Product description"
-                  min="0"
-                  required
-                  rows={6}      // Increase height
-                  cols={50}     // Increase width
-                >
-                </textarea>
-            </div>
-          </div>
-          
-          {/* Product price, discount, and min order */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">Price (₦)</label>
-              <input
-                type="text"
-                value={productPrice}
-                onChange={(e) => setProductPrice(e.target.value)}
-                className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                placeholder="Price in Naira"
-                min="0"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">Discount (%)</label>
-              <input
-                type="text"
-                value={discount}
-                onChange={(e) => setDiscount(e.target.value)}
-                className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                placeholder="Price in Naira"
-                min="0"
-                required
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Min Order</label>
-              <div className="flex gap-2">
-                <select
-                  value={stock}
-                  onChange={e => setStock(e.target.value)}
-                  className="bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                >
-                  <option value="">Min: 10</option>
-                  <option value="10">10</option>
-                  <option value="50">50</option>
-                  <option value="100">100</option>
-                  <option value="500">500</option>
-                  <option value="1000">1000</option>
-                </select>
-                <input
-                  type="number"
-                  min="1"
-                  value={stock}
-                  onChange={e => setStock(e.target.value)}
-                  className="w-32 bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                  placeholder="custom"
-                />
-              </div>
-            </div>
-          </div>
-          
-          {/* Product materail and color */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">Material</label>
-              <input
-                type="text"
-                value={productMaterial}
-                onChange={(e) => setProductMaterial(e.target.value)}
-                className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                placeholder="e.g. Glossy Paper, Matte, etc."
-                required
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Available Colors</label>
-              <div className="flex flex-wrap gap-2">
-                {["Red", "Blue", "Green", "Black", "White", "Yellow", "Full Color"].map(color => (
-                  <button
-                    key={color}
-                    type="button"
-                    onClick={() => handleColorToggle(color)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors
-                      ${selectedColors.includes(color) 
-                        ? 'bg-yellow-500 text-black' 
-                        : 'bg-gray-700 text-gray-300 border border-gray-600 hover:bg-gray-600'
-                      }`
-                    }
-                  >
-                    {color}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Upload pictures */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
-              Upload Images (Max 5)
-            </label>
-            <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-600 border-dashed rounded-md">
-              <div className="space-y-1 text-center">
-                <FaFileUpload className="mx-auto h-12 w-12 text-gray-400" />
-                <div className="flex text-sm text-gray-400">
-                  <label
-                    htmlFor="file-upload"
-                    className="relative cursor-pointer rounded-md font-medium text-yellow-400 hover:text-yellow-300 focus-within:outline-none"
-                  >
-                    <span>Upload files</span>
-                    <input
-                      id="file-upload"
-                      name="file-upload"
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      className="sr-only"
-                      onChange={handleImageUpload}
-                    />
-                  </label>
-                  <p className="pl-1">or drag and drop</p>
-                </div>
-                <p className="text-xs text-gray-400">PNG, JPG, GIF up to 5 files</p>
-                {productImages.length > 0 && (
-                  <p className="text-sm text-green-400">{productImages.length} images selected</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-2 mt-4">
-            {productImages.map((file, index) => (
-              <img
-                key={index}
-                src={URL.createObjectURL(file)}
-                alt={`upload-${index}`}
-                className="w-24 h-24 object-cover rounded-md border border-gray-400"
-              />
-            ))}
-          </div>
-
-          <div className="flex justify-end">
+        {products.length === 0 && !showProductForm && (
+          <div className="text-center py-10">
+            <p className="text-gray-400 mb-4">
+              You haven't created any products yet
+            </p>
             <button
-              type="submit"
+              onClick={() => setShowProductForm(true)}
               className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-medium rounded-md transition-colors"
             >
-              Create Product
+              Create Your First Product
             </button>
           </div>
-        </form>
+        )}
+
+        {showProductForm && (
+          <ProductForm
+            onSubmit={handleCreateProduct}
+            onCancel={() => setShowProductForm(false)}
+            isSubmitting={isSubmitting}
+          />
+        )}
       </div>
     ),
 
     "Manage Products": (
-      <div className="bg-gray-800 rounded-lg p-6 text-white">
+      <div className="bg-gray-800 rounded-lg p-6 text-white relative">
         <h1 className="text-2xl font-bold mb-6">Manage Your Products</h1>
-        
+
         {products.length === 0 ? (
           <div className="text-center py-10">
-            <p className="text-gray-400">No products available. Create your first product!</p>
+            <p className="text-gray-400">
+              No products available. Create your first product!
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products.map(product => (
-              <div key={product.id} className="bg-gray-900 border border-gray-700 rounded-lg overflow-hidden">
+            {products.map((product) => (
+              <div
+                key={product.id}
+                className="bg-gray-900 border border-gray-700 rounded-lg overflow-hidden"
+              >
                 <div className="w-full h-48 bg-gray-800">
-                  <img 
-                    src={product.images[0]} 
-                    alt={product.name}
-                    className="w-full h-full object-cover"
-                  />
+                  {product.images && product.images.length > 0 ? (
+                    <img
+                      src={product.images[0]}
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      No Image
+                    </div>
+                  )}
                 </div>
                 <div className="p-4">
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="text-lg font-semibold">{product.name}</h3>
-                    <p className="font-bold text-yellow-400">₦{product.price.toLocaleString()}</p>
+                    <p className="font-bold text-yellow-400">
+                      ₦{product.price.toLocaleString()}
+                    </p>
                   </div>
-                  <p className="text-sm text-gray-400 mb-3">{product.description}</p>
+                  <p className="text-sm text-gray-400 mb-3">
+                    {product.description}
+                  </p>
                   <div className="flex flex-wrap gap-1 mb-3">
-                    {product.color.map((color, idx) => (
-                      <span key={idx} className="px-2 py-0.5 bg-gray-700 text-xs rounded-full">{color}</span>
-                    ))}
+                    {product.color &&
+                      product.color.map((color, idx) => (
+                        <span
+                          key={idx}
+                          className="px-2 py-0.5 bg-gray-700 text-xs rounded-full"
+                        >
+                          {color}
+                        </span>
+                      ))}
                   </div>
                   <div className="flex items-center justify-between text-sm text-gray-400 mb-4">
                     <span>Material: {product.material}</span>
-                    <span>Min order: {product.stock}</span>
+                    <span>Stock: {product.stock}</span>
                   </div>
                   <div className="flex justify-between">
-                    <button className="flex items-center text-blue-400 hover:text-blue-300">
+                    <button
+                      onClick={() => handleEditProduct(product)}
+                      className="flex items-center text-blue-400 hover:text-blue-300 transition-colors"
+                    >
                       <FaEdit className="mr-1" /> Edit
                     </button>
-                    <button 
-                      onClick={() => handleDeleteProduct(product.id)}
-                      className="flex items-center text-red-400 hover:text-red-300"
+                    <button
+                      onClick={() => handleDeleteClick(product)}
+                      className="flex items-center text-red-400 hover:text-red-300 transition-colors"
                     >
                       <FaTrash className="mr-1" /> Delete
                     </button>
@@ -717,42 +1130,81 @@ const [vendorToken, setVendorToken] = useState(null);
             ))}
           </div>
         )}
+
+        {/* Product Form Modal */}
+        {showProductForm && productToEdit && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">Edit Product</h2>
+                <button
+                  onClick={handleCancelEdit}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <FaTimes size={20} />
+                </button>
+              </div>
+              <ProductForm
+                product={productToEdit}
+                onSubmit={handleUpdateProduct}
+                onCancel={handleCancelEdit}
+                isSubmitting={isSubmitting}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && (
+          <DeleteConfirmationModal
+            product={productToDelete}
+            onConfirm={handleConfirmDelete}
+            onCancel={handleCancelDelete}
+            isDeleting={isDeleting}
+          />
+        )}
       </div>
     ),
-    
-    "Earnings": (
+
+    Earnings: (
       <div className="bg-gray-800 rounded-lg p-6 text-white">
         <h1 className="text-2xl font-bold mb-6">Your Earnings</h1>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-lg font-medium">Available Balance</h3>
               <FaMoneyBillWave className="text-green-400 text-xl" />
             </div>
-            <p className="text-3xl font-bold text-green-400">₦{earnings.available.toLocaleString()}</p>
+            <p className="text-3xl font-bold text-green-400">
+              ₦{earnings.available.toLocaleString()}
+            </p>
             <p className="text-sm text-gray-400 mt-2">Ready to withdraw</p>
           </div>
-          
+
           <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-lg font-medium">Total Earnings</h3>
               <FaDollarSign className="text-yellow-400 text-xl" />
             </div>
-            <p className="text-3xl font-bold text-yellow-400">₦{earnings.total.toLocaleString()}</p>
+            <p className="text-3xl font-bold text-yellow-400">
+              ₦{earnings.total.toLocaleString()}
+            </p>
             <p className="text-sm text-gray-400 mt-2">Lifetime earnings</p>
           </div>
-          
+
           <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-lg font-medium">Pending</h3>
               <FaClock className="text-blue-400 text-xl" />
             </div>
-            <p className="text-3xl font-bold text-blue-400">₦{earnings.pending.toLocaleString()}</p>
+            <p className="text-3xl font-bold text-blue-400">
+              ₦{earnings.pending.toLocaleString()}
+            </p>
             <p className="text-sm text-gray-400 mt-2">Processing withdrawals</p>
           </div>
         </div>
-        
+
         <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
           <h2 className="text-xl font-semibold mb-4">Performance Breakdown</h2>
           <div className="mb-6">
@@ -761,42 +1213,71 @@ const [vendorToken, setVendorToken] = useState(null);
               <span className="text-sm font-medium">80%</span>
             </div>
             <div className="w-full bg-gray-700 rounded-full h-2.5">
-              <div className="bg-green-500 h-2.5 rounded-full" style={{ width: "80%" }}></div>
+              <div
+                className="bg-green-500 h-2.5 rounded-full"
+                style={{ width: "80%" }}
+              ></div>
             </div>
             <p className="text-xs text-gray-400 mt-2">
               You receive 80% of each sale, 20% goes to platform fee
             </p>
           </div>
-          
+
           <h3 className="font-medium mb-3">Monthly Summary</h3>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-700">
               <thead>
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Month</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Orders</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Earnings</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Commission</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    Month
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    Orders
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    Earnings
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    Commission
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-700">
                 <tr>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm">June 2023</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm">
+                    June 2023
+                  </td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm">12</td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm">₦48,000</td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-green-400">₦38,400</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm">
+                    ₦48,000
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-green-400">
+                    ₦38,400
+                  </td>
                 </tr>
                 <tr>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm">May 2023</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm">
+                    May 2023
+                  </td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm">15</td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm">₦65,000</td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-green-400">₦52,000</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm">
+                    ₦65,000
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-green-400">
+                    ₦52,000
+                  </td>
                 </tr>
                 <tr>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm">April 2023</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm">
+                    April 2023
+                  </td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm">8</td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm">₦32,000</td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-green-400">₦25,600</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm">
+                    ₦32,000
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-green-400">
+                    ₦25,600
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -804,31 +1285,35 @@ const [vendorToken, setVendorToken] = useState(null);
         </div>
       </div>
     ),
-    
-    "Withdraw": (
+
+    Withdraw: (
       <div className="bg-gray-800 rounded-lg p-6 text-white">
         <h1 className="text-2xl font-bold mb-6">Withdraw Funds</h1>
-        
+
         <div className="bg-gray-900 rounded-lg p-6 border border-gray-700 mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
               <span className="text-sm text-gray-400">Available Balance</span>
-              <h2 className="text-3xl font-bold text-green-400">₦{earnings.available.toLocaleString()}</h2>
+              <h2 className="text-3xl font-bold text-green-400">
+                ₦{earnings.available.toLocaleString()}
+              </h2>
             </div>
-            
+
             <div className="mt-4 md:mt-0">
               <span className="text-sm text-gray-400">Minimum Withdrawal</span>
               <p className="text-lg font-medium">₦5,000</p>
             </div>
           </div>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
             <h2 className="text-xl font-semibold mb-4">Bank Details</h2>
             <form className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Bank Name</label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Bank Name
+                </label>
                 <input
                   type="text"
                   value={bankName}
@@ -837,9 +1322,11 @@ const [vendorToken, setVendorToken] = useState(null);
                   placeholder="Enter your bank name"
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Account Number</label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Account Number
+                </label>
                 <input
                   type="text"
                   value={accountNumber}
@@ -848,9 +1335,11 @@ const [vendorToken, setVendorToken] = useState(null);
                   placeholder="Enter your account number"
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Account Name</label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Account Name
+                </label>
                 <input
                   type="text"
                   value={accountName}
@@ -861,12 +1350,14 @@ const [vendorToken, setVendorToken] = useState(null);
               </div>
             </form>
           </div>
-          
+
           <div>
             <h2 className="text-xl font-semibold mb-4">Request Withdrawal</h2>
             <form onSubmit={handleSubmitWithdrawal} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Amount (₦)</label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Amount (₦)
+                </label>
                 <input
                   type="number"
                   value={withdrawAmount}
@@ -877,10 +1368,11 @@ const [vendorToken, setVendorToken] = useState(null);
                   placeholder="Enter amount to withdraw"
                 />
                 <p className="text-xs text-gray-400 mt-1">
-                  Minimum withdrawal: ₦5,000 | Available: ₦{earnings.available.toLocaleString()}
+                  Minimum withdrawal: ₦5,000 | Available: ₦
+                  {earnings.available.toLocaleString()}
                 </p>
               </div>
-              
+
               <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-gray-700">
                 <h3 className="font-medium mb-2">Withdrawal Notes</h3>
                 <ul className="text-sm text-gray-300 space-y-1">
@@ -889,7 +1381,7 @@ const [vendorToken, setVendorToken] = useState(null);
                   <li>• 80% commission is paid on all sales</li>
                 </ul>
               </div>
-              
+
               <div className="pt-4">
                 <button
                   type="submit"
@@ -901,27 +1393,41 @@ const [vendorToken, setVendorToken] = useState(null);
             </form>
           </div>
         </div>
-        
+
         <div className="mt-8">
           <h2 className="text-xl font-semibold mb-4">Recent Withdrawals</h2>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-700">
               <thead>
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Date</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Amount</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    Date
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    Amount
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    Status
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-700">
                 {payouts.slice(0, 3).map((payout, index) => (
                   <tr key={index}>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm">{payout.date}</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">{payout.amount}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm">
+                      {payout.date}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
+                      {payout.amount}
+                    </td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                        payout.status === "Paid" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
-                      }`}>
+                      <span
+                        className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                          payout.status === "Paid"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-yellow-100 text-yellow-800"
+                        }`}
+                      >
                         {payout.status}
                       </span>
                     </td>
@@ -933,63 +1439,109 @@ const [vendorToken, setVendorToken] = useState(null);
         </div>
       </div>
     ),
-    
+
     "Payouts Received": (
       <div className="bg-gray-800 rounded-lg p-6 text-white">
         <h1 className="text-2xl font-bold mb-6">Payouts History</h1>
-        
+
         <div className="bg-gray-900 rounded-lg p-6 border border-gray-700 mb-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
             <div>
               <p className="text-sm text-gray-400">Total Payouts</p>
-              <p className="text-2xl font-bold">₦{payouts
-                .filter(p => p.status === "Paid")
-                .reduce((sum, p) => sum + parseInt(p.amount.replace(/[^\d]/g, '')), 0)
-                .toLocaleString()}</p>
+              <p className="text-2xl font-bold">
+                ₦
+                {payouts
+                  .filter((p) => p.status === "Paid")
+                  .reduce(
+                    (sum, p) => sum + parseInt(p.amount.replace(/[^\d]/g, "")),
+                    0
+                  )
+                  .toLocaleString()}
+              </p>
             </div>
             <div>
               <p className="text-sm text-gray-400">This Month</p>
-              <p className="text-2xl font-bold">₦{payouts
-                .filter(p => p.status === "Paid" && new Date(p.date).getMonth() === new Date().getMonth())
-                .reduce((sum, p) => sum + parseInt(p.amount.replace(/[^\d]/g, '')), 0)
-                .toLocaleString()}</p>
+              <p className="text-2xl font-bold">
+                ₦
+                {payouts
+                  .filter(
+                    (p) =>
+                      p.status === "Paid" &&
+                      new Date(p.date).getMonth() === new Date().getMonth()
+                  )
+                  .reduce(
+                    (sum, p) => sum + parseInt(p.amount.replace(/[^\d]/g, "")),
+                    0
+                  )
+                  .toLocaleString()}
+              </p>
             </div>
             <div>
               <p className="text-sm text-gray-400">Pending</p>
-              <p className="text-2xl font-bold text-yellow-400">₦{payouts
-                .filter(p => p.status === "Pending")
-                .reduce((sum, p) => sum + parseInt(p.amount.replace(/[^\d]/g, '')), 0)
-                .toLocaleString()}</p>
+              <p className="text-2xl font-bold text-yellow-400">
+                ₦
+                {payouts
+                  .filter((p) => p.status === "Pending")
+                  .reduce(
+                    (sum, p) => sum + parseInt(p.amount.replace(/[^\d]/g, "")),
+                    0
+                  )
+                  .toLocaleString()}
+              </p>
             </div>
           </div>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-700">
             <thead>
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">ID</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Date</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Amount</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Transaction ID</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Receipt</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  ID
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  Date
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  Amount
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  Transaction ID
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  Receipt
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700">
               {payouts.map((payout, index) => (
                 <tr key={index}>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">{payout.id}</td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm">{payout.date}</td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">{payout.amount}</td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                    {payout.id}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm">
+                    {payout.date}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                    {payout.amount}
+                  </td>
                   <td className="px-4 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                      payout.status === "Paid" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
-                    }`}>
+                    <span
+                      className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                        payout.status === "Paid"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
                       {payout.status}
                     </span>
                   </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm">{payout.txnId}</td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm">
+                    {payout.txnId}
+                  </td>
                   <td className="px-4 py-4 whitespace-nowrap text-sm">
                     {payout.status === "Paid" && (
                       <button className="text-blue-400 hover:text-blue-300 flex items-center">
@@ -1006,7 +1558,7 @@ const [vendorToken, setVendorToken] = useState(null);
           </table>
         </div>
       </div>
-    )
+    ),
   };
 
   if (loading) {
@@ -1019,6 +1571,8 @@ const [vendorToken, setVendorToken] = useState(null);
 
   return (
     <div className="min-h-screen bg-gray-900">
+      <ToastContainer position="top-right" autoClose={5000} />
+      
       {/* Top Navigation Bar */}
       <nav className="bg-black text-white shadow-lg sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1049,14 +1603,16 @@ const [vendorToken, setVendorToken] = useState(null);
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Side Navigation */}
-          <aside className={`
+          <aside
+            className={`
             fixed inset-y-0 left-0 z-40 
             w-64 bg-gray-800 shadow-lg 
             transform transition-transform duration-300 ease-in-out rounded
-            ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full'} 
+            ${mobileNavOpen ? "translate-x-0" : "-translate-x-full"} 
             lg:relative lg:translate-x-0 lg:w-64
             mt-14 lg:mt-0
-          `}>
+          `}
+          >
             {/* Close button for mobile */}
             <div className="lg:hidden absolute top-1 right-2">
               <button
@@ -1074,8 +1630,12 @@ const [vendorToken, setVendorToken] = useState(null);
                   <FaUser className="text-yellow-400" />
                 </div>
                 <div className="overflow-hidden">
-                  <p className="font-medium text-white truncate">{user?.displayName || 'Vendor'}</p>
-                  <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+                  <p className="font-medium text-white truncate">
+                    {vendorData?.name || "Vendor"}
+                  </p>
+                  <p className="text-xs text-gray-400 truncate">
+                    {vendorData?.email}
+                  </p>
                 </div>
               </div>
             </div>
@@ -1090,9 +1650,10 @@ const [vendorToken, setVendorToken] = useState(null);
                 className={`
                   w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
                   transition-all duration-200
-                  ${activeTab === "Dashboard"
-                    ? 'bg-yellow-400 text-black font-bold shadow-md'
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  ${
+                    activeTab === "Dashboard"
+                      ? "bg-yellow-400 text-black font-bold shadow-md"
+                      : "text-gray-300 hover:bg-gray-700 hover:text-white"
                   }
                 `}
               >
@@ -1101,7 +1662,7 @@ const [vendorToken, setVendorToken] = useState(null);
                 </span>
                 <span className="text-left">Dashboard</span>
               </button>
-              
+
               <button
                 onClick={() => {
                   setActiveTab("Orders");
@@ -1110,9 +1671,10 @@ const [vendorToken, setVendorToken] = useState(null);
                 className={`
                   w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
                   transition-all duration-200
-                  ${activeTab === "Orders"
-                    ? 'bg-yellow-400 text-black font-bold shadow-md'
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  ${
+                    activeTab === "Orders"
+                      ? "bg-yellow-400 text-black font-bold shadow-md"
+                      : "text-gray-300 hover:bg-gray-700 hover:text-white"
                   }
                 `}
               >
@@ -1121,7 +1683,7 @@ const [vendorToken, setVendorToken] = useState(null);
                 </span>
                 <span className="text-left">Orders</span>
               </button>
-              
+
               <button
                 onClick={() => {
                   setActiveTab("Create Product");
@@ -1130,9 +1692,10 @@ const [vendorToken, setVendorToken] = useState(null);
                 className={`
                   w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
                   transition-all duration-200
-                  ${activeTab === "Create Product"
-                    ? 'bg-yellow-400 text-black font-bold shadow-md'
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  ${
+                    activeTab === "Create Product"
+                      ? "bg-yellow-400 text-black font-bold shadow-md"
+                      : "text-gray-300 hover:bg-gray-700 hover:text-white"
                   }
                 `}
               >
@@ -1141,7 +1704,7 @@ const [vendorToken, setVendorToken] = useState(null);
                 </span>
                 <span className="text-left">Create Product</span>
               </button>
-              
+
               <button
                 onClick={() => {
                   setActiveTab("Manage Products");
@@ -1150,9 +1713,10 @@ const [vendorToken, setVendorToken] = useState(null);
                 className={`
                   w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
                   transition-all duration-200
-                  ${activeTab === "Manage Products"
-                    ? 'bg-yellow-400 text-black font-bold shadow-md'
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  ${
+                    activeTab === "Manage Products"
+                      ? "bg-yellow-400 text-black font-bold shadow-md"
+                      : "text-gray-300 hover:bg-gray-700 hover:text-white"
                   }
                 `}
               >
@@ -1161,7 +1725,7 @@ const [vendorToken, setVendorToken] = useState(null);
                 </span>
                 <span className="text-left">Manage Products</span>
               </button>
-              
+
               <button
                 onClick={() => {
                   setActiveTab("Earnings");
@@ -1170,9 +1734,10 @@ const [vendorToken, setVendorToken] = useState(null);
                 className={`
                   w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
                   transition-all duration-200
-                  ${activeTab === "Earnings"
-                    ? 'bg-yellow-400 text-black font-bold shadow-md'
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  ${
+                    activeTab === "Earnings"
+                      ? "bg-yellow-400 text-black font-bold shadow-md"
+                      : "text-gray-300 hover:bg-gray-700 hover:text-white"
                   }
                 `}
               >
@@ -1181,7 +1746,7 @@ const [vendorToken, setVendorToken] = useState(null);
                 </span>
                 <span className="text-left">Earnings</span>
               </button>
-              
+
               <button
                 onClick={() => {
                   setActiveTab("Withdraw");
@@ -1190,9 +1755,10 @@ const [vendorToken, setVendorToken] = useState(null);
                 className={`
                   w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
                   transition-all duration-200
-                  ${activeTab === "Withdraw"
-                    ? 'bg-yellow-400 text-black font-bold shadow-md'
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  ${
+                    activeTab === "Withdraw"
+                      ? "bg-yellow-400 text-black font-bold shadow-md"
+                      : "text-gray-300 hover:bg-gray-700 hover:text-white"
                   }
                 `}
               >
@@ -1201,7 +1767,7 @@ const [vendorToken, setVendorToken] = useState(null);
                 </span>
                 <span className="text-left">Withdraw</span>
               </button>
-              
+
               <button
                 onClick={() => {
                   setActiveTab("Payouts Received");
@@ -1210,9 +1776,10 @@ const [vendorToken, setVendorToken] = useState(null);
                 className={`
                   w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
                   transition-all duration-200
-                  ${activeTab === "Payouts Received"
-                    ? 'bg-yellow-400 text-black font-bold shadow-md'
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  ${
+                    activeTab === "Payouts Received"
+                      ? "bg-yellow-400 text-black font-bold shadow-md"
+                      : "text-gray-300 hover:bg-gray-700 hover:text-white"
                   }
                 `}
               >
