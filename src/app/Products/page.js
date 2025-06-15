@@ -1,10 +1,16 @@
-// Products/page.js 
+// Products/page.js
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FiSearch, FiFilter, FiX, FiShoppingCart, FiRefreshCw } from "react-icons/fi";
+import {
+  FiSearch,
+  FiFilter,
+  FiX,
+  FiShoppingCart,
+  FiRefreshCw,
+} from "react-icons/fi";
 import { FaSortAmountDown, FaTag } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import debounce from "lodash.debounce";
@@ -13,34 +19,43 @@ import "react-toastify/dist/ReactToastify.css";
 // Utility function to validate product data
 const validateProduct = (product) => {
   if (!product) return null;
-  
+
   // Ensure product has a valid ID
   const productId = product.id || "unknown-id";
-  
+
   // Handle category which might be an object or string
-  const category = typeof product.category === 'object' && product.category
-    ? String(product.category.name || "Uncategorized")
-    : String(product.category || "Uncategorized");
-  
+  const category =
+    typeof product.category === "object" && product.category
+      ? String(product.category.name || "Uncategorized")
+      : String(product.category || "Uncategorized");
+
   return {
     _id: productId,
     id: productId,
     name: String(product.name || "Unnamed Product"),
     description: String(product.description || ""),
-    price: typeof product.price === 'number' ? product.price : 0,
+    price: typeof product.price === "number" ? product.price : 0,
     category: category,
     vendor: String(product.vendor || "Unknown"),
-    images: Array.isArray(product.images) ? product.images.filter(img => typeof img === 'string') : 
-            typeof product.image === 'string' ? [product.image] : 
-            ["/fallback-image.png"],
-    stock: typeof product.stock === 'number' ? product.stock : 0,
+    images: Array.isArray(product.images)
+      ? product.images.filter((img) => typeof img === "string")
+      : typeof product.image === "string"
+        ? [product.image]
+        : ["/fallback-image.png"],
+    stock: typeof product.stock === "number" ? product.stock : 0,
     status: String(product.status || "unknown"),
+    discountPrice: Number(product.discountPrice || 0),
+    discountPercent: Number(product.discountPercent || 0),
   };
 };
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
-  const [filters, setFilters] = useState({ search: "", category: "", vendor: "" });
+  const [filters, setFilters] = useState({
+    search: "",
+    category: "",
+    vendor: "",
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [sortOrder, setSortOrder] = useState("default");
@@ -48,7 +63,7 @@ export default function ProductsPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Cache key constant
-  const cacheKey = 'products-cache';
+  const cacheKey = "products-cache";
 
   // Fetch products with caching
   const fetchProducts = useCallback(async () => {
@@ -56,9 +71,9 @@ export default function ProductsPage() {
       const now = Date.now();
       let cachedData;
       let cacheExpiry;
-      
+
       // Safely check localStorage (it may not be available in SSR)
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         try {
           cachedData = localStorage.getItem(cacheKey);
           cacheExpiry = localStorage.getItem(`${cacheKey}-expiry`);
@@ -85,42 +100,47 @@ export default function ProductsPage() {
       const baseUrl = `${process.env.NEXT_PUBLIC_API_URL}`;
 
       const response = await fetch(`${baseUrl}/products`, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Accept': 'application/json'
-        }
+          "Content-Type": "application/json",
+        },
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `Failed to fetch: ${response.status} ${response.statusText}`
+        );
       }
-    
+
       const responseData = await response.json();
-      
       // Validate and normalize products data
       let productArray = [];
-      
-      if (responseData?.data?.products && Array.isArray(responseData.data.products)) {
+
+      if (
+        responseData?.data?.products &&
+        Array.isArray(responseData.data.products)
+      ) {
         productArray = responseData.data.products
           .map(validateProduct)
           .filter(Boolean);
       } else if (Array.isArray(responseData)) {
-        productArray = responseData
-          .map(validateProduct)
-          .filter(Boolean);
-      } else if (responseData?.products && Array.isArray(responseData.products)) {
+        productArray = responseData.map(validateProduct).filter(Boolean);
+      } else if (
+        responseData?.products &&
+        Array.isArray(responseData.products)
+      ) {
         productArray = responseData.products
           .map(validateProduct)
           .filter(Boolean);
       }
-      
+
       // Only update state if we got valid data
       if (productArray.length > 0) {
         setProducts(productArray);
         setError(null);
-        
+
         // Cache handling (safely)
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
           try {
             localStorage.setItem(cacheKey, JSON.stringify(productArray));
             localStorage.setItem(`${cacheKey}-expiry`, String(now + 300000)); // 5 minutes
@@ -146,18 +166,19 @@ export default function ProductsPage() {
 
   // Debounced search
   const debouncedSearch = useMemo(
-    () => debounce((searchValue) => {
-      setFilters(prev => ({ ...prev, search: searchValue }));
-    }, 300),
+    () =>
+      debounce((searchValue) => {
+        setFilters((prev) => ({ ...prev, search: searchValue }));
+      }, 300),
     []
   );
 
   useEffect(() => {
     fetchProducts();
-    
+
     return () => {
       // Clean up the debounced function
-      if (debouncedSearch && typeof debouncedSearch.cancel === 'function') {
+      if (debouncedSearch && typeof debouncedSearch.cancel === "function") {
         debouncedSearch.cancel();
       }
     };
@@ -166,44 +187,53 @@ export default function ProductsPage() {
   // Filter and sort products
   const filteredProducts = useMemo(() => {
     if (!Array.isArray(products)) return [];
-    
+
     return products.filter((product) => {
       if (!product) return false;
-      
+
       const searchTerm = filters.search.toLowerCase();
       const name = String(product.name || "").toLowerCase();
       const description = String(product.description || "").toLowerCase();
       const category = String(product.category || "").toLowerCase();
-      
-      const matchesSearch = !searchTerm || 
-        name.includes(searchTerm) || 
+
+      const matchesSearch =
+        !searchTerm ||
+        name.includes(searchTerm) ||
         description.includes(searchTerm) ||
         category.includes(searchTerm);
-        
-      const matchesCategory = !filters.category || 
-        product.category === filters.category;
-        
-      const matchesVendor = !filters.vendor || 
-        product.vendor === filters.vendor;
-      
+
+      const matchesCategory =
+        !filters.category || product.category === filters.category;
+
+      const matchesVendor =
+        !filters.vendor || product.vendor === filters.vendor;
+
       return matchesSearch && matchesCategory && matchesVendor;
     });
   }, [products, filters]);
 
   const sortedProducts = useMemo(() => {
     if (!Array.isArray(filteredProducts)) return [];
-    
+
     const productsToSort = [...filteredProducts];
-    
+
     switch (sortOrder) {
       case "price-low":
-        return productsToSort.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
+        return productsToSort.sort(
+          (a, b) => (Number(a.price) || 0) - (Number(b.price) || 0)
+        );
       case "price-high":
-        return productsToSort.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
+        return productsToSort.sort(
+          (a, b) => (Number(b.price) || 0) - (Number(a.price) || 0)
+        );
       case "name-asc":
-        return productsToSort.sort((a, b) => String(a.name || "").localeCompare(String(b.name || "")));
+        return productsToSort.sort((a, b) =>
+          String(a.name || "").localeCompare(String(b.name || ""))
+        );
       case "name-desc":
-        return productsToSort.sort((a, b) => String(b.name || "").localeCompare(String(a.name || "")));
+        return productsToSort.sort((a, b) =>
+          String(b.name || "").localeCompare(String(a.name || ""))
+        );
       default:
         return productsToSort;
     }
@@ -212,21 +242,25 @@ export default function ProductsPage() {
   // Unique categories and vendors
   const [categories, vendors] = useMemo(() => {
     if (!Array.isArray(products)) return [[], []];
-    
-    const uniqueCategories = [...new Set(
-      products
-        .filter(p => p && typeof p.category === 'string')
-        .map(p => p.category)
-        .filter(Boolean)
-    )];
-    
-    const uniqueVendors = [...new Set(
-      products
-        .filter(p => p && typeof p.vendor === 'string')
-        .map(p => p.vendor)
-        .filter(Boolean)
-    )];
-    
+
+    const uniqueCategories = [
+      ...new Set(
+        products
+          .filter((p) => p && typeof p.category === "string")
+          .map((p) => p.category)
+          .filter(Boolean)
+      ),
+    ];
+
+    const uniqueVendors = [
+      ...new Set(
+        products
+          .filter((p) => p && typeof p.vendor === "string")
+          .map((p) => p.vendor)
+          .filter(Boolean)
+      ),
+    ];
+
     return [uniqueCategories, uniqueVendors];
   }, [products]);
 
@@ -238,7 +272,7 @@ export default function ProductsPage() {
 
   const handleAddToCart = (product) => {
     if (!product) return;
-    
+
     if (product.stock <= 0) {
       toast.error("This product is out of stock", {
         position: "top-center",
@@ -247,7 +281,7 @@ export default function ProductsPage() {
       });
       return;
     }
-    
+
     toast.success(`Added ${product.name} to cart`, {
       position: "top-center",
       autoClose: 3000,
@@ -257,7 +291,7 @@ export default function ProductsPage() {
 
   const refreshData = useCallback(() => {
     setIsRefreshing(true);
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       try {
         localStorage.removeItem(cacheKey);
         localStorage.removeItem(`${cacheKey}-expiry`);
@@ -278,68 +312,75 @@ export default function ProductsPage() {
     e.currentTarget.src = "/fallback-image.png";
   };
 
-  if (loading && !isRefreshing) return (
-    <div className="bg-gradient-to-b from-gray-900 to-black min-h-screen">
-      <div className="container mx-auto px-4 py-16">
-        <div className="flex justify-center items-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-yellow-500"></div>
+  if (loading && !isRefreshing)
+    return (
+      <div className="bg-gradient-to-b from-gray-900 to-black min-h-screen">
+        <div className="container mx-auto px-4 py-16">
+          <div className="flex justify-center items-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-yellow-500"></div>
+          </div>
+          <div className="text-center mt-4 text-yellow-500">
+            Loading products...
+          </div>
         </div>
-        <div className="text-center mt-4 text-yellow-500">Loading products...</div>
       </div>
-    </div>
-  );
-  
-  if (error && products.length === 0) return (
-    <div className="bg-gradient-to-b from-gray-900 to-black min-h-screen flex items-center justify-center">
-      <div className="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full">
-        <h2 className="text-2xl font-bold text-red-400 mb-4">No product found!</h2>
-        <p className="text-white mb-6">{error}</p>
-        <button 
-          onClick={refreshData}
-          className="bg-yellow-500 text-black px-4 py-3 rounded-md hover:bg-yellow-400 transition w-full flex items-center justify-center gap-2"
-        >
-          <FiRefreshCw /> Try Again
-        </button>
-      </div>
-    </div>
-  );
+    );
 
-  if (error) return (
-    <div className="bg-gradient-to-b from-gray-900 to-black min-h-screen flex items-center justify-center">
-      <div className="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full">
-        <h2 className="text-2xl font-bold text-red-400 mb-4">Something went wrong</h2>
-        <p className="text-white mb-6">{error}</p>
-        <button 
-          onClick={refreshData}
-          className="bg-yellow-500 text-black px-4 py-3 rounded-md hover:bg-yellow-400 transition w-full flex items-center justify-center gap-2"
-        >
-          <FiRefreshCw /> Try Again
-        </button>
+  if (error && products.length === 0)
+    return (
+      <div className="bg-gradient-to-b from-gray-900 to-black min-h-screen flex items-center justify-center">
+        <div className="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full">
+          <h2 className="text-2xl font-bold text-red-400 mb-4">
+            No product found!
+          </h2>
+          <p className="text-white mb-6">{error}</p>
+          <button
+            onClick={refreshData}
+            className="bg-yellow-500 text-black px-4 py-3 rounded-md hover:bg-yellow-400 transition w-full flex items-center justify-center gap-2"
+          >
+            <FiRefreshCw /> Try Again
+          </button>
+        </div>
       </div>
-    </div>
-  );
+    );
+
+  if (error)
+    return (
+      <div className="bg-gradient-to-b from-gray-900 to-black min-h-screen flex items-center justify-center">
+        <div className="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full">
+          <h2 className="text-2xl font-bold text-red-400 mb-4">
+            Something went wrong
+          </h2>
+          <p className="text-white mb-6">{error}</p>
+          <button
+            onClick={refreshData}
+            className="bg-yellow-500 text-black px-4 py-3 rounded-md hover:bg-yellow-400 transition w-full flex items-center justify-center gap-2"
+          >
+            <FiRefreshCw /> Try Again
+          </button>
+        </div>
+      </div>
+    );
 
   return (
     <div className="bg-gradient-to-b from-gray-900 to-black min-h-screen">
       <ToastContainer position="top-center" />
-      
+
       {/* Header Section */}
       <header className="bg-gray-800 shadow-md py-4">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-white">Product Catalog</h1>
             <div className="flex gap-3">
-              <button 
+              <button
                 onClick={refreshData}
                 className="bg-gray-700 text-white px-3 py-2 rounded-md hover:bg-gray-600 transition flex items-center gap-1"
                 disabled={isRefreshing}
               >
-                <FiRefreshCw className={isRefreshing ? "animate-spin" : ""} /> 
+                <FiRefreshCw className={isRefreshing ? "animate-spin" : ""} />
                 {isRefreshing ? "Refreshing..." : "Refresh"}
               </button>
-              <button 
-                className="bg-yellow-500 text-black px-3 py-2 rounded-md hover:bg-yellow-400 transition flex items-center gap-1"
-              >
+              <button className="bg-yellow-500 text-black px-3 py-2 rounded-md hover:bg-yellow-400 transition flex items-center gap-1">
                 <FiShoppingCart /> Cart
               </button>
             </div>
@@ -362,7 +403,7 @@ export default function ProductsPage() {
               />
               <FiSearch className="absolute right-3 top-3 text-gray-400" />
             </div>
-            
+
             {/* Filter Button */}
             <button
               onClick={() => setShowFilters(!showFilters)}
@@ -375,7 +416,7 @@ export default function ProductsPage() {
                 </span>
               )}
             </button>
-            
+
             {/* Sort Dropdown */}
             <div className="relative">
               <select
@@ -392,20 +433,20 @@ export default function ProductsPage() {
               <FaSortAmountDown className="absolute right-3 top-3 text-gray-400 pointer-events-none" />
             </div>
           </div>
-          
+
           {/* Expanded Filters */}
           {showFilters && (
             <div className="mt-4 p-4 bg-gray-700 rounded-md border border-gray-600 animate-fadeIn">
               <div className="flex justify-between items-center mb-3">
                 <h3 className="text-white font-medium">Filter Options</h3>
-                <button 
+                <button
                   onClick={resetFilters}
                   className="text-yellow-400 hover:text-yellow-300 text-sm flex items-center gap-1"
                 >
                   <FiX /> Reset All
                 </button>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Category Filter */}
                 <div>
@@ -415,18 +456,26 @@ export default function ProductsPage() {
                   <div className="relative">
                     <select
                       value={filters.category}
-                      onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
+                      onChange={(e) =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          category: e.target.value,
+                        }))
+                      }
                       className="appearance-none w-full px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-600 focus:outline-none focus:border-yellow-500"
                     >
                       <option value="">All Categories</option>
-                      {categories && categories.map(category => (
-                        <option key={category} value={category}>{String(category)}</option>
-                      ))}
+                      {categories &&
+                        categories.map((category) => (
+                          <option key={category} value={category}>
+                            {String(category)}
+                          </option>
+                        ))}
                     </select>
                     <FaTag className="absolute right-3 top-2.5 text-gray-400 pointer-events-none" />
                   </div>
                 </div>
-                
+
                 {/* Vendor Filter */}
                 <div>
                   <label className="block text-gray-300 mb-2 text-sm">
@@ -434,13 +483,21 @@ export default function ProductsPage() {
                   </label>
                   <select
                     value={filters.vendor}
-                    onChange={(e) => setFilters(prev => ({ ...prev, vendor: e.target.value }))}
+                    onChange={(e) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        vendor: e.target.value,
+                      }))
+                    }
                     className="w-full px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-600 focus:outline-none focus:border-yellow-500"
                   >
                     <option value="">All Vendors</option>
-                    {vendors && vendors.map(vendor => (
-                      <option key={vendor} value={vendor}>{String(vendor)}</option>
-                    ))}
+                    {vendors &&
+                      vendors.map((vendor) => (
+                        <option key={vendor} value={vendor}>
+                          {String(vendor)}
+                        </option>
+                      ))}
                   </select>
                 </div>
               </div>
@@ -453,20 +510,28 @@ export default function ProductsPage() {
       <div className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl text-white">
-            Showing <span className="font-bold">{Array.isArray(sortedProducts) ? sortedProducts.length : 0}</span> of <span className="font-bold">{Array.isArray(products) ? products.length : 0}</span> Products
+            Showing{" "}
+            <span className="font-bold">
+              {Array.isArray(sortedProducts) ? sortedProducts.length : 0}
+            </span>{" "}
+            of{" "}
+            <span className="font-bold">
+              {Array.isArray(products) ? products.length : 0}
+            </span>{" "}
+            Products
           </h2>
-          
+
           {isRefreshing && (
             <div className="flex items-center gap-2 text-yellow-400">
               <FiRefreshCw className="animate-spin" />
               <span>Refreshing data...</span>
             </div>
           )}
-          
+
           {error && products.length > 0 && (
             <div className="text-red-400 flex items-center gap-2">
               <span>Error: {error}</span>
-              <button 
+              <button
                 onClick={refreshData}
                 className="bg-red-500 text-white px-2 py-1 rounded text-sm hover:bg-red-400"
               >
@@ -480,15 +545,17 @@ export default function ProductsPage() {
         {!Array.isArray(sortedProducts) || sortedProducts.length === 0 ? (
           <div className="bg-gray-800/50 rounded-lg p-8 text-center border border-gray-700">
             <h3 className="text-xl text-white mb-2">No products found</h3>
-            <p className="text-gray-400 mb-4">Try adjusting your search or filter criteria</p>
+            <p className="text-gray-400 mb-4">
+              Try adjusting your search or filter criteria
+            </p>
             <div className="flex justify-center gap-4">
-              <button 
+              <button
                 onClick={resetFilters}
                 className="bg-yellow-500 text-black px-4 py-2 rounded-md hover:bg-yellow-400 transition"
               >
                 Clear Filters
               </button>
-              <button 
+              <button
                 onClick={refreshData}
                 className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-500 transition flex items-center gap-1"
               >
@@ -500,16 +567,24 @@ export default function ProductsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {sortedProducts.map((product) => {
               if (!product) return null;
-              
+
               const productId = String(product.id);
               const productName = String(product.name || "Unnamed Product");
-              const productCategory = String(product.category || "Uncategorized");
+              const productCategory = String(
+                product.category || "Uncategorized"
+              );
               const productStock = Number(product.stock) || 0;
               const productPrice = Number(product.price) || 0;
-              
+              const productDiscountPrice = Number(product.discountPrice) || 0;
+              const productDiscountPercent = Number(product.discountPercent);
+
               // Safely determine the main image
               let mainImage = "/fallback-image.png";
-              if (Array.isArray(product.images) && product.images.length > 0 && typeof product.images[0] === 'string') {
+              if (
+                Array.isArray(product.images) &&
+                product.images.length > 0 &&
+                typeof product.images[0] === "string"
+              ) {
                 mainImage = product.images[0];
               }
 
@@ -532,16 +607,18 @@ export default function ProductsPage() {
                     />
                     {productStock < 5 && productStock > 0 && (
                       <div className="absolute top-0 right-0 bg-orange-500 text-white text-xs font-bold px-2 py-1">
-                        Only {productStock} left!
+                        -{productDiscountPercent}%
                       </div>
                     )}
                     {productStock === 0 && (
                       <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
-                        <span className="bg-red-600 text-white font-bold px-4 py-2 rounded-md">OUT OF STOCK</span>
+                        <span className="bg-red-600 text-white font-bold px-4 py-2 rounded-md">
+                          OUT OF STOCK
+                        </span>
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Product Details */}
                   <div className="p-4">
                     <div className="flex justify-between items-start mb-2">
@@ -549,21 +626,37 @@ export default function ProductsPage() {
                         {productName}
                       </h3>
                       <span className="bg-yellow-500 text-black font-bold rounded px-2 py-1 text-sm whitespace-nowrap">
-                        ₦{productPrice.toLocaleString()}
+                        ₦{productDiscountPrice?.toLocaleString()}
+                        <br />
+                        <s style={{ fontSize: "12px", color: "red" }}>
+                          ₦{productPrice.toLocaleString()}
+                        </s>
                       </span>
                     </div>
-                    
+
                     <div className="text-sm text-gray-400 mb-4 space-y-1">
                       <p className="truncate">Category: {productCategory}</p>
                       <p className="truncate">Min order: {product.stock}</p>
-                      <p className={productStock > 5 ? "text-green-400" : productStock > 0 ? "text-orange-400" : "text-red-400"}>
-                        {productStock > 5 ? "In Stock" : productStock > 0 ? "Low Stock" : "Out of Stock"}
+                      <p
+                        className={
+                          productStock > 5
+                            ? "text-green-400"
+                            : productStock > 0
+                              ? "text-orange-400"
+                              : "text-red-400"
+                        }
+                      >
+                        {productStock > 5
+                          ? "In Stock"
+                          : productStock > 0
+                            ? "Low Stock"
+                            : "Out of Stock"}
                       </p>
                     </div>
-                    
+
                     <div className="flex space-x-2">
-                      <Link 
-                        href={`/products/${productId}`}
+                      <Link
+                        href={`/Products/${productId}`}
                         className="flex-1 transition hover:opacity-90"
                         passHref
                       >
@@ -571,14 +664,14 @@ export default function ProductsPage() {
                           Details
                         </button>
                       </Link>
-                      
-                      <button 
+
+                      <button
                         disabled={productStock === 0}
                         onClick={() => handleAddToCart(product)}
                         className={`flex items-center justify-center px-4 py-2 rounded-md transition ${
-                          productStock === 0 
-                            ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
-                            : 'bg-yellow-500 text-black hover:bg-yellow-400'
+                          productStock === 0
+                            ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+                            : "bg-yellow-500 text-black hover:bg-yellow-400"
                         }`}
                         aria-label={`Add ${productName} to cart`}
                       >

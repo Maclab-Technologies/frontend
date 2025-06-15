@@ -5,36 +5,36 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { 
-  ArrowLeft, 
-  Minus, 
-  Plus, 
-  ShoppingCart, 
-  Palette, 
-  Edit, 
+import {
+  ArrowLeft,
+  Minus,
+  Plus,
+  ShoppingCart,
+  Palette,
+  Edit,
   Upload,
   Box,
   Paintbrush,
   Building,
   ShieldCheck,
-  Tag
+  Tag,
 } from "lucide-react";
 
 // Helper function to normalize MongoDB documents
 const normalizeMongoId = (item) => {
   if (!item) return null;
   const normalized = { ...item };
-  
+
   // Ensure _id is converted to string if it exists
-  if (normalized._id && typeof normalized._id === 'object') {
+  if (normalized._id && typeof normalized._id === "object") {
     normalized._id = normalized._id.toString();
   }
-  
+
   // Add id property if it doesn't exist
   if (normalized._id && !normalized.id) {
     normalized.id = normalized._id.toString();
   }
-  
+
   return normalized;
 };
 
@@ -54,37 +54,36 @@ export default function ProductDetail() {
       router.push("/Products");
       return;
     }
-    
+
     const fetchProduct = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${id}`);
-        if (!res.ok) {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/products/${id}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!response.ok) {
           throw new Error("Failed to fetch product details.");
         }
-  
-        const data = await res.data.json();
 
-        console.log(data)
-        if (Array.isArray(data)) {
-          const foundProduct = data.find((p) => p.id === id );
-          if (foundProduct) {
-            const normalizedProduct = normalizeMongoId(foundProduct);
-            setProduct(normalizedProduct);
-            setSelectedImage(normalizedProduct.images?.[0]);
-          } else {
-            toast.error("Product not found!");
-            router.push("/Products");
-          }
-        } else if (data && typeof data === 'object') {
-          // Normalize MongoDB document
-          const normalizedProduct = normalizeMongoId(data.data || data);
-          setProduct(normalizedProduct);
-          setSelectedImage(normalizedProduct.images?.[0]);
-        } else {
-          toast.error("Invalid product data received");
-          router.push("/Products");
+        const result = await response.json(); // full response
+        console.log("Full response:", result);
+
+        const productData = result.data; // extract product object
+        if (!productData) {
+          toast.error("Product not found!");
+          return router.push("/Products");
         }
+
+        const normalizedProduct = normalizeMongoId(productData);
+        setProduct(normalizedProduct);
+        setSelectedImage(normalizedProduct.images?.[0]);
       } catch (error) {
         console.error("Product fetch error:", error);
         toast.error(error.message || "Failed to fetch product details.");
@@ -93,10 +92,10 @@ export default function ProductDetail() {
         setLoading(false);
       }
     };
-  
+
     fetchProduct();
   }, [id, router]);
-  
+
   useEffect(() => {
     if (selectedImage) {
       setImageLoading(true);
@@ -104,7 +103,9 @@ export default function ProductDetail() {
   }, [selectedImage]);
 
   const handleQuantityChange = (action) => {
-    setQuantity((prev) => (action === "increase" ? prev + 1 : Math.max(1, prev - 1)));
+    setQuantity((prev) =>
+      action === "increase" ? prev + 1 : Math.max(1, prev - 1)
+    );
   };
 
   const handleThumbnailSelect = (img) => {
@@ -117,7 +118,7 @@ export default function ProductDetail() {
   };
 
   const getDesignRoute = (option) => {
-    switch(option) {
+    switch (option) {
       case "Hire Graphics Designer":
         return "/Pages/Hire-designer";
       case "Edit with Canva":
@@ -131,7 +132,7 @@ export default function ProductDetail() {
 
   const handleAddToCart = () => {
     if (!product) return;
-    
+
     if (!designOption) {
       toast.warning("Please select a design option first", {
         position: "top-center",
@@ -163,7 +164,7 @@ export default function ProductDetail() {
       };
 
       let existingCart = [];
-      
+
       try {
         existingCart = JSON.parse(localStorage.getItem("cart") || "[]");
       } catch (e) {
@@ -171,8 +172,8 @@ export default function ProductDetail() {
         existingCart = [];
       }
 
-      const existingItemIndex = existingCart.findIndex((item) => 
-        (item.id === product.id) && item.designOption === designOption
+      const existingItemIndex = existingCart.findIndex(
+        (item) => item.id === product.id && item.designOption === designOption
       );
 
       if (existingItemIndex !== -1) {
@@ -182,20 +183,21 @@ export default function ProductDetail() {
       }
 
       localStorage.setItem("cart", JSON.stringify(existingCart));
-      
-      if (typeof window !== 'undefined') {
+
+      if (typeof window !== "undefined") {
         window.dispatchEvent(new Event("cartUpdated"));
       }
-      
+
       const designInfo = {
         productId: product.id,
         productName: product.name,
         productImage: selectedImage || product.images?.[0],
         quantity: quantity,
         price: product.price,
-        designOption: designOption
+        discountPrice: product.discountPrice,
+        designOption: designOption,
       };
-      
+
       localStorage.setItem("currentDesignInfo", JSON.stringify(designInfo));
 
       toast.success(`${product.name} added to cart!`, {
@@ -235,7 +237,7 @@ export default function ProductDetail() {
       <div className="flex justify-center items-center h-screen bg-black">
         <div className="text-center">
           <p className="text-white text-xl mb-4">Product not found.</p>
-          <button 
+          <button
             onClick={() => router.push("/Products")}
             className="bg-yellow-400 text-black px-6 py-2 rounded-md hover:bg-yellow-500 transition"
           >
@@ -249,9 +251,9 @@ export default function ProductDetail() {
   return (
     <div className="bg-gradient-to-b from-black to-gray-900 min-h-screen">
       <ToastContainer />
-      
+
       <div className="container mx-auto pt-6 px-4">
-        <button 
+        <button
           onClick={() => router.push("/Products")}
           className="flex items-center text-gray-400 hover:text-yellow-400 transition mb-4"
         >
@@ -263,7 +265,6 @@ export default function ProductDetail() {
       <div className="container mx-auto px-4 pb-16">
         <div className="bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
           <div className="flex flex-col lg:flex-row">
-            
             <div className="lg:w-1/2 p-6 md:p-8">
               <div className="relative aspect-square bg-gray-900 rounded-xl overflow-hidden">
                 {imageLoading && (
@@ -271,10 +272,14 @@ export default function ProductDetail() {
                     <div className="w-12 h-12 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
                   </div>
                 )}
-                <Image 
-                  src={selectedImage || (product?.images?.[0] || "/fallback-image.png")} 
-                  alt={product?.name || "Product Image"} 
-                  width={600} 
+                <Image
+                  src={
+                    selectedImage ||
+                    product?.images?.[0] ||
+                    "/fallback-image.png"
+                  }
+                  alt={product?.name || "Product Image"}
+                  width={600}
                   height={600}
                   className="object-contain w-full h-full"
                   onLoad={() => setImageLoading(false)}
@@ -284,10 +289,12 @@ export default function ProductDetail() {
 
               <div className="mt-6 grid grid-cols-4 gap-3">
                 {product?.images?.map((img, index) => (
-                  <div 
-                    key={index} 
+                  <div
+                    key={index}
                     className={`relative aspect-square rounded-lg overflow-hidden cursor-pointer border-2 ${
-                      selectedImage === img ? 'border-yellow-400' : 'border-transparent'
+                      selectedImage === img
+                        ? "border-yellow-400"
+                        : "border-transparent"
                     } transition-all hover:opacity-80`}
                     onClick={() => handleThumbnailSelect(img)}
                   >
@@ -306,26 +313,32 @@ export default function ProductDetail() {
             <div className="lg:w-1/2 p-6 md:p-8 lg:border-l border-gray-700">
               <div className="mb-2 text-yellow-400 text-sm font-medium flex items-center">
                 <Tag size={14} className="mr-1" />
-                {product?.category || "Uncategorized"}
+                {product.category?.name || "Uncategorized"}
               </div>
-              
+
               <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
                 {product?.name || "Product Name"}
               </h1>
-              
+
               <div className="text-2xl md:text-3xl font-bold text-yellow-400 mb-4">
-                ₦{parseInt(product?.price || 0).toLocaleString()}
+                ₦{product?.discountPrice?.toLocaleString()}
+                <br />
+                <s style={{ fontSize: "15px", color: "red" }}>
+                  ₦{product?.price.toLocaleString()}
+                </s>
               </div>
-              
+
               <div className="mb-6 text-gray-300">
                 {product?.description || "No description available."}
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-sm mb-8">
                 <div className="flex items-center">
                   <Box size={16} className="text-gray-400 mr-2" />
                   <span className="text-gray-400 mr-2">Material:</span>
-                  <span className="text-white">{product?.material || "N/A"}</span>
+                  <span className="text-white">
+                    {product?.material || "N/A"}
+                  </span>
                 </div>
                 <div className="flex items-center">
                   <Paintbrush size={16} className="text-gray-400 mr-2" />
@@ -335,22 +348,24 @@ export default function ProductDetail() {
                 <div className="flex items-center">
                   <Building size={16} className="text-gray-400 mr-2" />
                   <span className="text-gray-400 mr-2">Vendor:</span>
-                  <span className="text-white">{product?.vendor || "N/A"}</span>
+                  <span className="text-white">{product.vendor?.id || "N/A"}</span>
                 </div>
                 <div className="flex items-center">
                   <ShieldCheck size={16} className="text-gray-400 mr-2" />
                   <span className="text-gray-400 mr-2">Ownership:</span>
-                  <span className="text-white">{product?.ownership || "N/A"}</span>
+                  <span className="text-white">
+                    {product?.ownership || "N/A"}
+                  </span>
                 </div>
               </div>
-              
+
               <div className="mb-8">
                 <label className="block text-gray-300 text-sm font-medium mb-2">
                   Quantity
                 </label>
                 <div className="flex items-center">
-                  <button 
-                    className="bg-gray-700 p-2 rounded-l-md hover:bg-gray-600 transition" 
+                  <button
+                    className="bg-gray-700 p-2 rounded-l-md hover:bg-gray-600 transition"
                     onClick={() => handleQuantityChange("decrease")}
                     aria-label="Decrease quantity"
                   >
@@ -359,8 +374,8 @@ export default function ProductDetail() {
                   <div className="bg-gray-900 text-center text-white py-2 px-6 text-lg font-medium">
                     {quantity}
                   </div>
-                  <button 
-                    className="bg-gray-700 p-2 rounded-r-md hover:bg-gray-600 transition" 
+                  <button
+                    className="bg-gray-700 p-2 rounded-r-md hover:bg-gray-600 transition"
                     onClick={() => handleQuantityChange("increase")}
                     aria-label="Increase quantity"
                   >
@@ -370,42 +385,54 @@ export default function ProductDetail() {
               </div>
 
               <div className="mb-8">
-                <h2 className="text-white text-lg font-medium mb-3">Choose Design Option:</h2>
+                <h2 className="text-white text-lg font-medium mb-3">
+                  Choose Design Option:
+                </h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <button
-                    onClick={() => handleDesignOptionSelect("Hire Graphics Designer")}
+                    onClick={() =>
+                      handleDesignOptionSelect("Hire Graphics Designer")
+                    }
                     className={`flex flex-col items-center justify-center p-4 rounded-lg text-center transition ${
-                      designOption === "Hire Graphics Designer" 
-                        ? "bg-yellow-400 text-black" 
+                      designOption === "Hire Graphics Designer"
+                        ? "bg-yellow-400 text-black"
                         : "bg-gray-700 hover:bg-gray-600 text-white"
                     }`}
                   >
                     <Palette size={24} className="mb-2" />
-                    <span className="block text-sm font-medium">Hire Designer</span>
+                    <span className="block text-sm font-medium">
+                      Hire Designer
+                    </span>
                   </button>
 
                   <button
                     onClick={() => handleDesignOptionSelect("Edit with Canva")}
                     className={`flex flex-col items-center justify-center p-4 rounded-lg text-center transition ${
-                      designOption === "Edit with Canva" 
-                        ? "bg-yellow-400 text-black" 
+                      designOption === "Edit with Canva"
+                        ? "bg-yellow-400 text-black"
                         : "bg-gray-700 hover:bg-gray-600 text-white"
                     }`}
                   >
                     <Edit size={24} className="mb-2" />
-                    <span className="block text-sm font-medium">Edit with Canva</span>
+                    <span className="block text-sm font-medium">
+                      Edit with Canva
+                    </span>
                   </button>
 
                   <button
-                    onClick={() => handleDesignOptionSelect("Upload Your Own Design")}
+                    onClick={() =>
+                      handleDesignOptionSelect("Upload Your Own Design")
+                    }
                     className={`flex flex-col items-center justify-center p-4 rounded-lg text-center transition ${
-                      designOption === "Upload Your Own Design" 
-                        ? "bg-yellow-400 text-black" 
+                      designOption === "Upload Your Own Design"
+                        ? "bg-yellow-400 text-black"
                         : "bg-gray-700 hover:bg-gray-600 text-white"
                     }`}
                   >
                     <Upload size={24} className="mb-2" />
-                    <span className="block text-sm font-medium">Upload Design</span>
+                    <span className="block text-sm font-medium">
+                      discountPercent Upload Design
+                    </span>
                   </button>
                 </div>
               </div>
@@ -413,7 +440,7 @@ export default function ProductDetail() {
               <button
                 className={`w-full py-3 px-4 rounded-lg font-bold text-lg flex items-center justify-center transition focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50 ${
                   processingAction || product.stock <= 0
-                    ? "bg-gray-500 text-gray-300 cursor-not-allowed" 
+                    ? "bg-gray-500 text-gray-300 cursor-not-allowed"
                     : "bg-yellow-400 text-black hover:bg-yellow-500"
                 }`}
                 onClick={handleAddToCart}

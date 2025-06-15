@@ -39,19 +39,18 @@ const ProductForm = ({
     product?.description || ""
   );
   const [productPrice, setProductPrice] = useState(product?.price || "");
-  const [discount, setDiscount] = useState(product?.discount || "");
+  const [discountPercent, setDiscountPercentage] = useState(
+    product?.discountPercent || ""
+  );
+  const [ discountPrice, setDiscountPrice ] = useState(product?.discountPrice || "")
   const [category, setCategory] = useState(product?.category || "");
   const [stock, setStock] = useState(product?.stock || "");
   const [productMaterial, setProductMaterial] = useState(
     product?.material || ""
   );
-  const [selectedColors, setSelectedColors] = useState(
-    product?.color || []
-  );
+  const [selectedColors, setSelectedColors] = useState(product?.color || []);
   const [productImages, setProductImages] = useState([]);
-  const [existingImages, setExistingImages] = useState(
-    product?.images || []
-  );
+  const [existingImages, setExistingImages] = useState(product?.images || []);
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
@@ -66,7 +65,9 @@ const ProductForm = ({
     );
 
     if (validImages.length !== files.length) {
-      toast.warning("Some files were not valid image formats and were skipped.");
+      toast.warning(
+        "Some files were not valid image formats and were skipped."
+      );
     }
 
     setProductImages((prev) => [...prev, ...validImages]);
@@ -106,7 +107,7 @@ const ProductForm = ({
       name: productName,
       description: productDescription,
       price: parseFloat(productPrice),
-      discount: parseFloat(discount) || 0,
+      discountPercent: parseFloat(discountPercent) || 0,
       category,
       stock: parseInt(stock) || 0,
       material: productMaterial,
@@ -203,8 +204,8 @@ const ProductForm = ({
           </label>
           <input
             type="number"
-            value={discount}
-            onChange={(e) => setDiscount(e.target.value)}
+            value={discountPercent}
+            onChange={(e) => setDiscountPercentage(e.target.value)}
             className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
             placeholder="0"
             min="0"
@@ -315,9 +316,7 @@ const ProductForm = ({
               </label>
               <p className="pl-1">or drag and drop</p>
             </div>
-            <p className="text-xs text-gray-400">
-              PNG, JPG, GIF up to 5 files
-            </p>
+            <p className="text-xs text-gray-400">PNG, JPG, GIF up to 5 files</p>
             {(productImages.length > 0 || existingImages.length > 0) && (
               <p className="text-sm text-green-400">
                 {productImages.length + existingImages.length} images selected
@@ -378,9 +377,25 @@ const ProductForm = ({
         >
           {isSubmitting ? (
             <span className="flex items-center justify-center">
-              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              <svg
+                className="animate-spin -ml-1 mr-2 h-4 w-4 text-black"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
               </svg>
               {product ? "Updating..." : "Creating..."}
             </span>
@@ -516,6 +531,7 @@ export default function VendorDashboard() {
         }
 
         const vendorProductsData = await vendorProductsResponse.json();
+        console.log(vendorProductsData);
         setProducts(vendorProductsData?.data || []);
 
         // Fetch vendor orders
@@ -549,11 +565,13 @@ export default function VendorDashboard() {
 
         if (vendorEarningsResponse.ok) {
           const vendorEarningsData = await vendorEarningsResponse.json();
-          setEarnings(vendorEarningsData?.data || {
-            available: 0,
-            total: 0,
-            pending: 0,
-          });
+          setEarnings(
+            vendorEarningsData?.data || {
+              available: 0,
+              total: 0,
+              pending: 0,
+            }
+          );
         }
 
         // Fetch vendor payouts
@@ -599,16 +617,16 @@ export default function VendorDashboard() {
     setIsSubmitting(true);
     try {
       const formData = new FormData();
-      
+
       // Append product data
-      Object.keys(productData).forEach(key => {
-        if (key === 'color') {
+      Object.keys(productData).forEach((key) => {
+        if (key === "color") {
           formData.append(key, JSON.stringify(productData[key]));
-        } else if (key === 'images') {
-          productData.images.forEach(image => {
-            formData.append('images', image);
+        } else if (key === "images") {
+          productData.images.forEach((image) => {
+            formData.append("images", image);
           });
-        } else if (key !== 'existingImages') {
+        } else if (key !== "existingImages") {
           formData.append(key, productData[key]);
         }
       });
@@ -629,7 +647,7 @@ export default function VendorDashboard() {
       }
 
       const responseData = await response.json();
-      setProducts(prev => [...prev, responseData.data]);
+      setProducts((prev) => [...prev, responseData.data]);
       toast.success("Product created successfully!");
       setShowProductForm(false);
     } catch (error) {
@@ -644,17 +662,17 @@ export default function VendorDashboard() {
     setIsSubmitting(true);
     try {
       const formData = new FormData();
-      
+
       // Append product data
-      Object.keys(productData).forEach(key => {
-        if (key === 'color') {
+      Object.keys(productData).forEach((key) => {
+        if (key === "color") {
           formData.append(key, JSON.stringify(productData[key]));
-        } else if (key === 'images') {
-          productData.images.forEach(image => {
-            formData.append('images', image);
+        } else if (key === "images") {
+          productData.images.forEach((image) => {
+            formData.append("images", image);
           });
-        } else if (key === 'existingImages') {
-          formData.append('existingImages', JSON.stringify(productData[key]));
+        } else if (key === "existingImages") {
+          formData.append("existingImages", JSON.stringify(productData[key]));
         } else {
           formData.append(key, productData[key]);
         }
@@ -676,8 +694,8 @@ export default function VendorDashboard() {
       }
 
       const responseData = await response.json();
-      setProducts(prev =>
-        prev.map(p => (p.id === productToEdit.id ? responseData.data : p))
+      setProducts((prev) =>
+        prev.map((p) => (p.id === productToEdit.id ? responseData.data : p))
       );
       toast.success("Product updated successfully!");
       setShowProductForm(false);
@@ -713,7 +731,7 @@ export default function VendorDashboard() {
         throw new Error("Failed to delete product");
       }
 
-      setProducts(prev => prev.filter(p => p.id !== productToDelete.id));
+      setProducts((prev) => prev.filter((p) => p.id !== productToDelete.id));
       toast.success("Product deleted successfully");
       setShowDeleteModal(false);
       setProductToDelete(null);
@@ -1086,7 +1104,11 @@ export default function VendorDashboard() {
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="text-lg font-semibold">{product.name}</h3>
                     <p className="font-bold text-yellow-400">
-                      ₦{product.price.toLocaleString()}
+                      ₦{product.discountPrice?.toLocaleString()}
+                      <br />
+                      <s style={{ fontSize: "12px", color: "red" }}>
+                        ₦{product.price.toLocaleString()}
+                      </s>
                     </p>
                   </div>
                   <p className="text-sm text-gray-400 mb-3">
@@ -1568,7 +1590,7 @@ export default function VendorDashboard() {
   return (
     <div className="min-h-screen bg-gray-900">
       <ToastContainer position="top-right" autoClose={5000} />
-      
+
       {/* Top Navigation Bar */}
       <nav className="bg-black text-white shadow-lg sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
