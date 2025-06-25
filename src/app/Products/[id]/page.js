@@ -348,15 +348,15 @@ export default function ProductDetail() {
                 <div className="flex items-center">
                   <Building size={16} className="text-gray-400 mr-2" />
                   <span className="text-gray-400 mr-2">Vendor:</span>
-                  <span className="text-white">{product.vendor?.id || "N/A"}</span>
+                  <span className="text-white">{product.vendor?.businessName || "N/A"}</span>
                 </div>
-                <div className="flex items-center">
+                {/* <div className="flex items-center">
                   <ShieldCheck size={16} className="text-gray-400 mr-2" />
                   <span className="text-gray-400 mr-2">Ownership:</span>
                   <span className="text-white">
                     {product?.ownership || "N/A"}
                   </span>
-                </div>
+                </div> */}
               </div>
 
               <div className="mb-8">
@@ -389,6 +389,25 @@ export default function ProductDetail() {
                   Choose Design Option:
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  
+
+                    {/* Edit with canvas */}
+                  <button
+                    onClick={() => handleDesignOptionSelect("Edit with Canva")}
+                    className={`flex flex-col items-center justify-center p-4 rounded-lg text-center transition ${
+                      designOption === "Edit with Canva"
+                        ? "bg-yellow-400 text-black"
+                        : "bg-gray-700 hover:bg-gray-600 text-white"
+                    }`}
+                  >
+                    <Edit size={24} className="mb-2" />
+                    <span className="block text-sm font-medium">
+                      Edit with Canva <br />
+                      Coming soon...
+                    </span>
+                  </button>
+
+                    {/* Hire Designer */}
                   <button
                     onClick={() =>
                       handleDesignOptionSelect("Hire Graphics Designer")
@@ -401,24 +420,11 @@ export default function ProductDetail() {
                   >
                     <Palette size={24} className="mb-2" />
                     <span className="block text-sm font-medium">
-                      Hire Designer
+                      Hire Designer 
                     </span>
                   </button>
 
-                  <button
-                    onClick={() => handleDesignOptionSelect("Edit with Canva")}
-                    className={`flex flex-col items-center justify-center p-4 rounded-lg text-center transition ${
-                      designOption === "Edit with Canva"
-                        ? "bg-yellow-400 text-black"
-                        : "bg-gray-700 hover:bg-gray-600 text-white"
-                    }`}
-                  >
-                    <Edit size={24} className="mb-2" />
-                    <span className="block text-sm font-medium">
-                      Edit with Canva
-                    </span>
-                  </button>
-
+                  {/* Upload design */}
                   <button
                     onClick={() =>
                       handleDesignOptionSelect("Upload Your Own Design")
