@@ -132,9 +132,8 @@ export default function VendorRegister() {
     setLoading(true);
   
     try {
-      const baseURL = `${process.env.NEXT_PUBLIC_API_BASE_URL}`;
   
-      const response = await fetch(`${baseURL}/vendors/signup`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/vendors/signup`, {
         method: 'POST',
         headers: {
           "Content-Type": "application/json"

@@ -79,7 +79,7 @@ export default function VendorLogin() {
   
     try {
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/vendors/login`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/vendors/login`, {
         method: 'POST',
         headers: {
           "Content-Type": "application/json"

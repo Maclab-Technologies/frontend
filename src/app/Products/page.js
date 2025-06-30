@@ -380,9 +380,6 @@ export default function ProductsPage() {
                 <FiRefreshCw className={isRefreshing ? "animate-spin" : ""} />
                 {isRefreshing ? "Refreshing..." : "Refresh"}
               </button>
-              <button className="bg-yellow-500 text-black px-3 py-2 rounded-md hover:bg-yellow-400 transition flex items-center gap-1">
-                <FiShoppingCart /> Cart
-              </button>
             </div>
           </div>
         </div>

@@ -4,6 +4,7 @@ import Footer from "./components/Footer";
 import "./globals.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import AuthContextProvider from "./hooks/useAuth";
 
 export const metadata = {
   title: "59Minutes Prints",
@@ -17,12 +18,14 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="min-h-screen flex flex-col w-full">
-        <ReduxProvider>
-          <Navbar />
-          <ToastContainer position="top-right" autoClose={3000} />
-          <main>{children}</main>
-          <Footer />
-        </ReduxProvider>
+        {/* <AuthContextProvider> */}
+          <ReduxProvider>
+            <Navbar />
+            <ToastContainer position="top-right" autoClose={3000} />
+            <main>{children}</main>
+            <Footer />
+          </ReduxProvider>
+        {/* </AuthContextProvider> */}
       </body>
     </html>
   );
