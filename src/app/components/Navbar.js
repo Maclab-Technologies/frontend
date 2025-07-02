@@ -28,7 +28,7 @@ const Navbar = () => {
   const pathname = usePathname();
   const auth = getAuth(app);
 
-  const cartCount = cartItems.reduce((acc, item) => acc + (parseInt(item.quantity) || 0), 0);
+  const cartCount = cartItems.length
 
   // Lock body scroll when mobile menu is open
   useEffect(() => {

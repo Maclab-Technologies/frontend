@@ -91,6 +91,7 @@ export default function ProductDetail() {
         }
 
         const normalizedProduct = normalizeMongoId(productData);
+        setQuantity(normalizedProduct.minOrder);
         setProduct(normalizedProduct);
         setSelectedImage(normalizedProduct.images?.[0] || null);
       } catch (error) {
@@ -190,15 +191,6 @@ export default function ProductDetail() {
       return;
     }
 
-    if (product.stock <= 0) {
-      toast.error("This product is out of stock", {
-        position: "top-center",
-        autoClose: 3000,
-        theme: "dark",
-      });
-      return;
-    }
-
     setProcessingAction(true);
 
     try {
@@ -213,27 +205,32 @@ export default function ProductDetail() {
         uploadedImages:
           designOption === DESIGN_OPTIONS.UPLOAD ? productImages : [],
       };
+      const cleanedImages = productImages.map((img) => ({
+        preview: img.preview,
+        name: img.name,
+        size: img.size,
+      }));
 
+      cartItem.uploadedImages = cleanedImages;
+      
       let existingCart = [];
 
-      try {
-        const cartData = localStorage.getItem("cart");
-        existingCart = cartData ? JSON.parse(cartData) : [];
-      } catch (e) {
-        console.error("Error parsing cart data:", e);
-        existingCart = [];
-      }
+      const cartData = JSON.parse(localStorage.getItem("cart") || "[]");
+      existingCart = Array.isArray(cartData) ? cartData : [];
 
       const existingItemIndex = existingCart.findIndex(
         (item) => item.id === product.id && item.designOption === designOption
       );
 
       if (existingItemIndex !== -1) {
+        // If item exists with same design option, update quantity and image if needed
         existingCart[existingItemIndex].quantity += quantity;
+
         if (designOption === DESIGN_OPTIONS.UPLOAD) {
           existingCart[existingItemIndex].uploadedImages = productImages;
         }
       } else {
+        // New item
         existingCart.push(cartItem);
       }
 
@@ -243,14 +240,15 @@ export default function ProductDetail() {
         window.dispatchEvent(new Event("cartUpdated"));
       }
 
+      // Save current design info (optional preview data)
       const designInfo = {
         productId: product.id,
         productName: product.name,
         productImage: selectedImage || product.images?.[0],
-        quantity: quantity,
+        minOrder: quantity,
         price: product.price,
         discountPrice: product.discountPrice,
-        designOption: designOption,
+        designOption,
         uploadedImages:
           designOption === DESIGN_OPTIONS.UPLOAD ? productImages : [],
       };
@@ -264,7 +262,7 @@ export default function ProductDetail() {
       });
 
       // Reset form after successful addition
-      setQuantity(1);
+      setQuantity(product.minOrder);
       setDesignOption("");
       setProductImages([]);
     } catch (error) {
@@ -301,7 +299,6 @@ export default function ProductDetail() {
       </div>
     );
   }
-
   const currentPrice = product.discountPrice || product.price;
   const originalPrice = product.discountPrice ? product.price : null;
 
@@ -434,15 +431,13 @@ export default function ProductDetail() {
                 )}
                 <div className="flex items-center">
                   <Box size={16} className="text-gray-400 mr-2" />
-                  <span className="text-gray-400 mr-2">Stock:</span>
+                  <span className="text-gray-400 mr-2">minOrder:</span>
                   <span
                     className={
-                      product.stock > 0 ? "text-green-400" : "text-red-400"
+                      product.minOrder > 0 ? "text-green-400" : "text-red-400"
                     }
                   >
-                    {product.stock > 0
-                      ? `${product.stock} available`
-                      : "Out of stock"}
+                    {product.minOrder > 0 ? `${product.minOrder}` : "1"}
                   </span>
                 </div>
               </div>
@@ -456,18 +451,27 @@ export default function ProductDetail() {
                   <button
                     className="bg-gray-700 p-2 rounded-l-md hover:bg-gray-600 transition disabled:opacity-50"
                     onClick={() => handleQuantityChange("decrease")}
-                    disabled={quantity <= 1}
+                    disabled={quantity <= (product.minOrder || 1)}
                     aria-label="Decrease quantity"
                   >
                     <Minus size={18} />
                   </button>
-                  <div className="bg-gray-900 text-center text-white py-2 px-6 text-lg font-medium min-w-[4rem]">
-                    {quantity}
-                  </div>
+
+                  <input
+                    type="number"
+                    min={product.minOrder || 1}
+                    value={quantity}
+                    onChange={(e) => {
+                      const newValue =
+                        parseInt(e.target.value) || product.minOrder;
+                      setQuantity(Math.max(newValue, product.minOrder));
+                    }}
+                    className="bg-gray-900 text-center text-white py-2 px-4 text-lg font-medium w-20 border-t border-b border-gray-700 focus:outline-none focus:ring-1 focus:ring-yellow-500"
+                  />
+
                   <button
                     className="bg-gray-700 p-2 rounded-r-md hover:bg-gray-600 transition disabled:opacity-50"
                     onClick={() => handleQuantityChange("increase")}
-                    disabled={quantity >= (product.stock || 1)}
                     aria-label="Increase quantity"
                   >
                     <Plus size={18} />
@@ -648,20 +652,20 @@ export default function ProductDetail() {
               {/* Add to Cart Button */}
               <button
                 className={`w-full py-3 px-4 rounded-lg font-bold text-lg flex items-center justify-center transition focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50 ${
-                  processingAction || product.stock <= 0
+                  processingAction || quantity < product.minOrder
                     ? "bg-gray-500 text-gray-300 cursor-not-allowed"
                     : "bg-yellow-400 text-black hover:bg-yellow-500"
                 }`}
                 onClick={handleAddToCart}
-                disabled={processingAction || product.stock <= 0}
+                disabled={processingAction || quantity < product.minOrder}
               >
                 {processingAction ? (
                   <>
                     <div className="w-5 h-5 border-2 border-gray-300 border-t-transparent rounded-full animate-spin mr-2"></div>
                     Processing...
                   </>
-                ) : product.stock <= 0 ? (
-                  <>Out of Stock</>
+                ) : quantity < product.minOrder ? (
+                  <>Can't order less that {product.minOrder} </>
                 ) : (
                   <>
                     <ShoppingCart className="mr-2" size={20} />

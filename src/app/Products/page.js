@@ -28,7 +28,10 @@ const validateProduct = (product) => {
     typeof product.category === "object" && product.category
       ? String(product.category.name || "Uncategorized")
       : String(product.category || "Uncategorized");
-
+  const vendor =
+    typeof product.vendor === "object" && product.vendor
+      ? String(product.vendor.businessName || "Unknown vendor")
+      : String(product.vendor || "unknown vendor");
   return {
     _id: productId,
     id: productId,
@@ -36,13 +39,13 @@ const validateProduct = (product) => {
     description: String(product.description || ""),
     price: typeof product.price === "number" ? product.price : 0,
     category: category,
-    vendor: String(product.vendor || "Unknown"),
+    vendor: vendor,
     images: Array.isArray(product.images)
       ? product.images.filter((img) => typeof img === "string")
       : typeof product.image === "string"
         ? [product.image]
         : ["/fallback-image.png"],
-    stock: typeof product.stock === "number" ? product.stock : 0,
+    minOrder: typeof product.minOrder === "number" ? product.minOrder : 1,
     status: String(product.status || "unknown"),
     discountPrice: Number(product.discountPrice || 0),
     discountPercent: Number(product.discountPercent || 0),
@@ -246,7 +249,7 @@ export default function ProductsPage() {
     const uniqueCategories = [
       ...new Set(
         products
-          .filter((p) => p && typeof p.category === "string")
+          .filter((p) => p && p.category && typeof p.category === "string")
           .map((p) => p.category)
           .filter(Boolean)
       ),
@@ -255,7 +258,7 @@ export default function ProductsPage() {
     const uniqueVendors = [
       ...new Set(
         products
-          .filter((p) => p && typeof p.vendor === "string")
+          .filter((p) => p && p.vendor && typeof p.vendor === "string")
           .map((p) => p.vendor)
           .filter(Boolean)
       ),
@@ -272,15 +275,6 @@ export default function ProductsPage() {
 
   const handleAddToCart = (product) => {
     if (!product) return;
-
-    if (product.stock <= 0) {
-      toast.error("This product is out of stock", {
-        position: "top-center",
-        autoClose: 3000,
-        theme: "dark",
-      });
-      return;
-    }
 
     toast.success(`Added ${product.name} to cart`, {
       position: "top-center",
@@ -570,7 +564,7 @@ export default function ProductsPage() {
               const productCategory = String(
                 product.category || "Uncategorized"
               );
-              const productStock = Number(product.stock) || 0;
+              const productMinOrder = Number(product.minOrder) || 0;
               const productPrice = Number(product.price) || 0;
               const productDiscountPrice = Number(product.discountPrice) || 0;
               const productDiscountPercent = Number(product.discountPercent);
@@ -602,18 +596,16 @@ export default function ProductsPage() {
                       blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
                       onError={handleImageError}
                     />
-                    {productStock < 5 && productStock > 0 && (
                       <div className="absolute top-0 right-0 bg-orange-500 text-white text-xs font-bold px-2 py-1">
                         -{productDiscountPercent}%
                       </div>
-                    )}
-                    {productStock === 0 && (
+                    {/* {productMinOrder === 0 && (
                       <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
                         <span className="bg-red-600 text-white font-bold px-4 py-2 rounded-md">
                           OUT OF STOCK
                         </span>
                       </div>
-                    )}
+                    )} */}
                   </div>
 
                   {/* Product Details */}
@@ -633,22 +625,8 @@ export default function ProductsPage() {
 
                     <div className="text-sm text-gray-400 mb-4 space-y-1">
                       <p className="truncate">Category: {productCategory}</p>
-                      <p className="truncate">Min order: {product.stock}</p>
-                      <p
-                        className={
-                          productStock > 5
-                            ? "text-green-400"
-                            : productStock > 0
-                              ? "text-orange-400"
-                              : "text-red-400"
-                        }
-                      >
-                        {productStock > 5
-                          ? "In Stock"
-                          : productStock > 0
-                            ? "Low Stock"
-                            : "Out of Stock"}
-                      </p>
+                      <p className="truncate">Min order: {productMinOrder}</p>
+                      
                     </div>
 
                     <div className="flex space-x-2">
@@ -663,13 +641,8 @@ export default function ProductsPage() {
                       </Link>
 
                       <button
-                        disabled={productStock === 0}
                         onClick={() => handleAddToCart(product)}
-                        className={`flex items-center justify-center px-4 py-2 rounded-md transition ${
-                          productStock === 0
-                            ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-                            : "bg-yellow-500 text-black hover:bg-yellow-400"
-                        }`}
+                        className={"flex items-center justify-center px-4 py-2 rounded-md transition bg-yellow-500 text-black hover:bg-yellow-400"}
                         aria-label={`Add ${productName} to cart`}
                       >
                         <FiShoppingCart className="mr-1" /> Buy

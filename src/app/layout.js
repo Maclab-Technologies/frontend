@@ -14,17 +14,20 @@ export const metadata = {
   },
 };
 
-export default function RootLayout({ children }) {
+export default function RootLayout({ children, modal }) {
   return (
     <html lang="en">
       <body className="min-h-screen flex flex-col w-full">
         {/* <AuthContextProvider> */}
-          <ReduxProvider>
-            <Navbar />
-            <ToastContainer position="top-right" autoClose={3000} />
-            <main>{children}</main>
-            <Footer />
-          </ReduxProvider>
+        <ReduxProvider>
+          <Navbar />
+          <ToastContainer position="top-right" autoClose={3000} />
+          <main>
+            {children}
+            {modal}
+          </main>
+          <Footer />
+        </ReduxProvider>
         {/* </AuthContextProvider> */}
       </body>
     </html>
