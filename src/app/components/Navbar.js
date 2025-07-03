@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -10,6 +10,10 @@ import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import { app } from "../utils/firebaseconfig";
 import logo from "../../../public/images/brandimage.jpeg";
 import { useSelector } from "react-redux";
+import { useTime } from "framer-motion";
+import { AuthContext } from "../hooks/useAuth";
+// import { auth } from "../../utils/firebaseconfig";
+
 
 const NAV_LINKS = [
   { label: "Home", href: "/", icon: FaHome },
@@ -22,11 +26,11 @@ const NAV_LINKS = [
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [user, setUser] = useState(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const cartItems = useSelector((state) => state.cart.cartItems || []);
   const pathname = usePathname();
-  const auth = getAuth(app);
+  const { isLoggedIn, authUser } = useContext(AuthContext)
+  // const auth = getAuth(app);
 
   const cartCount = cartItems.length
 
@@ -35,12 +39,6 @@ const Navbar = () => {
     document.body.style.overflow = isMobileMenuOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [isMobileMenuOpen]);
-
-  // Auth state listener
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, setUser);
-    return unsubscribe;
-  }, [auth]);
 
   // Scroll detection
   useEffect(() => {
@@ -123,7 +121,7 @@ const Navbar = () => {
 
             {/* Desktop Right Section */}
             <div className="hidden md:flex items-center space-x-4">
-              {!user ? (
+              {!isLoggedIn ? (
                 <>
                   <Link
                     href="/Auth/Login"
@@ -164,15 +162,15 @@ const Navbar = () => {
                     <button className="flex items-center space-x-2 bg-yellow-400/10 hover:bg-yellow-400/20 rounded-lg pl-3 pr-4 py-2 transition-colors duration-200">
                       <FaUser className="w-4 h-4 text-yellow-400" />
                       <span className="text-sm font-medium text-white">
-                        {user?.displayName?.split(' ')[0] || "Account"}
+                        {authUser?.displayName?.split(' ')[0] || "Account"}
                       </span>
                     </button>
                     
                     {/* Dropdown */}
                     <div className="absolute right-0 mt-2 w-64 bg-black/95 rounded-xl shadow-xl border border-yellow-400/20 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right scale-95 group-hover:scale-100">
                       <div className="p-4 border-b border-yellow-400/20">
-                        <p className="font-medium text-white">{user?.displayName || "User"}</p>
-                        <p className="text-sm text-gray-400 truncate">{user?.email}</p>
+                        <p className="font-medium text-white">{authUser?.displayName || "User"}</p>
+                        <p className="text-sm text-gray-400 truncate">{authUser?.email}</p>
                       </div>
                       <div className="py-2">
                         {[
@@ -206,7 +204,7 @@ const Navbar = () => {
 
             {/* Mobile Menu Button */}
             <div className="md:hidden flex items-center space-x-3">
-              {user && (
+              {authUser && (
                 <Link
                   href="/Clients/Cart"
                   className="p-2 text-white hover:text-yellow-400 rounded-lg relative"
@@ -256,15 +254,15 @@ const Navbar = () => {
 
         <div className="flex flex-col h-full overflow-y-auto">
           {/* User Section */}
-          {user && (
+          {authUser && (
             <div className="p-6 border-b border-yellow-400/20">
               <div className="flex items-center space-x-3">
                 <div className="w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center">
                   <FaUser className="w-6 h-6 text-black" />
                 </div>
                 <div>
-                  <p className="font-medium text-white">{user?.displayName || "User"}</p>
-                  <p className="text-sm text-gray-400 truncate">{user?.email}</p>
+                  <p className="font-medium text-white">{authUser?.displayName || "User"}</p>
+                  <p className="text-sm text-gray-400 truncate">{authUser?.email}</p>
                 </div>
               </div>
             </div>
@@ -291,7 +289,7 @@ const Navbar = () => {
 
           {/* Auth Section */}
           <div className="p-6 border-t border-yellow-400/20">
-            {!user ? (
+            {!authUser ? (
               <div className="space-y-3">
                 <Link
                   href="/Auth/Login"

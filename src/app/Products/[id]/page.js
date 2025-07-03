@@ -21,6 +21,7 @@ import {
   FileUp,
   MessageCircle,
 } from "lucide-react";
+import { AuthContext } from "@/app/hooks/useAuth";
 
 // Helper function to normalize MongoDB documents
 const normalizeMongoId = (item) => {
@@ -179,6 +180,42 @@ export default function ProductDetail() {
     setSelectedImage(img);
   };
 
+  const handleFileUpload = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/orders/upload`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer  ${JSON.parse(localStorage.getItem("userToken"))}`,
+        },
+        body: formData,
+      }
+    );
+
+    const data = await res.json();
+    return data.url; // Cloudinary secure URL
+  };
+
+  const handleFileChange = async (event) => {
+    const file = event.target.files[0];
+
+    if (!file) return;
+
+    const cloudUrl = await handleFileUpload(file);
+
+    setProductImages((prev) => [
+      ...prev,
+      {
+        url: cloudUrl,
+        name: file.name,
+        size: file.size,
+      },
+    ]);
+  };
+
   const handleAddToCart = async () => {
     if (!product) return;
 
@@ -205,14 +242,15 @@ export default function ProductDetail() {
         uploadedImages:
           designOption === DESIGN_OPTIONS.UPLOAD ? productImages : [],
       };
+
       const cleanedImages = productImages.map((img) => ({
-        preview: img.preview,
+        preview: img.url,
         name: img.name,
         size: img.size,
       }));
 
       cartItem.uploadedImages = cleanedImages;
-      
+
       let existingCart = [];
 
       const cartData = JSON.parse(localStorage.getItem("cart") || "[]");
@@ -245,7 +283,7 @@ export default function ProductDetail() {
         productId: product.id,
         productName: product.name,
         productImage: selectedImage || product.images?.[0],
-        minOrder: quantity,
+        quantity: quantity,
         price: product.price,
         discountPrice: product.discountPrice,
         designOption,
@@ -347,7 +385,7 @@ export default function ProductDetail() {
                   </div>
                 )}
               </div>
-
+              cartItems
               {/* Thumbnail Gallery */}
               {product?.images && product.images.length > 1 && (
                 <div className="mt-6 grid grid-cols-4 gap-3">
@@ -562,7 +600,7 @@ export default function ProductDetail() {
                               accept="image/*"
                               multiple
                               className="sr-only"
-                              onChange={handleImageUpload}
+                              onChange={handleFileChange}
                             />
                           </label>
                           <p className="pl-1">or drag and drop</p>

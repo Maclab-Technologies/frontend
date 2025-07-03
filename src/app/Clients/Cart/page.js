@@ -1,7 +1,7 @@
 "use client";
 
 import { useSelector, useDispatch } from "react-redux";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Image from "next/image";
 import {
   updateQuantity,
@@ -12,12 +12,15 @@ import {
 import { useRouter } from "next/navigation";
 import { FiTrash, FiShoppingCart } from "react-icons/fi";
 import { toast } from "react-toastify";
+import { AuthContext } from "@/app/hooks/useAuth";
 
 export default function Cart() {
   const cartItems = useSelector((state) => state.cart.cartItems || []);
   const dispatch = useDispatch();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
+  const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
+  const { isLoggedIn } = useContext(AuthContext);
 
   // Load Cart from localStorage when page loads
   useEffect(() => {
@@ -55,6 +58,10 @@ export default function Cart() {
   };
 
   const handleCheckout = async () => {
+    if (!isLoggedIn) {
+      toast.warning("Sign Up or Login to check out product.");
+      return;
+    }
     try {
       if (cartItems.length === 0) {
         toast.error(
@@ -69,6 +76,7 @@ export default function Cart() {
         {
           method: "POST",
           headers: {
+            Authorization: `Bearer ${JSON.parse(localStorage.getItem("userToken"))}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ items: cartItems }),
@@ -83,7 +91,8 @@ export default function Cart() {
       const order = await response.json();
       router.push(`/Clients/Checkout/${order.id}`, { scroll: false });
     } catch (error) {
-      toast.error("Something went wrong proceeding to product checkout.");
+      console.error(error);
+      toast.error("Something went wrong, Placing Order.");
     }
   };
 
@@ -136,28 +145,61 @@ export default function Cart() {
                 key={item.id}
                 className="bg-gray-800 p-5 rounded-lg flex flex-col md:flex-row gap-5"
               >
-                {/* Product Image */}
-                {item.uploadedImages?.map((img, i) => (
-                  <Image
-                    key={i}
-                    src={img || "/placeholder.jpg"} // prevent crashing
-                    alt={`Design ${i + 1}`}
-                    width={70}
-                    height={70}
-                    className="rounded-md"
-                  />
-                ))}
+                {/* Main Product Image and Uploaded Designs */}
+                <div className="flex flex-col gap-3 min-w-[120px]">
+                  {/* Main product image */}
+                  <div className="relative aspect-square">
+                    <Image
+                      src={item.image || "/placeholder.jpg"}
+                      alt={item.name}
+                      fill
+                      className="rounded-md object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = "/placeholder.jpg";
+                      }}
+                    />
+                  </div>
+
+                  {/* Uploaded designs */}
+                  {item.uploadedImages?.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {item.uploadedImages.map((img, index) => (
+                        <div key={index} className="relative w-16 h-16">
+                          <Image
+                            src={
+                              typeof img === "string"
+                                ? img
+                                : img.preview || "/placeholder.jpg"
+                            }
+                            alt={`Design ${index + 1}`}
+                            fill
+                            className="rounded-md border border-gray-700 object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src = "/placeholder.jpg";
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
                 {/* Product Info */}
                 <div className="flex flex-col flex-grow gap-2">
                   <h2 className="text-xl font-semibold">{item.name}</h2>
+
+                  {/* Price Display */}
                   <div className="mb-4">
                     <div className="text-2xl md:text-3xl font-bold text-yellow-400">
-                      ₦{item.discountPrice?.toLocaleString()}
+                      ₦
+                      {item.discountPrice?.toLocaleString() ??
+                        item.price.toLocaleString()}
                     </div>
+                    {item.discountPrice && (
                       <div className="text-sm text-red-400 line-through">
                         ₦{item.price.toLocaleString()}
                       </div>
+                    )}
                   </div>
 
                   {/* Quantity Controls */}
@@ -166,7 +208,7 @@ export default function Cart() {
                       onClick={() =>
                         handleQuantityChange(item.id, item.quantity - 1)
                       }
-                      className="bg-gray-700 px-3 py-1 rounded-md hover:bg-gray-600 transition"
+                      className="bg-gray-700 px-3 py-1 rounded-md hover:bg-gray-600 transition disabled:opacity-50"
                       disabled={item.quantity <= 1}
                       aria-label={`Decrease ${item.name} quantity`}
                     >
@@ -176,9 +218,13 @@ export default function Cart() {
                       type="number"
                       value={item.quantity}
                       min="1"
-                      onChange={(e) =>
-                        handleQuantityChange(item.id, parseInt(e.target.value))
-                      }
+                      onChange={(e) => {
+                        const value = Math.max(
+                          1,
+                          parseInt(e.target.value) || 1
+                        );
+                        handleQuantityChange(item.id, value);
+                      }}
                       className="w-16 text-center bg-black border border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-yellow-400"
                       aria-label={`Quantity for ${item.name}`}
                     />
@@ -192,27 +238,6 @@ export default function Cart() {
                       +
                     </button>
                   </div>
-
-                  {/* Uploaded Image (if any) */}
-                  {item.uploadedImages && item.uploadedImages.length > 0 && (
-                    <div className="mt-4">
-                      <p className="text-sm text-gray-400 mb-1">
-                        Uploaded Design:
-                      </p>
-                      <div className="flex gap-3 flex-wrap">
-                        {item.uploadedImages.map((img, index) => (
-                          <Image
-                            key={index}
-                            src={img}
-                            alt={`Design ${index + 1}`}
-                            width={70}
-                            height={70}
-                            className="rounded-md border border-gray-700 object-cover"
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
 
                   {/* Remove Button */}
                   <button
@@ -229,9 +254,26 @@ export default function Cart() {
 
           {/* Bottom Action Row */}
           <div className="flex flex-col md:flex-row justify-between items-center border-t border-gray-700 pt-6 gap-4">
-            <h2 className="text-2xl font-bold">
-              Total: {formatCurrency(totalPrice)}
-            </h2>
+            <div>
+              <h2 className="text-2xl font-bold">
+                Total: {formatCurrency(totalPrice)}
+              </h2>
+              {cartItems.some((item) => item.discountPrice) && (
+                <p className="text-sm text-gray-400">
+                  You saved:{" "}
+                  {formatCurrency(
+                    cartItems.reduce(
+                      (acc, item) =>
+                        acc +
+                        (item.discountPrice
+                          ? (item.price - item.discountPrice) * item.quantity
+                          : 0),
+                      0
+                    )
+                  )}
+                </p>
+              )}
+            </div>
             <div className="flex gap-4 flex-wrap">
               <button
                 onClick={handleClearCart}
@@ -241,9 +283,14 @@ export default function Cart() {
               </button>
               <button
                 onClick={handleCheckout}
-                className="bg-yellow-400 text-black px-8 py-3 rounded-md hover:bg-yellow-500 transition duration-300 w-full md:w-auto"
+                disabled={isProcessingCheckout}
+                className={`bg-yellow-400 text-black px-8 py-3 rounded-md hover:bg-yellow-500 transition duration-300 w-full md:w-auto ${
+                  isProcessingCheckout ? "opacity-70 cursor-not-allowed" : ""
+                }`}
               >
-                Proceed to Checkout 🚀
+                {isProcessingCheckout
+                  ? "Processing..."
+                  : "Proceed to Checkout 🚀"}
               </button>
             </div>
           </div>

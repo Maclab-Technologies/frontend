@@ -161,7 +161,7 @@ const Register = () => {
       localStorage.setItem('userToken', idToken);
   
       // Send user data to backend
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/user/signup`, {
+      const response = await fetch(`${process.env.API_KEY}/user/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

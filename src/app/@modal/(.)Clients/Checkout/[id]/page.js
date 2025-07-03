@@ -1,20 +1,24 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState, useContext } from "react";
 import { FiX } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
+import { AuthContext } from "@/app/hooks/useAuth";
 
 export default function CheckoutModal({ params }) {
   const router = useRouter();
+  const { isLoggedIn, authUser } = useContext(AuthContext)
   const { id } = params;
   const cart = useSelector((state) => state.cart.cartItems || []);
   const dispatch = useDispatch();
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [street, setStreet] = useState("");
   const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [country, setCountry] = useState("");
   const [error, setError] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -43,18 +47,18 @@ export default function CheckoutModal({ params }) {
 
   // Input Validation
   const validateInput = () => {
-    if (!fullName || !email || !phone || !address || !city) {
+    if (!contactName || !contactEmail || !contactPhone || !street || !city || !state || !country) {
       setError("All fields are required");
       return false;
     }
 
     const emailRegex = /\S+@\S+\.\S+/;
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(contactEmail)) {
       setError("Invalid email format");
       return false;
     }
 
-    if (!/^\d+$/.test(phone)) {
+    if (!/^\d+$/.test(contactPhone)) {
       setError("Phone number must contain only numbers");
       return false;
     }
@@ -163,29 +167,29 @@ export default function CheckoutModal({ params }) {
               <input
                 type="text"
                 placeholder="Full Name"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
+                value={contactName}
+                onChange={(e) => setContactName(e.target.value)}
                 className="w-full mb-4 p-3 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
               />
               <input
                 type="email"
                 placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={contactEmail}
+                onChange={(e) => setContactEmail(e.target.value)}
                 className="w-full mb-4 p-3 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
               />
               <input
                 type="text"
                 placeholder="Phone Number"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                value={contactPhone}
+                onChange={(e) => setContactPhone(e.target.value)}
                 className="w-full mb-4 p-3 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
               />
               <input
                 type="text"
                 placeholder="Address"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
+                value={street}
+                onChange={(e) => setStreet(e.target.value)}
                 className="w-full mb-4 p-3 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
               />
               <input
@@ -193,6 +197,20 @@ export default function CheckoutModal({ params }) {
                 placeholder="City"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
+                className="w-full mb-6 p-3 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              />
+              <input
+                type="text"
+                placeholder="City"
+                value={state}
+                onChange={(e) => setState(e.target.value)}
+                className="w-full mb-6 p-3 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              />
+              <input
+                type="text"
+                placeholder="City"
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
                 className="w-full mb-6 p-3 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
               />
 
@@ -219,6 +237,7 @@ export default function CheckoutModal({ params }) {
                 </p>
               </div>
 
+              { isLoggedIn && authUser ? (
               <button
                 onClick={handlePaystackPayment}
                 disabled={isProcessing}
@@ -228,6 +247,11 @@ export default function CheckoutModal({ params }) {
               >
                 {isProcessing ? "Processing..." : "Pay with Paystack"}
               </button>
+              ):(
+                <button>
+                  Sign up or Login to proceed
+                </button>
+              )}
 
               <button
                 disabled
@@ -235,6 +259,7 @@ export default function CheckoutModal({ params }) {
               >
                 Pay with Flutterwave (Coming Soon)
               </button>
+              
             </form>
           </div>
         </div>
