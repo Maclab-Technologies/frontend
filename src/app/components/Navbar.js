@@ -2,18 +2,24 @@
 
 import { useState, useEffect, useContext } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { FiMenu, FiX, FiBell } from "react-icons/fi";
-import { FaShoppingCart, FaUser, FaHome, FaBox, FaList, FaStar, FaStore, FaInfo } from "react-icons/fa";
-import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
-import { app } from "../utils/firebaseconfig";
+import {
+  FaShoppingCart,
+  FaUser,
+  FaHome,
+  FaBox,
+  FaList,
+  FaStar,
+  FaStore,
+  FaInfo,
+} from "react-icons/fa";
 import logo from "../../../public/images/brandimage.jpeg";
 import { useSelector } from "react-redux";
-import { useTime } from "framer-motion";
 import { AuthContext } from "../hooks/useAuth";
-// import { auth } from "../../utils/firebaseconfig";
-
+import { signOut } from "firebase/auth";
+import { auth } from "../utils/firebaseconfig";
 
 const NAV_LINKS = [
   { label: "Home", href: "/", icon: FaHome },
@@ -25,32 +31,40 @@ const NAV_LINKS = [
 ];
 
 const Navbar = () => {
+  const router = useRouter()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const cartItems = useSelector((state) => state.cart.cartItems || []);
   const pathname = usePathname();
-  const { isLoggedIn, authUser } = useContext(AuthContext)
-  // const auth = getAuth(app);
-
-  const cartCount = cartItems.length
+  const { isLoggedIn, authUser, setAuthUser, setIsLoggedIn } = useContext(AuthContext);
+  const cartCount = cartItems.length;
 
   // Lock body scroll when mobile menu is open
   useEffect(() => {
-    document.body.style.overflow = isMobileMenuOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
+    document.body.style.overflow = isMobileMenuOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [isMobileMenuOpen]);
 
   // Scroll detection
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleLogout = async () => {
     try {
+      //awaitng for logout api
       await signOut(auth);
+      setIsLoggedIn(false);
+      setAuthUser(null);
       setIsMobileMenuOpen(false);
+      setIsScrolled(null);
+      localStorage.removeItem("userToken");
+      localStorage.removeItem("userData");
+      router.push("/Auth/Login");
     } catch (error) {
       console.error("Logout Error:", error.message);
     }
@@ -68,21 +82,31 @@ const Navbar = () => {
           animation: bounce 0.3s ease-in-out;
         }
         @keyframes bounce {
-          0%, 20%, 60%, 100% { transform: translateY(0); }
-          40% { transform: translateY(-6px); }
-          80% { transform: translateY(-3px); }
+          0%,
+          20%,
+          60%,
+          100% {
+            transform: translateY(0);
+          }
+          40% {
+            transform: translateY(-6px);
+          }
+          80% {
+            transform: translateY(-3px);
+          }
         }
       `}</style>
 
       {/* Main Navbar */}
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        isScrolled 
-          ? "bg-black/95 navbar-blur shadow-lg border-b border-yellow-400/20" 
-          : "bg-black/90 navbar-blur"
-      }`}>
+      <nav
+        className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+          isScrolled
+            ? "bg-black/95 navbar-blur shadow-lg border-b border-yellow-400/20"
+            : "bg-black/90 navbar-blur"
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            
             {/* Logo */}
             <Link href="/" className="flex items-center space-x-3 group">
               <div className="relative">
@@ -96,8 +120,12 @@ const Navbar = () => {
                 />
               </div>
               <div className="hidden sm:block">
-                <span className="text-xl font-bold text-yellow-400">59Minutes</span>
-                <span className="text-xl font-light text-white ml-1">Prints</span>
+                <span className="text-xl font-bold text-yellow-400">
+                  59Minutes
+                </span>
+                <span className="text-xl font-light text-white ml-1">
+                  Prints
+                </span>
               </div>
             </Link>
 
@@ -108,8 +136,8 @@ const Navbar = () => {
                   key={href}
                   href={href}
                   className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    pathname === href 
-                      ? "bg-yellow-400 text-black shadow-md" 
+                    pathname === href
+                      ? "bg-yellow-400 text-black shadow-md"
                       : "text-white hover:bg-yellow-400/10 hover:text-yellow-400"
                   }`}
                 >
@@ -152,7 +180,7 @@ const Navbar = () => {
                     <FaShoppingCart className="w-5 h-5" />
                     {cartCount > 0 && (
                       <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
-                        {cartCount > 99 ? '99+' : cartCount}
+                        {cartCount > 99 ? "99+" : cartCount}
                       </span>
                     )}
                   </Link>
@@ -162,22 +190,30 @@ const Navbar = () => {
                     <button className="flex items-center space-x-2 bg-yellow-400/10 hover:bg-yellow-400/20 rounded-lg pl-3 pr-4 py-2 transition-colors duration-200">
                       <FaUser className="w-4 h-4 text-yellow-400" />
                       <span className="text-sm font-medium text-white">
-                        {authUser?.displayName?.split(' ')[0] || "Account"}
+                        {authUser?.fullName?.split(" ")[0] || "Guest"}
                       </span>
                     </button>
-                    
+
                     {/* Dropdown */}
                     <div className="absolute right-0 mt-2 w-64 bg-black/95 rounded-xl shadow-xl border border-yellow-400/20 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right scale-95 group-hover:scale-100">
                       <div className="p-4 border-b border-yellow-400/20">
-                        <p className="font-medium text-white">{authUser?.displayName || "User"}</p>
-                        <p className="text-sm text-gray-400 truncate">{authUser?.email}</p>
+                        <p className="font-medium text-white">
+                          {authUser?.fullName || "Guest"}
+                        </p>
+                        <p className="text-sm text-gray-400 truncate">
+                          {authUser?.email}
+                        </p>
                       </div>
                       <div className="py-2">
                         {[
                           { href: "/profile", icon: FaUser, label: "Profile" },
-                          { href: "/Clients/Dashboard", icon: FaBox, label: "Dashboard" },
+                          {
+                            href: "/Clients/Dashboard",
+                            icon: FaBox,
+                            label: "Dashboard",
+                          },
                           { href: "/Inbox", icon: FaList, label: "Inbox" },
-                          { href: "/Help", icon: FaInfo, label: "Help" }
+                          { href: "/Help", icon: FaInfo, label: "Help" },
                         ].map(({ href, icon: Icon, label }) => (
                           <Link
                             key={href}
@@ -212,7 +248,7 @@ const Navbar = () => {
                   <FaShoppingCart className="w-5 h-5" />
                   {cartCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
-                      {cartCount > 9 ? '9+' : cartCount}
+                      {cartCount > 9 ? "9+" : cartCount}
                     </span>
                   )}
                 </Link>
@@ -221,7 +257,11 @@ const Navbar = () => {
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="p-2 text-white hover:text-yellow-400 hover:bg-yellow-400/10 rounded-lg transition-colors duration-200"
               >
-                {isMobileMenuOpen ? <FiX className="w-6 h-6" /> : <FiMenu className="w-6 h-6" />}
+                {isMobileMenuOpen ? (
+                  <FiX className="w-6 h-6" />
+                ) : (
+                  <FiMenu className="w-6 h-6" />
+                )}
               </button>
             </div>
           </div>
@@ -230,17 +270,18 @@ const Navbar = () => {
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-40 md:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
 
       {/* Mobile Menu */}
-      <div className={`fixed top-0 right-0 h-full w-80 bg-black/95 shadow-2xl z-50 transform transition-transform duration-300 md:hidden border-l border-yellow-400/20 ${
-        isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
-      }`}>
-        
+      <div
+        className={`fixed top-0 right-0 h-full w-80 bg-black/95 shadow-2xl z-50 transform transition-transform duration-300 md:hidden border-l border-yellow-400/20 ${
+          isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
         {/* Mobile Header */}
         <div className="flex justify-between items-center p-6 border-b border-yellow-400/20">
           <span className="text-lg font-semibold text-yellow-400">Menu</span>
@@ -254,15 +295,19 @@ const Navbar = () => {
 
         <div className="flex flex-col h-full overflow-y-auto">
           {/* User Section */}
-          {authUser && (
+          {isLoggedIn && authUser && (
             <div className="p-6 border-b border-yellow-400/20">
               <div className="flex items-center space-x-3">
                 <div className="w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center">
                   <FaUser className="w-6 h-6 text-black" />
                 </div>
                 <div>
-                  <p className="font-medium text-white">{authUser?.displayName || "User"}</p>
-                  <p className="text-sm text-gray-400 truncate">{authUser?.email}</p>
+                  <p className="font-medium text-white">
+                    {authUser?.fullName || "Guest"}
+                  </p>
+                  <p className="text-sm text-gray-400 truncate">
+                    {authUser?.email}
+                  </p>
                 </div>
               </div>
             </div>
@@ -289,7 +334,7 @@ const Navbar = () => {
 
           {/* Auth Section */}
           <div className="p-6 border-t border-yellow-400/20">
-            {!authUser ? (
+            {!isLoggedIn ? (
               <div className="space-y-3">
                 <Link
                   href="/Auth/Login"
@@ -310,10 +355,19 @@ const Navbar = () => {
               <div className="space-y-2">
                 {[
                   { href: "/profile", icon: FaUser, label: "Profile" },
-                  { href: "/Clients/Dashboard", icon: FaBox, label: "Dashboard" },
-                  { href: "/Clients/Cart", icon: FaShoppingCart, label: "Cart", badge: cartCount },
+                  {
+                    href: "/Clients/Dashboard",
+                    icon: FaBox,
+                    label: "Dashboard",
+                  },
+                  {
+                    href: "/Clients/Cart",
+                    icon: FaShoppingCart,
+                    label: "Cart",
+                    badge: cartCount,
+                  },
                   { href: "/Inbox", icon: FaList, label: "Inbox" },
-                  { href: "/Help", icon: FaInfo, label: "Help" }
+                  { href: "/Help", icon: FaInfo, label: "Help" },
                 ].map(({ href, icon: Icon, label, badge }) => (
                   <Link
                     key={href}
@@ -327,7 +381,7 @@ const Navbar = () => {
                     </div>
                     {badge > 0 && (
                       <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                        {badge > 99 ? '99+' : badge}
+                        {badge > 99 ? "99+" : badge}
                       </span>
                     )}
                   </Link>

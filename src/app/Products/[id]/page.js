@@ -232,6 +232,7 @@ export default function ProductDetail() {
 
     try {
       const cartItem = {
+        vendorId: product.vendor.id,
         id: product.id,
         name: product.name,
         price: product.price,

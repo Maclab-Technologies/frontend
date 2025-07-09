@@ -1,112 +1,173 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { clearCart } from '../../../Redux/CartSlice';
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
+import { clearCart } from "../../../Redux/CartSlice";
 
 const Checkout = () => {
-  const cart = useSelector((state) => state.cart.cartItems || []);
+  const params = useParams();
+  const router = useRouter();
   const dispatch = useDispatch();
+  const orderId = params.id;
 
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [address, setAddress] = useState('');
-  const [city, setCity] = useState('');
-  const [error, setError] = useState('');
+  const [userId, setUserId] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [street, setStreet] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [country, setCountry] = useState("");
+  const [error, setError] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [orderDetails, setOrderDetails] = useState(null);
+  const [isLoadingOrder, setIsLoadingOrder] = useState(true);
+  const [orderError, setOrderError] = useState("");
+  const [hasMounted, setHasMounted] = useState(false);
 
-  // Paystack script for payment
   useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://js.paystack.co/v1/inline.js';
+    setHasMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hasMounted || !orderId) return;
+
+    const fetchOrderDetails = async () => {
+      try {
+        setIsLoadingOrder(true);
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/orders/${orderId}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("userToken")}`,
+            },
+          }
+        );
+
+        const res = await response.json();
+        const data = res.data;
+        if (!response.ok && !data.success) {
+          setOrderError(data.message || "Failed to fetch order details");
+        }
+        setOrderDetails(data);
+        setFullName(data.user.fullName)
+        setEmail(data.user.email);
+        setPhone(data.user.phone);
+      } catch (error) {
+        console.error("Error fetching order details:", error);
+        setOrderError("An error occurred while fetching order details");
+      } finally {
+        setIsLoadingOrder(false);
+      }
+    };
+
+    fetchOrderDetails();
+  }, [orderId, hasMounted]);
+
+  useEffect(() => {
+    if (!hasMounted) return;
+
+    const script = document.createElement("script");
+    script.src = "https://js.paystack.co/v1/inline.js";
     script.async = true;
     document.body.appendChild(script);
 
     return () => {
-      document.body.removeChild(script);
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
     };
-  }, []);
+  }, [hasMounted]);
 
-  // Input Validation
   const validateInput = () => {
-    if (!fullName || !email || !phone || !address || !city) {
-      setError('All fields are required');
+    if (!fullName || !email || !phone || !street || !state || !city) {
+      setError("All fields are required");
       return false;
     }
 
     const emailRegex = /\S+@\S+\.\S+/;
     if (!emailRegex.test(email)) {
-      setError('Invalid email format');
+      setError("Invalid email format");
       return false;
     }
 
     if (!/^\d+$/.test(phone)) {
-      setError('Phone number must contain only numbers');
+      setError("Phone number must contain only numbers");
       return false;
     }
 
-    setError('');
+    setError("");
     return true;
   };
 
-  // Verify payment with backend
-  const verifyPayment = async (reference, orderDetails) => {
+  const verifyPayment = async (reference) => {
+    if (!hasMounted) return;
+
     try {
       setIsProcessing(true);
-      const response = await fetch('/api/verify-payment', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ reference }),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/verify-payment/${orderId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${JSON.parse(localStorage.getItem("userToken"))}`,
+          },
+          body: JSON.stringify({
+            reference,
+            orderId,
+            customerDetails: {
+              fullName,
+              email,
+              phone,
+              street,
+              city,
+              state,
+              country,
+            },
+          }),
+        }
+      );
 
       const data = await response.json();
 
       if (data.success) {
-        // Payment verified successfully
-        localStorage.setItem('orderDetails', JSON.stringify(orderDetails));
         dispatch(clearCart());
-        window.location.href = '/Clients/Payment-success';
+        window.location.href = "/Clients/Payment-success";
       } else {
-        // Payment verification failed
-        alert('Payment verification failed. Please contact support.');
+        alert("Payment verification failed. Please contact support.");
       }
     } catch (error) {
-      console.error('Error verifying payment:', error);
-      alert('An error occurred while verifying your payment. Please contact support.');
+      console.error("Error verifying payment:", error);
+      alert(
+        "An error occurred while verifying your payment. Please contact support."
+      );
     } finally {
       setIsProcessing(false);
     }
   };
 
-  // Handle Paystack Payment
   const handlePaystackPayment = async () => {
-    if (!validateInput() || isProcessing) return;
-
-    const orderDetails = {
-      fullName,
-      email,
-      phone,
-      address,
-      city,
-      cartItems: cart,
-      totalAmount: cart.reduce((acc, item) => acc + item.price * item.quantity, 0),
-    };
+    if (!hasMounted || !validateInput() || isProcessing || !orderDetails)
+      return;
 
     const handler = window.PaystackPop?.setup({
-      key: process.env.NEXT_PUBLIC_PAYSTACK_KEY || 'pk_test_1b3a68df76c0e6286eea3c5bdb00596428d3ce7a',
-      email: orderDetails.email,
-      amount: orderDetails.totalAmount * 100,
-      currency: 'NGN',
+      key:
+        process.env.NEXT_PUBLIC_PAYSTACK_KEY ||
+        "pk_test_1b3a68df76c0e6286eea3c5bdb00596428d3ce7a",
+      email: email,
+      amount: orderDetails.total * 100,
+      currency: "NGN",
+      reference: `ORDER_${orderId}_${Date.now()}`,
       callback: (response) => {
-        const paymentReference = response.reference;
-        verifyPayment(paymentReference, orderDetails);
+        verifyPayment(response.reference);
       },
       onClose: () => {
         if (!isProcessing) {
-          alert('Payment was not completed');
+          alert("Payment was not completed");
         }
       },
     });
@@ -114,10 +175,56 @@ const Checkout = () => {
     handler.openIframe();
   };
 
+  if (!hasMounted) {
+    return (
+      <div className="min-h-screen bg-yellow-400 flex items-center justify-center p-6">
+        <div className="bg-black text-white p-8 rounded-lg shadow-lg w-full max-w-lg text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoadingOrder) {
+    return (
+      <div className="min-h-screen bg-yellow-400 flex items-center justify-center p-6">
+        <div className="bg-black text-white p-8 rounded-lg shadow-lg w-full max-w-lg text-center">
+          <h1 className="text-3xl font-bold mb-6">Loading Order...</h1>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (orderError) {
+    return (
+      <div className="min-h-screen bg-yellow-400 flex items-center justify-center p-6">
+        <div className="bg-black text-white p-8 rounded-lg shadow-lg w-full max-w-lg text-center">
+          <h1 className="text-3xl font-bold mb-6 text-red-500">Error</h1>
+          <p className="text-red-400 mb-6">{orderError}</p>
+          <button
+            onClick={() => router.back()}
+            className="bg-yellow-400 text-black px-6 py-3 rounded-lg font-bold hover:bg-yellow-500 transition"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-yellow-400 flex items-center justify-center p-6">
       <div className="bg-black text-white p-8 rounded-lg shadow-lg w-full max-w-lg">
         <h1 className="text-3xl font-bold mb-6 text-center">Checkout</h1>
+
+        {/* Order ID Display */}
+        <div className="bg-gray-900 p-3 rounded-lg mb-6 text-center">
+          <p className="text-sm text-gray-400">
+            Order ID:{" "}
+            <span className="text-yellow-400 font-mono">{orderId}</span>
+          </p>
+        </div>
 
         {error && <p className="text-red-500 mb-4">{error}</p>}
 
@@ -144,9 +251,9 @@ const Checkout = () => {
         />
         <input
           type="text"
-          placeholder="Address"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
+          placeholder="123, Alen street"
+          value={street}
+          onChange={(e) => setStreet(e.target.value)}
           className="w-full mb-4 p-3 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
         />
         <input
@@ -156,29 +263,45 @@ const Checkout = () => {
           onChange={(e) => setCity(e.target.value)}
           className="w-full mb-6 p-3 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
         />
+        <input
+          type="text"
+          placeholder="State"
+          value={state}
+          onChange={(e) => setState(e.target.value)}
+          className="w-full mb-6 p-3 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
+        />
+        <input
+          type="text"
+          placeholder="Country"
+          value={country}
+          onChange={(e) => setCountry(e.target.value)}
+          className="w-full mb-6 p-3 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
+        />
 
         <div className="bg-gray-900 p-4 rounded-lg mb-6">
           <h2 className="text-lg font-semibold mb-3">Order Summary</h2>
-          {cart.map((item, index) => (
+          {orderDetails?.items?.map((item, index) => (
             <div key={index} className="flex justify-between mb-2 text-sm">
-              <span>{item.name} (x{item.quantity})</span>
-              <span>₦{item.price * item.quantity}</span>
+              <span>
+                {item.productId.name} (x{item.quantity})
+              </span>
+              <span>₦{(item.productId.discountPrice * item.quantity).toLocaleString()}</span>
             </div>
           ))}
           <hr className="my-3 border-gray-700" />
           <p className="text-right font-bold text-lg">
-            Total: ₦{cart.reduce((acc, item) => acc + item.price * item.quantity, 0)}
+            Total: ₦{orderDetails?.total?.toLocaleString() || 0}
           </p>
         </div>
 
         <button
           onClick={handlePaystackPayment}
-          disabled={isProcessing}
+          disabled={isProcessing || !orderDetails}
           className={`w-full mb-3 p-3 bg-yellow-400 text-black font-bold rounded-lg hover:bg-yellow-500 transition ${
-            isProcessing ? 'opacity-70 cursor-not-allowed' : ''
+            isProcessing || !orderDetails ? "opacity-70 cursor-not-allowed" : ""
           }`}
         >
-          {isProcessing ? 'Processing...' : 'Pay with Paystack'}
+          {isProcessing ? "Processing..." : "Pay with Paystack"}
         </button>
 
         <button

@@ -20,23 +20,38 @@ export default function Cart() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
-  const { isLoggedIn } = useContext(AuthContext);
+  const { isLoggedIn, authUser } = useContext(AuthContext);
+  const [hasMounted, setHasMounted] = useState(false);
 
-  // Load Cart from localStorage when page loads
   useEffect(() => {
-    const savedCart = JSON.parse(localStorage.getItem("cart")) || [];
-    dispatch(setCart(savedCart));
-    setIsLoading(false);
+    setHasMounted(true);
+    const loadCart = () => {
+      try {
+        const savedCart = JSON.parse(localStorage.getItem("cart") || "[]");
+        dispatch(setCart(savedCart));
+      } catch (error) {
+        console.error("Error loading cart from localStorage:", error);
+        localStorage.removeItem("cart");
+        dispatch(setCart([]));
+      }
+      setIsLoading(false);
+    };
+
+    if (typeof window !== "undefined") {
+      loadCart();
+    }
   }, [dispatch]);
 
-  // Save to localStorage when cart updates
   useEffect(() => {
-    if (!isLoading) {
-      localStorage.setItem("cart", JSON.stringify(cartItems));
-      // Dispatch an event to notify Navbar about cart update
-      window.dispatchEvent(new Event("cartUpdated"));
+    if (hasMounted && !isLoading) {
+      try {
+        localStorage.setItem("cart", JSON.stringify(cartItems));
+        window.dispatchEvent(new Event("cartUpdated"));
+      } catch (error) {
+        console.error("Error saving cart to localStorage:", error);
+      }
     }
-  }, [cartItems, isLoading]);
+  }, [cartItems, isLoading, hasMounted]);
 
   const handleQuantityChange = (id, newQuantity) => {
     const quantity = Math.max(1, parseInt(newQuantity) || 1);
@@ -58,10 +73,14 @@ export default function Cart() {
   };
 
   const handleCheckout = async () => {
+    if (!hasMounted) return;
+
     if (!isLoggedIn) {
-      toast.warning("Sign Up or Login to check out product.");
+      toast.warning("Please sign in to proceed to checkout");
+      safeNavigate("/Clients/Auth/Login");
       return;
     }
+
     try {
       if (cartItems.length === 0) {
         toast.error(
@@ -70,50 +89,88 @@ export default function Cart() {
         return;
       }
 
-      // Create an order (you might want to adjust this based on your backend)
+      setIsProcessingCheckout(true);
+
+      const orderData = {
+        items: cartItems.map((item) => ({
+          vendorId: item.vendorId,
+          productId: item.id,
+          name: item.name,
+          price: item.price,
+          discountPrice: item.discountPrice,
+          quantity: item.quantity,
+          image: item.image,
+          uploadedImages: item.uploadedImages
+            ?.map((img) => (typeof img === "string" ? img : img.preview))
+            .filter(Boolean),
+        })),
+        totalAmount: cartItems.reduce(
+          (acc, item) =>
+            acc + (item.discountPrice || item.price) * item.quantity,
+          0
+        ),
+      };
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/orders/place-order`,
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${JSON.parse(localStorage.getItem("userToken"))}`,
             "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("userToken")}`,
           },
-          body: JSON.stringify({ items: cartItems }),
+          body: JSON.stringify(orderData),
         }
       );
 
       if (!response.ok) {
-        toast.error("Failed to proceed to checkout, try again");
-        return;
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const order = await response.json();
-      router.push(`/Clients/Checkout/${order.id}`, { scroll: false });
+      toast.success("Order placed successfully!");
+
+      // Clear cart only after successful order creation
+      // dispatch(clearCart());
+      // localStorage.removeItem("cart");
+
+      // Use window.location for more reliable redirect
+      window.location.href = `/Clients/Checkout/${order.data.id}`;
     } catch (error) {
-      console.error(error);
-      toast.error("Something went wrong, Placing Order.");
+      console.error("Checkout error:", error);
+      toast.error("Something went wrong while placing your order");
+    } finally {
+      setIsProcessingCheckout(false);
     }
   };
 
+  const safeNavigate = (path) => {
+    if (!hasMounted) return;
+    router.push(path);
+  };
+
   const handleContinueShopping = () => {
-    router.push("/Products");
+    safeNavigate("/Products");
   };
 
   const totalPrice = cartItems.reduce(
-    (acc, item) => acc + item.discountPrice * item.quantity,
+    (acc, item) =>
+      acc + (item.discountPrice || item.price || 0) * (item.quantity || 0),
     0
   );
-  const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+  const totalItems = cartItems.reduce(
+    (acc, item) => acc + (item.quantity || 0),
+    0
+  );
 
   const formatCurrency = (price) => {
     return new Intl.NumberFormat("en-NG", {
       style: "currency",
       currency: "NGN",
-    }).format(price);
+    }).format(price || 0);
   };
 
-  if (isLoading) {
+  if (!hasMounted || isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black text-white">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
@@ -124,7 +181,7 @@ export default function Cart() {
   return (
     <div className="container mx-auto p-6 bg-black text-white min-h-screen">
       <h1 className="text-4xl font-bold mb-8 flex items-center gap-2">
-        <FiShoppingCart className="text-yellow-400" /> Cart ({totalItems} items)
+        <FiShoppingCart className="text-yellow-400" /> Cart ({cartItems.length} item{cartItems.length > 0 && 's'})
       </h1>
 
       {cartItems.length === 0 ? (
@@ -151,7 +208,7 @@ export default function Cart() {
                   <div className="relative aspect-square">
                     <Image
                       src={item.image || "/placeholder.jpg"}
-                      alt={item.name}
+                      alt={item.name || "Product"}
                       fill
                       className="rounded-md object-cover"
                       onError={(e) => {
@@ -169,7 +226,7 @@ export default function Cart() {
                             src={
                               typeof img === "string"
                                 ? img
-                                : img.preview || "/placeholder.jpg"
+                                : img?.preview || "/placeholder.jpg"
                             }
                             alt={`Design ${index + 1}`}
                             fill
@@ -186,16 +243,17 @@ export default function Cart() {
 
                 {/* Product Info */}
                 <div className="flex flex-col flex-grow gap-2">
-                  <h2 className="text-xl font-semibold">{item.name}</h2>
+                  <h2 className="text-xl font-semibold">
+                    {item.name || "Unknown Product"}
+                  </h2>
 
                   {/* Price Display */}
                   <div className="mb-4">
                     <div className="text-2xl md:text-3xl font-bold text-yellow-400">
                       ₦
-                      {item.discountPrice?.toLocaleString() ??
-                        item.price.toLocaleString()}
+                      {(item.discountPrice || item.price || 0).toLocaleString()}
                     </div>
-                    {item.discountPrice && (
+                    {item.discountPrice && item.price && (
                       <div className="text-sm text-red-400 line-through">
                         ₦{item.price.toLocaleString()}
                       </div>
@@ -206,17 +264,17 @@ export default function Cart() {
                   <div className="flex items-center gap-3 mt-2">
                     <button
                       onClick={() =>
-                        handleQuantityChange(item.id, item.quantity - 1)
+                        handleQuantityChange(item.id, (item.quantity || 1) - 1)
                       }
                       className="bg-gray-700 px-3 py-1 rounded-md hover:bg-gray-600 transition disabled:opacity-50"
-                      disabled={item.quantity <= 1}
-                      aria-label={`Decrease ${item.name} quantity`}
+                      disabled={(item.quantity || 1) <= 1}
+                      aria-label={`Decrease ${item.name || "item"} quantity`}
                     >
                       -
                     </button>
                     <input
                       type="number"
-                      value={item.quantity}
+                      value={item.quantity || 1}
                       min="1"
                       onChange={(e) => {
                         const value = Math.max(
@@ -226,14 +284,14 @@ export default function Cart() {
                         handleQuantityChange(item.id, value);
                       }}
                       className="w-16 text-center bg-black border border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-yellow-400"
-                      aria-label={`Quantity for ${item.name}`}
+                      aria-label={`Quantity for ${item.name || "item"}`}
                     />
                     <button
                       onClick={() =>
-                        handleQuantityChange(item.id, item.quantity + 1)
+                        handleQuantityChange(item.id, (item.quantity || 1) + 1)
                       }
                       className="bg-gray-700 px-3 py-1 rounded-md hover:bg-gray-600 transition"
-                      aria-label={`Increase ${item.name} quantity`}
+                      aria-label={`Increase ${item.name || "item"} quantity`}
                     >
                       +
                     </button>
@@ -243,7 +301,7 @@ export default function Cart() {
                   <button
                     onClick={() => handleRemoveItem(item.id)}
                     className="text-red-500 mt-4 flex items-center gap-2 hover:text-red-400 transition"
-                    aria-label={`Remove ${item.name} from cart`}
+                    aria-label={`Remove ${item.name || "item"} from cart`}
                   >
                     <FiTrash /> Remove
                   </button>
@@ -265,8 +323,9 @@ export default function Cart() {
                     cartItems.reduce(
                       (acc, item) =>
                         acc +
-                        (item.discountPrice
-                          ? (item.price - item.discountPrice) * item.quantity
+                        (item.discountPrice && item.price
+                          ? (item.price - item.discountPrice) *
+                            (item.quantity || 0)
                           : 0),
                       0
                     )

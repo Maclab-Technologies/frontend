@@ -1,23 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { 
   FaHome, FaUpload, FaShoppingCart, FaFileAlt, 
   FaComments, FaMoneyBillWave, FaCog, FaSignOutAlt, 
   FaBars, FaTimes, FaUser, FaCheck, FaClock,
-  FaExclamationCircle, FaDownload, FaPaperPlane,
+  FaExclamationCircle, FaDownutad, FaPaperPlane,
   FaTrash, FaEdit
 } from "react-icons/fa";
 import { signOut } from "firebase/auth";
 import { auth } from "../../utils/firebaseconfig";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { AuthContext } from "@/app/hooks/useAuth";
 
 export default function ClientDashboard() {
   const router = useRouter();
+  const { setAuthUser, setIsLoggedIn, setRole, authUser, isLoggedIn, role } = useContext(AuthContext)
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("Dashboard");
   
@@ -41,25 +42,9 @@ export default function ClientDashboard() {
     messages: null
   });
 
-  // Load user data and fetch initial content
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (!user) {
-        router.push("/Auth/Login");
-      } else {
-        setUser(user);
-        // Load data from API when user is authenticated
-        fetchInitialData();
-      }
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [router]);
-
   // Fetch data when tab changes
   useEffect(() => {
-    if (!user) return;
+    if (!authUser) return;
 
     switch (activeTab) {
       case "My Orders":
@@ -75,7 +60,7 @@ export default function ClientDashboard() {
         fetchOrders(); // Reuse orders data
         break;
     }
-  }, [activeTab, user]);
+  }, [activeTab, authUser]);
 
   const fetchInitialData = async () => {
     try {
@@ -173,7 +158,7 @@ export default function ClientDashboard() {
         formData.append('files', file);
       });
       formData.append('designNote', designNote);
-      formData.append('userId', user.uid);
+      formData.append('userId', authUser.id);
 
       const response = await fetch('/api/design-requests', {
         method: 'POST',
@@ -194,7 +179,11 @@ export default function ClientDashboard() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
+      setAuthUser(null)
+      setIsLoggedIn(false)
+      setRole(null)
       localStorage.removeItem('userToken');
+      localStorage.removeItem('userData');
       toast.success("Logged out successfully");
       router.push("/Auth/Login");
     } catch (error) {
@@ -220,7 +209,7 @@ export default function ClientDashboard() {
       <div className="space-y-6">
         <div className="bg-gray-800 rounded-lg p-6 text-white">
           <h1 className="text-2xl font-bold mb-2">
-            Welcome back, <span className="text-yellow-400">{user?.displayName || "Client"}</span>
+            Welcome back, <span className="text-yellow-400">{authUser?.displayName || "Client"}</span>
           </h1>
           <p className="text-gray-300 mb-6">Here's an overview of your design and print projects</p>
 
@@ -429,7 +418,7 @@ export default function ClientDashboard() {
     ),
 
     "Settings": (
-      <UserSettings user={user} />
+      <UserSettings user={authUser} />
     )
   };
 
@@ -459,7 +448,7 @@ export default function ClientDashboard() {
       <NavBar 
         mobileNavOpen={mobileNavOpen}
         setMobileNavOpen={setMobileNavOpen}
-        user={user}
+        user={authUser}
         handleLogout={handleLogout}
       />
 
@@ -472,7 +461,7 @@ export default function ClientDashboard() {
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             navItems={navItems}
-            user={user}
+            user={authUser}
             handleLogout={handleLogout}
           />
 
@@ -723,7 +712,7 @@ const EmptyState = ({ icon, message, actionText, onAction }) => (
   </div>
 );
 
-const UserSettings = ({ user }) => (
+const UserSettings = ({ authUser }) => (
   <div className="bg-gray-800 rounded-lg p-6 text-white">
     <h1 className="text-2xl font-bold mb-6">Settings</h1>
     
@@ -736,7 +725,7 @@ const UserSettings = ({ user }) => (
             <label className="block text-sm font-medium mb-2">Full Name</label>
             <input
               type="text"
-              defaultValue={user?.displayName || ""}
+              defaultValue={authUser?.displayName || ""}
               className="w-full p-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
             />
           </div>
@@ -745,7 +734,7 @@ const UserSettings = ({ user }) => (
             <label className="block text-sm font-medium mb-2">Email Address</label>
             <input
               type="email"
-              defaultValue={user?.email || ""}
+              defaultValue={authUser?.email || ""}
               disabled
               className="w-full p-3 bg-gray-900 border border-gray-700 rounded-lg text-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
             />
@@ -821,7 +810,7 @@ const UserSettings = ({ user }) => (
   </div>
 );
 
-const NavBar = ({ mobileNavOpen, setMobileNavOpen, user, handleLogout }) => (
+const NavBar = ({ mobileNavOpen, setMobileNavOpen, authUser, handleLogout }) => (
   <nav className="bg-black text-white shadow-lg sticky top-0 z-50">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="flex justify-between h-16 items-center">
@@ -841,7 +830,7 @@ const NavBar = ({ mobileNavOpen, setMobileNavOpen, user, handleLogout }) => (
             <div className="bg-gray-800 rounded-full h-8 w-8 flex items-center justify-center mr-2">
               <FaUser className="text-yellow-400" />
             </div>
-            <span className="text-sm text-gray-300">{user?.displayName || 'Client'}</span>
+            <span className="text-sm text-gray-300">{authUser?.displayName || 'Client'}</span>
           </div>
           <button
             onClick={handleLogout}
@@ -861,7 +850,7 @@ const SideNav = ({
   activeTab,
   setActiveTab,
   navItems,
-  user,
+  authUser,
   handleLogout
 }) => (
   <aside className={`
@@ -887,8 +876,8 @@ const SideNav = ({
           <FaUser className="text-yellow-400" />
         </div>
         <div className="overflow-hidden">
-          <p className="font-medium text-white truncate">{user?.displayName || 'Client'}</p>
-          <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+          <p className="font-medium text-white truncate">{authUser?.displayName || 'Client'}</p>
+          <p className="text-xs text-gray-400 truncate">{authUser?.email}</p>
         </div>
       </div>
     </div>
