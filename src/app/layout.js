@@ -17,7 +17,7 @@ export const metadata = {
   },
 };
 
-export default function RootLayout({ children, modal }) {
+export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="min-h-screen flex flex-col w-full bg-black text-white">
@@ -25,7 +25,7 @@ export default function RootLayout({ children, modal }) {
           <AuthContextProvider>
             <Navbar />
             <ToastContainer position="top-right" autoClose={2000} />
-            <main className="flex-grow">{children}{modal}</main>
+            <main className="flex-grow">{children}</main>
             <Footer />
           </AuthContextProvider>
         </ReduxProvider>
