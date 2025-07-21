@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useRouter } from "next/navigation";
 import { auth } from "../../utils/firebaseconfig";
 // import { signInWithEmailAndPassword } from "firebase/auth";
@@ -8,6 +8,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { AuthContext } from "@/app/hooks/useAuth";
 
 export default function VendorLogin() {
   const router = useRouter();
@@ -19,6 +20,7 @@ export default function VendorLogin() {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [formProgress, setFormProgress] = useState(0);
+  const { setIsLoggedIn, setAuthUser } = useContext(AuthContext)
 
   useEffect(() => {
     if (!auth) {
@@ -96,14 +98,16 @@ export default function VendorLogin() {
       const data = await response.json();
   
       // Ensure token is present
-      const token = data?.token;
+      const token = data.token;
       if (!token) {
         throw new Error("Authentication token missing from response.");
       }
   
+      setAuthUser(data.data)
+      setIsLoggedIn(true)
       // Store in localStorage
       localStorage.setItem("vendor_token", token);
-      localStorage.setItem("vendor_data", JSON.stringify(data?.vendor || {}));
+      localStorage.setItem("vendor_data", JSON.stringify(data.data));
   
       toast.success("Login successful! Redirecting to dashboard...", {
         autoClose: 1000,

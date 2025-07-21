@@ -23,7 +23,6 @@ import {
   FaEdit,
   FaDollarSign,
 } from "react-icons/fa";
-import { auth } from "../../utils/firebaseconfig";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ProductForm from "./productform";
@@ -810,7 +809,7 @@ export default function VendorDashboard() {
           <h1 className="text-2xl font-bold mb-2">
             Welcome back,{" "}
             <span className="text-yellow-400">
-              {vendorData?.name || "Vendor"}
+              {vendorData?.businessName || "Vendor"}
             </span>
           </h1>
           <p className="text-gray-300 mb-6">
@@ -1592,31 +1591,6 @@ export default function VendorDashboard() {
       <ToastContainer position="top-right" autoClose={5000} />
 
       {/* Top Navigation Bar */}
-      <nav className="bg-black text-white shadow-lg sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            <div className="flex items-center">
-              <button
-                onClick={() => setMobileNavOpen(!mobileNavOpen)}
-                className="lg:hidden mr-4 text-white focus:outline-none"
-              >
-                {mobileNavOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
-              </button>
-              <h1 className="text-xl font-bold">
-                <span className="text-yellow-400">59Minutes</span>Print
-              </h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={handleLogout}
-                className="flex items-center text-sm hover:text-yellow-400 transition"
-              >
-                <FaSignOutAlt className="mr-1" /> Sign Out
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col lg:flex-row gap-6">
@@ -1649,10 +1623,10 @@ export default function VendorDashboard() {
                 </div>
                 <div className="overflow-hidden">
                   <p className="font-medium text-white truncate">
-                    {vendorData?.name || "Vendor"}
+                    {vendorData?.businessName || "Guest"}
                   </p>
                   <p className="text-xs text-gray-400 truncate">
-                    {vendorData?.email}
+                    {vendorData?.businessEmail || "Guest@59minutesprints.com"}
                   </p>
                 </div>
               </div>
