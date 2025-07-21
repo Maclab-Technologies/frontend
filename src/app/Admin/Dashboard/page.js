@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   FaChartPie, FaBoxOpen, FaUsers, FaUserTie,
@@ -8,16 +8,13 @@ import {
   FaBars, FaTimes, FaUser, FaCheck, FaDownload,
   FaExclamationCircle, FaClock, FaTrash, FaEdit, FaShoppingCart, FaDollarSign, FaArrowUp
 } from "react-icons/fa";
-// import FaShoppingCart from "react-icons/fa"
-import { signOut } from "firebase/auth";
-import { auth } from "../../utils/firebaseconfig";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { AuthContext } from "@/app/hooks/useAuth";
 
 export default function AdminDashboard() {
 
-
-
+  const { isLoggedIn, authUser, isLoading } = useContext(AuthContext)
   const router = useRouter();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [user, setUser] = useState(null);
@@ -33,24 +30,11 @@ export default function AdminDashboard() {
   const [payments, setPayments] = useState([]);
   const [stats, setStats] = useState({});
 
-  // Load user data and initial content
-  useEffect(() => {
-    // Extract email from URL query param if needed
-    const email = new URLSearchParams(window.location.search).get('email');
-
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (!user) {
-        router.push("/Admin/Login");
-      } else {
-        setUser(user);
-        // Load mock data
-        loadMockData();
-      }
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [router]);
+  useEffect(()=> {
+    if(!isLoggedIn){
+      router.push('/Admin')
+    }
+  }, [router])
 
   const loadMockData = () => {
     // Mock users
