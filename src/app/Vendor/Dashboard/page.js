@@ -26,6 +26,14 @@ import {
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ProductForm from "./productform";
+import { batchRequests } from "@/app/hooks/fetch-hook";
+import Dashboard from "../Components/dashboard";
+import AddProduct from "../Components/create-product";
+import ManageProducts from "../Components/manage-product";
+import Earnings from "../Components/earning";
+import Withdraw from "../Components/withdraw";
+import Payout from "../Components/payout";
+
 // // Reusable Product Form Component
 // const ProductForm = ({
 //   product = null,
@@ -481,11 +489,7 @@ export default function VendorDashboard() {
   // Data states
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [earnings, setEarnings] = useState({
-    available: 0,
-    total: 0,
-    pending: 0,
-  });
+  const [earnings, setEarnings] = useState({});
   const [payouts, setPayouts] = useState([]);
   const [vendorData, setVendorData] = useState(null);
   const [vendorToken, setVendorToken] = useState(null);
@@ -513,81 +517,87 @@ export default function VendorDashboard() {
         setVendorToken(token);
         setVendorData(data);
 
-        // Fetch vendor products
-        const vendorProductsResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/products/vendor/${data.id}`,
+        // Using batchRequests for parallel API calls
+        const result = await batchRequests([
           {
-            method: "GET",
-            headers: {
-              "content-type": "application/json",
-              Authorization: "Bearer " + token,
+            url: `/products/vendor/${data.id}`,
+            options: {
+              // Fixed: was 'option', should be 'options'
+              method: "GET",
+              token,
+              config: { showToast: false }, // Disable individual toasts
             },
-          }
-        );
+          },
+          {
+            url: `/orders/vendor/my-orders`,
+            options: {
+              method: "GET",
+              token,
+              config: { showToast: false },
+            },
+          },
+          {
+            url: `/vendors/earnings/${data.id}`,
+            options: {
+              method: "GET",
+              token,
+              config: { showToast: false },
+            },
+          },
+          {
+            url: `/vendors/payouts/${data.id}`,
+            options: {
+              method: "GET",
+              token,
+              config: { showToast: false },
+            },
+          },
+        ]);
 
-        if (!vendorProductsResponse.ok) {
+        // Destructure results (batchRequests returns array in same order)
+        const [productsResult, ordersResult, earningsResult, payoutsResult] =
+          result;
+
+        // Handle products
+        if (productsResult.success) {
+          setProducts(productsResult.data?.data || []);
+        } else if (!productsResult._failed) {
           toast.error("Failed to fetch products");
         }
 
-        const vendorProductsData = await vendorProductsResponse.json();
-        console.log(vendorProductsData);
-        setProducts(vendorProductsData?.data || []);
-
-        // Fetch vendor orders
-        const vendorOrdersResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/orders/vendor/${data.id}`,
-          {
-            method: "GET",
-            headers: {
-              "content-type": "application/json",
-              Authorization: "Bearer " + token,
-            },
-          }
-        );
-
-        if (vendorOrdersResponse.ok) {
-          const vendorOrdersData = await vendorOrdersResponse.json();
-          setOrders(vendorOrdersData?.data || []);
+        // Handle orders
+        if (ordersResult.success) {
+          setOrders(ordersResult.data?.data || []);
+        } else if (!ordersResult._failed) {
+          toast.error("Failed to fetch orders");
         }
 
-        // Fetch vendor earnings
-        const vendorEarningsResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/vendors/earnings/${data.id}`,
-          {
-            method: "GET",
-            headers: {
-              "content-type": "application/json",
-              Authorization: "Bearer " + token,
-            },
-          }
-        );
-
-        if (vendorEarningsResponse.ok) {
-          const vendorEarningsData = await vendorEarningsResponse.json();
+        // Handle earnings
+        if (earningsResult.success) {
           setEarnings(
-            vendorEarningsData?.data || {
+            earningsResult.data?.data || {
               available: 0,
               total: 0,
               pending: 0,
             }
           );
+        } else if (!earningsResult._failed) {
+          toast.error("Failed to fetch earnings");
         }
 
-        // Fetch vendor payouts
-        const vendorPayoutsResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/vendors/payouts/${data.id}`,
-          {
-            method: "GET",
-            headers: {
-              "content-type": "application/json",
-              Authorization: "Bearer " + token,
-            },
-          }
-        );
+        // Handle payouts
+        if (payoutsResult.success) {
+          setPayouts(payoutsResult.data?.data || []);
+        } else if (!payoutsResult._failed) {
+          toast.error("Failed to fetch payouts");
+        }
 
-        if (vendorPayoutsResponse.ok) {
-          const vendorPayoutsData = await vendorPayoutsResponse.json();
-          setPayouts(vendorPayoutsData?.data || []);
+        // Check if any critical requests failed
+        const criticalFailures = result.filter((r) => r._failed).length;
+        if (criticalFailures > 0) {
+          toast.warning(
+            `${criticalFailures} requests failed. Some data may be incomplete.`
+          );
         }
       } catch (error) {
         console.error("Error loading initial data:", error);
@@ -600,17 +610,17 @@ export default function VendorDashboard() {
     loadInitialData();
   }, [router]);
 
-  const handleLogout = async () => {
-    try {
-      localStorage.removeItem("vendor_token");
-      localStorage.removeItem("vendor_data");
-      toast.success("Logged out successfully");
-      router.push("/Vendor/Login");
-    } catch (error) {
-      toast.error("Error signing out");
-      console.error("Logout error:", error);
-    }
-  };
+  // const handleLogout = async () => {
+  //   try {
+  //     localStorage.removeItem("vendor_token");
+  //     localStorage.removeItem("vendor_data");
+  //     toast.success("Logged out successfully");
+  //     router.push("/Vendor/Login");
+  //   } catch (error) {
+  //     toast.error("Error signing out");
+  //     console.error("Logout error:", error);
+  //   }
+  // };
 
   const handleCreateProduct = async (productData) => {
     setIsSubmitting(true);
@@ -801,783 +811,6 @@ export default function VendorDashboard() {
     toast.success("Design link submitted for review");
   };
 
-  // Tab components
-  const tabs = {
-    "Dashboard": (
-      <div className="space-y-6">
-        <div className="bg-gray-800 rounded-lg p-6 text-white">
-          <h1 className="text-2xl font-bold mb-2">
-            Welcome back,{" "}
-            <span className="text-yellow-400">
-              {vendorData?.businessName || "Vendor"}
-            </span>
-          </h1>
-          <p className="text-gray-300 mb-6">
-            Quick overview of your products and orders
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-gray-700">
-              <div className="flex items-center">
-                <div className="bg-yellow-400 bg-opacity-20 p-3 rounded-full mr-3">
-                  <FaBoxOpen className="text-yellow-400" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-300">Total Products</p>
-                  <p className="text-xl font-bold text-white">
-                    {products.length}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-gray-700">
-              <div className="flex items-center">
-                <div className="bg-yellow-400 bg-opacity-20 p-3 rounded-full mr-3">
-                  <FaClipboardList className="text-yellow-400" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-300">Total Orders</p>
-                  <p className="text-xl font-bold text-white">
-                    {orders.length}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-gray-700">
-              <div className="flex items-center">
-                <div className="bg-yellow-400 bg-opacity-20 p-3 rounded-full mr-3">
-                  <FaMoneyBillWave className="text-yellow-400" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-300">Available Balance</p>
-                  <p className="text-xl font-bold text-white">
-                    ₦{earnings.available.toLocaleString()}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Recent Orders Section */}
-        <div className="bg-gray-800 rounded-lg p-6 text-white">
-          <h2 className="text-lg font-bold mb-4">Recent Orders</h2>
-          <div className="space-y-3">
-            {orders.slice(0, 3).map((order) => (
-              <div
-                key={order.id}
-                className="bg-black bg-opacity-30 rounded-lg p-4 border border-gray-700 flex justify-between items-center"
-              >
-                <div>
-                  <p className="text-sm font-medium">{order.id}</p>
-                  <p className="text-xs text-gray-400">{order.date}</p>
-                </div>
-                <p
-                  className={`font-bold ${
-                    order.status === "Completed"
-                      ? "text-green-400"
-                      : order.status === "Processing"
-                        ? "text-blue-400"
-                        : order.status === "In Review"
-                          ? "text-purple-400"
-                          : "text-yellow-400"
-                  }`}
-                >
-                  {order.status}
-                </p>
-                <p className="text-sm">{order.total}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    ),
-
-    "Orders": (
-      <div className="bg-gray-800 rounded-lg p-6 text-white">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Manage Orders</h1>
-          <div className="flex space-x-2">
-            <button
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors bg-opacity-20 hover:bg-opacity-30 bg-white text-white`}
-            >
-              All
-            </button>
-            <button
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors bg-opacity-20 hover:bg-opacity-30 bg-yellow-400 text-yellow-400`}
-            >
-              Pending
-            </button>
-            <button
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors bg-opacity-20 hover:bg-opacity-30 bg-purple-400 text-purple-400`}
-            >
-              In Review
-            </button>
-            <button
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors bg-opacity-20 hover:bg-opacity-30 bg-green-400 text-green-400`}
-            >
-              Completed
-            </button>
-          </div>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-700">
-            <thead>
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Order ID
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Client
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Amount
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Files
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-700">
-              {orders.map((order) => (
-                <tr key={order.id}>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-white">
-                    {order.id}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">
-                    {order.clientName}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">
-                    {order.date}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 py-1 text-xs font-semibold rounded-full
-                      ${
-                        order.status === "Completed"
-                          ? "bg-green-100 text-green-800"
-                          : order.status === "Processing"
-                            ? "bg-blue-100 text-blue-800"
-                            : order.status === "In Review"
-                              ? "bg-purple-100 text-purple-800"
-                              : "bg-yellow-100 text-yellow-800"
-                      }
-                    `}
-                    >
-                      {order.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">
-                    {order.total}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm">
-                    <div className="flex space-x-2">
-                      {order.files.map((file, index) => (
-                        <button
-                          key={index}
-                          className="text-blue-400 hover:text-blue-300 flex items-center text-xs"
-                        >
-                          <FaFileDownload className="mr-1" />
-                          <span className="truncate max-w-xs">{file}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm">
-                    {order.status === "Pending" ||
-                    order.status === "Processing" ? (
-                      <div className="flex items-center">
-                        <input
-                          type="text"
-                          placeholder="Enter design link"
-                          className="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm w-48 mr-2"
-                          defaultValue={order.designLink}
-                        />
-                        <button
-                          onClick={() =>
-                            handleDesignLinkSubmit(
-                              order.id,
-                              document.querySelector(
-                                `input[placeholder="Enter design link"]`
-                              ).value
-                            )
-                          }
-                          className="bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-1 px-3 rounded text-xs"
-                        >
-                          Submit
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center">
-                        <span className="text-green-400 flex items-center">
-                          <FaCheck className="mr-1" /> Design Submitted
-                        </span>
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    ),
-
-    "Create Product": (
-      <div className="bg-gray-800 rounded-lg p-6 text-white">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Create New Product</h1>
-          <button
-            onClick={() => setShowProductForm(true)}
-            className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-medium rounded-md transition-colors"
-          >
-            <FaPlus className="mr-1 inline" /> Create Product
-          </button>
-        </div>
-
-        {products.length === 0 && !showProductForm && (
-          <div className="text-center py-10">
-            <p className="text-gray-400 mb-4">
-              You haven't created any products yet
-            </p>
-            <button
-              onClick={() => setShowProductForm(true)}
-              className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-medium rounded-md transition-colors"
-            >
-              Create Your First Product
-            </button>
-          </div>
-        )}
-
-        {showProductForm && (
-          <ProductForm
-            onSubmit={handleCreateProduct}
-            onCancel={() => setShowProductForm(false)}
-            isSubmitting={isSubmitting}
-          />
-        )}
-      </div>
-    ),
-
-    "Manage Products": (
-      <div className="bg-gray-800 rounded-lg p-6 text-white relative">
-        <h1 className="text-2xl font-bold mb-6">Manage Your Products</h1>
-
-        {products.length === 0 ? (
-          <div className="text-center py-10">
-            <p className="text-gray-400">
-              No products available. Create your first product!
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products.map((product) => (
-              <div
-                key={product.id}
-                className="bg-gray-900 border border-gray-700 rounded-lg overflow-hidden"
-              >
-                <div className="w-full h-48 bg-gray-800">
-                  {product.images && product.images.length > 0 ? (
-                    <img
-                      src={product.images[0]}
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      No Image
-                    </div>
-                  )}
-                </div>
-                <div className="p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-lg font-semibold">{product.name}</h3>
-                    <p className="font-bold text-yellow-400">
-                      ₦{product.discountPrice?.toLocaleString()}
-                      <br />
-                      <s style={{ fontSize: "12px", color: "red" }}>
-                        ₦{product.price.toLocaleString()}
-                      </s>
-                    </p>
-                  </div>
-                  <p className="text-sm text-gray-400 mb-3">
-                    {product.description}
-                  </p>
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {product.color &&
-                      product.color.map((color, idx) => (
-                        <span
-                          key={idx}
-                          className="px-2 py-0.5 bg-gray-700 text-xs rounded-full"
-                        >
-                          {color}
-                        </span>
-                      ))}
-                  </div>
-                  <div className="flex items-center justify-between text-sm text-gray-400 mb-4">
-                    <span>Material: {product.material}</span>
-                    <span>Stock: {product.stock}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <button
-                      onClick={() => handleEditProduct(product)}
-                      className="flex items-center text-blue-400 hover:text-blue-300 transition-colors"
-                    >
-                      <FaEdit className="mr-1" /> Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteClick(product)}
-                      className="flex items-center text-red-400 hover:text-red-300 transition-colors"
-                    >
-                      <FaTrash className="mr-1" /> Delete
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Product Form Modal */}
-        {showProductForm && productToEdit && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">Edit Product</h2>
-                <button
-                  onClick={handleCancelEdit}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <FaTimes size={20} />
-                </button>
-              </div>
-              <ProductForm
-                product={productToEdit}
-                onSubmit={handleUpdateProduct}
-                onCancel={handleCancelEdit}
-                isSubmitting={isSubmitting}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Delete Confirmation Modal */}
-        {showDeleteModal && (
-          <DeleteConfirmationModal
-            product={productToDelete}
-            onConfirm={handleConfirmDelete}
-            onCancel={handleCancelDelete}
-            isDeleting={isDeleting}
-          />
-        )}
-      </div>
-    ),
-
-    "Earnings": (
-      <div className="bg-gray-800 rounded-lg p-6 text-white">
-        <h1 className="text-2xl font-bold mb-6">Your Earnings</h1>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-lg font-medium">Available Balance</h3>
-              <FaMoneyBillWave className="text-green-400 text-xl" />
-            </div>
-            <p className="text-3xl font-bold text-green-400">
-              ₦{earnings.available.toLocaleString()}
-            </p>
-            <p className="text-sm text-gray-400 mt-2">Ready to withdraw</p>
-          </div>
-
-          <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-lg font-medium">Total Earnings</h3>
-              <FaDollarSign className="text-yellow-400 text-xl" />
-            </div>
-            <p className="text-3xl font-bold text-yellow-400">
-              ₦{earnings.total.toLocaleString()}
-            </p>
-            <p className="text-sm text-gray-400 mt-2">Lifetime earnings</p>
-          </div>
-
-          <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-lg font-medium">Pending</h3>
-              <FaClock className="text-blue-400 text-xl" />
-            </div>
-            <p className="text-3xl font-bold text-blue-400">
-              ₦{earnings.pending.toLocaleString()}
-            </p>
-            <p className="text-sm text-gray-400 mt-2">Processing withdrawals</p>
-          </div>
-        </div>
-
-        <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
-          <h2 className="text-xl font-semibold mb-4">Performance Breakdown</h2>
-          <div className="mb-6">
-            <div className="flex justify-between mb-1">
-              <span className="text-sm text-gray-400">Commission Rate</span>
-              <span className="text-sm font-medium">80%</span>
-            </div>
-            <div className="w-full bg-gray-700 rounded-full h-2.5">
-              <div
-                className="bg-green-500 h-2.5 rounded-full"
-                style={{ width: "80%" }}
-              ></div>
-            </div>
-            <p className="text-xs text-gray-400 mt-2">
-              You receive 80% of each sale, 20% goes to platform fee
-            </p>
-          </div>
-
-          <h3 className="font-medium mb-3">Monthly Summary</h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-700">
-              <thead>
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Month
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Orders
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Earnings
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Commission
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-700">
-                <tr>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm">
-                    June 2023
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm">12</td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm">
-                    ₦48,000
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-green-400">
-                    ₦38,400
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm">
-                    May 2023
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm">15</td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm">
-                    ₦65,000
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-green-400">
-                    ₦52,000
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm">
-                    April 2023
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm">8</td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm">
-                    ₦32,000
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-green-400">
-                    ₦25,600
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    ),
-
-    "Withdraw": (
-      <div className="bg-gray-800 rounded-lg p-6 text-white">
-        <h1 className="text-2xl font-bold mb-6">Withdraw Funds</h1>
-
-        <div className="bg-gray-900 rounded-lg p-6 border border-gray-700 mb-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-            <div>
-              <span className="text-sm text-gray-400">Available Balance</span>
-              <h2 className="text-3xl font-bold text-green-400">
-                ₦{earnings.available.toLocaleString()}
-              </h2>
-            </div>
-
-            <div className="mt-4 md:mt-0">
-              <span className="text-sm text-gray-400">Minimum Withdrawal</span>
-              <p className="text-lg font-medium">₦5,000</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Bank Details</h2>
-            <form className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Bank Name
-                </label>
-                <input
-                  type="text"
-                  value={bankName}
-                  onChange={(e) => setBankName(e.target.value)}
-                  className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                  placeholder="Enter your bank name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Account Number
-                </label>
-                <input
-                  type="text"
-                  value={accountNumber}
-                  onChange={(e) => setAccountNumber(e.target.value)}
-                  className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                  placeholder="Enter your account number"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Account Name
-                </label>
-                <input
-                  type="text"
-                  value={accountName}
-                  onChange={(e) => setAccountName(e.target.value)}
-                  className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                  placeholder="Enter account holder name"
-                />
-              </div>
-            </form>
-          </div>
-
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Request Withdrawal</h2>
-            <form onSubmit={handleSubmitWithdrawal} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Amount (₦)
-                </label>
-                <input
-                  type="number"
-                  value={withdrawAmount}
-                  onChange={(e) => setWithdrawAmount(e.target.value)}
-                  min="5000"
-                  max={earnings.available}
-                  className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                  placeholder="Enter amount to withdraw"
-                />
-                <p className="text-xs text-gray-400 mt-1">
-                  Minimum withdrawal: ₦5,000 | Available: ₦
-                  {earnings.available.toLocaleString()}
-                </p>
-              </div>
-
-              <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-gray-700">
-                <h3 className="font-medium mb-2">Withdrawal Notes</h3>
-                <ul className="text-sm text-gray-300 space-y-1">
-                  <li>• Withdrawals are processed within 24-48 hours</li>
-                  <li>• All bank details must be accurate</li>
-                  <li>• 80% commission is paid on all sales</li>
-                </ul>
-              </div>
-
-              <div className="pt-4">
-                <button
-                  type="submit"
-                  className="w-full px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-md transition-colors"
-                >
-                  Request Withdrawal
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-
-        <div className="mt-8">
-          <h2 className="text-xl font-semibold mb-4">Recent Withdrawals</h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-700">
-              <thead>
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Date
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Amount
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-700">
-                {payouts.slice(0, 3).map((payout, index) => (
-                  <tr key={index}>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm">
-                      {payout.date}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
-                      {payout.amount}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span
-                        className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                          payout.status === "Paid"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-yellow-100 text-yellow-800"
-                        }`}
-                      >
-                        {payout.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    ),
-
-    "Payouts Received": (
-      <div className="bg-gray-800 rounded-lg p-6 text-white">
-        <h1 className="text-2xl font-bold mb-6">Payouts History</h1>
-
-        <div className="bg-gray-900 rounded-lg p-6 border border-gray-700 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-            <div>
-              <p className="text-sm text-gray-400">Total Payouts</p>
-              <p className="text-2xl font-bold">
-                ₦
-                {payouts
-                  .filter((p) => p.status === "Paid")
-                  .reduce(
-                    (sum, p) => sum + parseInt(p.amount.replace(/[^\d]/g, "")),
-                    0
-                  )
-                  .toLocaleString()}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-400">This Month</p>
-              <p className="text-2xl font-bold">
-                ₦
-                {payouts
-                  .filter(
-                    (p) =>
-                      p.status === "Paid" &&
-                      new Date(p.date).getMonth() === new Date().getMonth()
-                  )
-                  .reduce(
-                    (sum, p) => sum + parseInt(p.amount.replace(/[^\d]/g, "")),
-                    0
-                  )
-                  .toLocaleString()}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-400">Pending</p>
-              <p className="text-2xl font-bold text-yellow-400">
-                ₦
-                {payouts
-                  .filter((p) => p.status === "Pending")
-                  .reduce(
-                    (sum, p) => sum + parseInt(p.amount.replace(/[^\d]/g, "")),
-                    0
-                  )
-                  .toLocaleString()}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-700">
-            <thead>
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  ID
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Amount
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Transaction ID
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Receipt
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-700">
-              {payouts.map((payout, index) => (
-                <tr key={index}>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                    {payout.id}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm">
-                    {payout.date}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                    {payout.amount}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                        payout.status === "Paid"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-yellow-100 text-yellow-800"
-                      }`}
-                    >
-                      {payout.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm">
-                    {payout.txnId}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm">
-                    {payout.status === "Paid" && (
-                      <button className="text-blue-400 hover:text-blue-300 flex items-center">
-                        <FaFileDownload className="mr-1" /> Download
-                      </button>
-                    )}
-                    {payout.status === "Pending" && (
-                      <span className="text-gray-400">Pending</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    ),
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-900">
@@ -1586,11 +819,22 @@ export default function VendorDashboard() {
     );
   }
 
+  const tabs ={
+    <Dashboard 
+      vendorData={vendorData}
+      orders={orders}
+      products={products}
+      earnings={earnings}
+    />
+    <AddProduct />
+    <ManageProducts />
+    <Earnings />
+    <Withdraw />
+    <Payout />  
+  }
   return (
     <div className="min-h-screen bg-gray-900">
       <ToastContainer position="top-right" autoClose={5000} />
-
-      {/* Top Navigation Bar */}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col lg:flex-row gap-6">
