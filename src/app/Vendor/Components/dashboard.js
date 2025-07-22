@@ -76,7 +76,7 @@ export default function Dashboard({ vendorData, products, orders, earnings }) {
             >
               <div>
                 <p className="text-sm font-medium">{order.id}</p>
-                <p className="text-xs text-gray-400">{order.createdAt}</p>
+                <p className="text-xs text-gray-400">{order.createdAt.toLocaleString()}</p>
               </div>
               <p
                 className={`font-bold ${

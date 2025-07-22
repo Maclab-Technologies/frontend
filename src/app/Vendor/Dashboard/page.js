@@ -33,6 +33,7 @@ import ManageProducts from "../Components/manage-product";
 import Earnings from "../Components/earning";
 import Withdraw from "../Components/withdraw";
 import Payout from "../Components/payout";
+import Orders from "../Components/order";
 
 // // Reusable Product Form Component
 // const ProductForm = ({
@@ -478,7 +479,7 @@ export default function VendorDashboard() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("Dashboard");
+  const [activeTab, setActiveTab] = useState("dashboard");
 
   // State for bank details in Withdraw tab
   const [bankName, setBankName] = useState("");
@@ -819,19 +820,63 @@ export default function VendorDashboard() {
     );
   }
 
-  const tabs ={
-    <Dashboard 
-      vendorData={vendorData}
-      orders={orders}
-      products={products}
-      earnings={earnings}
-    />
-    <AddProduct />
-    <ManageProducts />
-    <Earnings />
-    <Withdraw />
-    <Payout />  
-  }
+  const tabs = {
+    dashboard: (
+      <Dashboard
+        vendorData={vendorData}
+        orders={orders}
+        products={products}
+        earnings={earnings}
+      />
+    ),
+    orders: <Orders orders={orders} handleDesignLinkSubmit={orders} />,
+    addProduct: (
+      <AddProduct
+        products={products}
+        showProductForm={showProductForm}
+        setShowProductForm={setShowProductForm}
+        ProductForm={ProductForm}
+        handleCreateProduct={handleCreateProduct}
+        isSubmitting={isSubmitting}
+      />
+    ),
+    manageProduct: (
+      <ManageProducts
+        products={products}
+        handleEditProduct={handleEditProduct}
+        handleDeleteClick={handleDeleteClick}
+        showProductForm={showProductForm}
+        productToEdit={productToEdit}
+        handleCancelEdit={handleCancelEdit}
+        ProductForm={ProductForm}
+        handleUpdateProduct={handleUpdateProduct}
+        isSubmitting={isSubmitting}
+        showDeleteModal={showDeleteModal}
+        DeleteConfirmationModal={DeleteConfirmationModal}
+        productToDelete={productToDelete}
+        handleConfirmDelete={handleConfirmDelete}
+        handleCancelDelete={handleCancelDelete}
+        isDeleting={isDeleting}
+      />
+    ),
+    earnings: <Earnings earnings={earnings} />,
+    withdraw: (
+      <Withdraw
+        payouts={payouts}
+        earnings={earnings}
+        bankName={bankName}
+        setBankName={setBankName}
+        accountNumber={accountNumber}
+        setAccountNumber={setAccountNumber}
+        accountName={accountName}
+        setAccountName={setAccountName}
+        handleSubmitWithdrawal={handleSubmitWithdrawal}
+        withdrawAmount={withdrawAmount}
+        setWithdrawAmount={setWithdrawAmount}
+      />
+    ),
+    payout: <Payout payouts={payouts} />,
+  };
   return (
     <div className="min-h-screen bg-gray-900">
       <ToastContainer position="top-right" autoClose={5000} />
@@ -880,14 +925,14 @@ export default function VendorDashboard() {
             <nav className="p-2 h-[calc(100%-72px-4rem)] overflow-y-auto">
               <button
                 onClick={() => {
-                  setActiveTab("Dashboard");
+                  setActiveTab("dashboard");
                   setMobileNavOpen(false);
                 }}
                 className={`
                   w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
                   transition-all duration-200
                   ${
-                    activeTab === "Dashboard"
+                    activeTab === "dashboard"
                       ? "bg-yellow-400 text-black font-bold shadow-md"
                       : "text-gray-300 hover:bg-gray-700 hover:text-white"
                   }
@@ -901,14 +946,14 @@ export default function VendorDashboard() {
 
               <button
                 onClick={() => {
-                  setActiveTab("Orders");
+                  setActiveTab("orders");
                   setMobileNavOpen(false);
                 }}
                 className={`
                   w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
                   transition-all duration-200
                   ${
-                    activeTab === "Orders"
+                    activeTab === "orders"
                       ? "bg-yellow-400 text-black font-bold shadow-md"
                       : "text-gray-300 hover:bg-gray-700 hover:text-white"
                   }
@@ -922,14 +967,14 @@ export default function VendorDashboard() {
 
               <button
                 onClick={() => {
-                  setActiveTab("Create Product");
+                  setActiveTab("addProduct");
                   setMobileNavOpen(false);
                 }}
                 className={`
                   w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
                   transition-all duration-200
                   ${
-                    activeTab === "Create Product"
+                    activeTab === "addProduct"
                       ? "bg-yellow-400 text-black font-bold shadow-md"
                       : "text-gray-300 hover:bg-gray-700 hover:text-white"
                   }
@@ -943,14 +988,14 @@ export default function VendorDashboard() {
 
               <button
                 onClick={() => {
-                  setActiveTab("Manage Products");
+                  setActiveTab("manageProduct");
                   setMobileNavOpen(false);
                 }}
                 className={`
                   w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
                   transition-all duration-200
                   ${
-                    activeTab === "Manage Products"
+                    activeTab === "manageProduct"
                       ? "bg-yellow-400 text-black font-bold shadow-md"
                       : "text-gray-300 hover:bg-gray-700 hover:text-white"
                   }
@@ -964,14 +1009,14 @@ export default function VendorDashboard() {
 
               <button
                 onClick={() => {
-                  setActiveTab("Earnings");
+                  setActiveTab("earnings");
                   setMobileNavOpen(false);
                 }}
                 className={`
                   w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
                   transition-all duration-200
                   ${
-                    activeTab === "Earnings"
+                    activeTab === "earnings"
                       ? "bg-yellow-400 text-black font-bold shadow-md"
                       : "text-gray-300 hover:bg-gray-700 hover:text-white"
                   }
@@ -985,14 +1030,14 @@ export default function VendorDashboard() {
 
               <button
                 onClick={() => {
-                  setActiveTab("Withdraw");
+                  setActiveTab("withdraw");
                   setMobileNavOpen(false);
                 }}
                 className={`
                   w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
                   transition-all duration-200
                   ${
-                    activeTab === "Withdraw"
+                    activeTab === "withdraw"
                       ? "bg-yellow-400 text-black font-bold shadow-md"
                       : "text-gray-300 hover:bg-gray-700 hover:text-white"
                   }
@@ -1006,14 +1051,14 @@ export default function VendorDashboard() {
 
               <button
                 onClick={() => {
-                  setActiveTab("Payouts Received");
+                  setActiveTab("payout");
                   setMobileNavOpen(false);
                 }}
                 className={`
                   w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
                   transition-all duration-200
                   ${
-                    activeTab === "Payouts Received"
+                    activeTab === "payouts"
                       ? "bg-yellow-400 text-black font-bold shadow-md"
                       : "text-gray-300 hover:bg-gray-700 hover:text-white"
                   }

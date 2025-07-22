@@ -66,7 +66,7 @@ export default function Orders({ orders, handleDesignLinkSubmit }) {
                   {order.user}
                 </td>
                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">
-                  {order.createdAt}
+                  {order.createdAt.toLocaleString("ng-NG")}
                 </td>
                 <td className="px-4 py-4 whitespace-nowrap">
                   <span
