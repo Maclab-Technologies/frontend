@@ -77,7 +77,7 @@ export default function Cart() {
 
     if (!isLoggedIn) {
       toast.warning("Please sign in to proceed to checkout");
-      safeNavigate("/Clients/Auth/Login");
+      safeNavigate("/Auth/Login");
       return;
     }
 

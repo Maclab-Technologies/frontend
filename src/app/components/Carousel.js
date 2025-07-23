@@ -32,7 +32,7 @@ const Carousel = () => {
       mobileImage: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=500&fit=crop&auto=format',
       title: 'New Customer Special',
       subtitle: '15% off your first order with code WELCOME15',
-      ctaLink: '/sign-up',
+      ctaLink: '/Auth/Register',
       ctaText: 'Get Started',
       gradient: 'from-orange-900/80 via-red-900/60 to-transparent',
       badge: 'OFFER'
