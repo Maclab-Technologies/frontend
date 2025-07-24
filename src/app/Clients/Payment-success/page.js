@@ -8,6 +8,7 @@ export default function PaymentSuccess() {
   const [orderDetails, setOrderDetails] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedOption, setSelectedOption] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -81,6 +82,28 @@ export default function PaymentSuccess() {
 
   const handleReturnToShop = () => {
     router.push("/Clients/Products/"); // Redirect to homepage or shop page
+  };
+
+  const handlePrintingOptionSelect = (option) => {
+    setSelectedOption(option);
+    
+    // Redirect based on selected option
+    switch(option) {
+      case 'canvas':
+        // Edit with Canvas (currently not available)
+        alert('Edit with Canvas feature is coming soon!');
+        break;
+      case 'upload':
+        // Upload your design
+        router.push('/design-upload');
+        break;
+      case 'designer':
+        // Hire a designer
+        router.push('/hire-designer');
+        break;
+      default:
+        break;
+    }
   };
 
   // Show loading state
@@ -175,6 +198,61 @@ export default function PaymentSuccess() {
               <h2 className="text-xl font-bold mb-6">
                 Total: ₦{orderDetails.totalAmount.toLocaleString() || "0"}
               </h2>
+            </div>
+          </div>
+
+          {/* Printing Options Section */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">Printing Options</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Option 1: Edit with Canvas */}
+              <div 
+                className={`p-4 border rounded-lg cursor-pointer transition-all ${selectedOption === 'canvas' ? 'border-yellow-500 bg-gray-700' : 'border-gray-600 hover:border-yellow-400'}`}
+                onClick={() => handlePrintingOptionSelect('canvas')}
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center mb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </div>
+                  <h3 className="font-bold mb-1">Edit with Canvas</h3>
+                  <p className="text-sm text-gray-400">Customize your design with our editor</p>
+                  <div className="mt-2 text-yellow-500 text-sm">Coming Soon</div>
+                </div>
+              </div>
+
+              {/* Option 2: Upload your design */}
+              <div 
+                className={`p-4 border rounded-lg cursor-pointer transition-all ${selectedOption === 'upload' ? 'border-yellow-500 bg-gray-700' : 'border-gray-600 hover:border-yellow-400'}`}
+                onClick={() => handlePrintingOptionSelect('upload')}
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center mb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                  </div>
+                  <h3 className="font-bold mb-1">Upload Your Design</h3>
+                  <p className="text-sm text-gray-400">Upload your ready-to-print design files</p>
+                </div>
+              </div>
+
+              {/* Option 3: Hire a designer */}
+              <div 
+                className={`p-4 border rounded-lg cursor-pointer transition-all ${selectedOption === 'designer' ? 'border-yellow-500 bg-gray-700' : 'border-gray-600 hover:border-yellow-400'}`}
+                onClick={() => handlePrintingOptionSelect('designer')}
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center mb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <h3 className="font-bold mb-1">Hire a Designer</h3>
+                  <p className="text-sm text-gray-400">Our professionals will create your design</p>
+                </div>
+              </div>
             </div>
           </div>
 
