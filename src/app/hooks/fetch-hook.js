@@ -1,6 +1,3 @@
-import { toast } from "react-toastify";
-
-// Cache for storing responses
 const cache = new Map();
 
 // Default configuration
@@ -34,7 +31,9 @@ export default async function fetchHook(url, options = {}) {
     config = {},
   } = options;
 
-  // Merge configurations
+  // Merge configurati
+  //console
+  console.log(token)
   const finalConfig = { ...DEFAULT_CONFIG, ...config };
   const {
     timeout,
@@ -132,9 +131,9 @@ export default async function fetchHook(url, options = {}) {
       }
 
       // Success toast
-      if (showToast && method !== "GET") {
-        toast.success(`${method} request successful`);
-      }
+      // if (showToast && method !== "GET") {
+      //   toast.success(`${method} request successful`);
+      // }
 
       return {
         success: true,
@@ -165,19 +164,19 @@ export default async function fetchHook(url, options = {}) {
     }
   }
 
-  // Handle final error
-  const errorMessage =
-    lastError?.name === "AbortError"
-      ? "Request timeout"
-      : lastError?.message || "Network error occurred";
+  // // Handle final error
+  // const errorMessage =
+  //   lastError?.message === "AbortError"
+  //     ? "Request timeout"
+  //     : lastError?.message || "Network error occurred";
 
-  if (showToast) {
-    toast.error(errorMessage);
-  }
+  // if (showToast) {
+  //   toast.error(errorMessage);
+  // }
 
   return {
     success: false,
-    error: errorMessage,
+    error: lastError.message,
     originalError: lastError,
   };
 }

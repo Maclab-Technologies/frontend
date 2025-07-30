@@ -75,7 +75,7 @@ export default function ManageProducts({
                 </div>
                 <div className="flex items-center justify-between text-sm text-gray-400 mb-4">
                   <span>Material: {product.material}</span>
-                  <span>Stock: {product.stock}</span>
+                  <span>Min Order: {product.minOrder}</span>
                 </div>
                 <div className="flex justify-between">
                   <button

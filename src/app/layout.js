@@ -20,7 +20,7 @@ export default function RootLayout({ children }) {
         <ReduxProvider>
           <AuthContextProvider>
             <Navbar />
-            <ToastContainer position="top-right" autoClose={2000} />
+            {/* <ToastContainer position="top-right" autoClose={2000} /> */}
             <main className="flex-grow">{children}</main>
             <Footer />
           </AuthContextProvider>

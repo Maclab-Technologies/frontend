@@ -25,8 +25,8 @@ import {
 } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import ProductForm from "./productform";
-import { batchRequests } from "@/app/hooks/fetch-hook";
+import ProductForm from "../Components/productform";
+import { batchRequests, post } from "@/app/hooks/fetch-hook";
 import Dashboard from "../Components/dashboard";
 import AddProduct from "../Components/create-product";
 import ManageProducts from "../Components/manage-product";
@@ -530,6 +530,7 @@ export default function VendorDashboard() {
             },
           },
           {
+            // vendor orders
             url: `/orders/vendor/my-orders`,
             options: {
               method: "GET",
@@ -538,6 +539,7 @@ export default function VendorDashboard() {
             },
           },
           {
+            // vendor earnings 
             url: `/vendors/earnings/${data.id}`,
             options: {
               method: "GET",
@@ -546,6 +548,7 @@ export default function VendorDashboard() {
             },
           },
           {
+            // vendor payouts
             url: `/vendors/payouts/${data.id}`,
             options: {
               method: "GET",
@@ -560,9 +563,13 @@ export default function VendorDashboard() {
           result;
 
         // Handle products
-        if (productsResult.success) {
+        if (
+          productsResult.success 
+        ) {
           setProducts(productsResult.data?.data || []);
-        } else if (!productsResult._failed) {
+        } else if ( !productsResult.data.data.length === 0 ) {
+          toast.error("No Product found");
+        } else if ( !productsResult._failed ) {
           toast.error("Failed to fetch products");
         }
 
@@ -641,25 +648,20 @@ export default function VendorDashboard() {
         }
       });
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/products/create/${vendorData.id}`,
+      const response = await post(
+        `/products/create/${vendorData.id}`,
+        formData,
         {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${vendorToken}`,
-          },
-          body: formData,
+          token: vendorToken,
         }
       );
 
-      if (!response.ok) {
-        throw new Error("Failed to create product");
+      console.log(response.data);
+      if (response.success) {
+        setProducts((prev) => [...prev, response.data]);
+        toast.success("Product created successfully!");
+        setShowProductForm(false);
       }
-
-      const responseData = await response.json();
-      setProducts((prev) => [...prev, responseData.data]);
-      toast.success("Product created successfully!");
-      setShowProductForm(false);
     } catch (error) {
       console.error("Error creating product:", error);
       toast.error("Failed to create product. Please try again.");
