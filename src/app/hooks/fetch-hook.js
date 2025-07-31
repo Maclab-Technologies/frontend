@@ -33,7 +33,6 @@ export default async function fetchHook(url, options = {}) {
 
   // Merge configurati
   //console
-  console.log(token)
   const finalConfig = { ...DEFAULT_CONFIG, ...config };
   const {
     timeout,

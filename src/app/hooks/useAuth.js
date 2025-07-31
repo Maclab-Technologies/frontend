@@ -9,6 +9,8 @@ export const AuthContext = React.createContext({
   isLoggedIn: false,
   role: null,
   isLoading: true,
+  token: null,
+  setToken: () => {},
   setIsLoggedIn: () => {},
   setAuthUser: () => {},
   setRole: () => {},
@@ -46,9 +48,9 @@ export default function AuthContextProvider({ children }) {
   }, [router]);
 
   const verifyUser = useCallback(async () => {
-    const token = localStorage.getItem("userToken");
-    const storedUserData = localStorage.getItem("userData");
-    
+    const token = JSON.parse(localStorage.getItem("userToken"));
+    const storedUserData = JSON.parse(localStorage.getItem("userData"));
+
     // If no token but has stored user data, clear it
     if (!token && storedUserData) {
       localStorage.removeItem("userData");
@@ -62,16 +64,16 @@ export default function AuthContextProvider({ children }) {
     setIsLoading(true);
     try {
       const response = await get("/auth/verify", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        token,
       });
 
       if (!response.success) {
         throw new Error(response.error || "Verification failed");
       }
 
-      setVerifiedUser(response.data);
+      setVerifiedUser(response.data.data);
+      setToken(token);
+      localStorage.setItem('userToken', token)
     } catch (error) {
       console.error("Verification error:", error);
       logoutUser();

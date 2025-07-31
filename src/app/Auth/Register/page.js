@@ -16,6 +16,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AuthContext } from "@/app/hooks/useAuth";
 import axios from "axios";
+import { post } from "@/app/hooks/fetch-hook";
 
 const Register = () => {
   const router = useRouter();
@@ -162,25 +163,21 @@ const Register = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/users/signup`,
+      const response = await post(
+        `/auth/users/signup`,
         {
           email: formData.email,
           password: formData.password,
           fullName: formData.firstName + " " + formData.lastName,
           phone: formData.phone,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
         }
       );
 
-      const data = response.data;
+      const data = response.data.data;
 
       setAuthUser(data.data);
       setIsLoggedIn(true);
+      setToken(data.token)
       localStorage.setItem("userData", JSON.stringify(data.data));
       localStorage.setItem("userToken", data.token);
 

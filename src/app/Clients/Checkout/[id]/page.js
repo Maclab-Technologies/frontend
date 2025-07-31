@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { clearCart } from "../../../Redux/CartSlice";
+import { get, post } from "@/app/hooks/fetch-hook";
 
 const Checkout = () => {
   const params = useParams();
@@ -25,6 +26,9 @@ const Checkout = () => {
   const [isLoadingOrder, setIsLoadingOrder] = useState(true);
   const [orderError, setOrderError] = useState("");
   const [hasMounted, setHasMounted] = useState(false);
+  const [vendorId, setVendorId] = useState("");
+
+  const token = localStorage.getItem("userToken");
 
   useEffect(() => {
     setHasMounted(true);
@@ -36,26 +40,19 @@ const Checkout = () => {
     const fetchOrderDetails = async () => {
       try {
         setIsLoadingOrder(true);
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/orders/${orderId}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("userToken")}`,
-            },
-          }
-        );
+        const response = await get(`/orders/${orderId}`, {
+          token,
+        });
 
-        const res = await response.json();
-        const data = res.data;
-        if (!response.ok && !data.success) {
+        if (!response.success) {
           setOrderError(data.message || "Failed to fetch order details");
         }
+        const data = response.data.data;
         setOrderDetails(data);
-        setFullName(data.user.fullName)
+        setFullName(data.user.fullName);
         setEmail(data.user.email);
         setPhone(data.user.phone);
+        setVendorId(data.items.vendorId);
       } catch (error) {
         console.error("Error fetching order details:", error);
         setOrderError("An error occurred while fetching order details");
@@ -108,31 +105,28 @@ const Checkout = () => {
 
     try {
       setIsProcessing(true);
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/verify-payment/${orderId}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${JSON.parse(localStorage.getItem("userToken"))}`,
+      const response = await post(
+        `/payments/verify`,
+        JSON.stringify({
+          reference,
+          orderId,
+          vendorId,
+          customerDetails: {
+            contactName: fullName,
+            contactEmail: email,
+            contactPhone: phone,
+            street,
+            city,
+            state,
+            country,
           },
-          body: JSON.stringify({
-            reference,
-            orderId,
-            customerDetails: {
-              fullName,
-              email,
-              phone,
-              street,
-              city,
-              state,
-              country,
-            },
-          }),
+        }),
+        {
+          token,
         }
       );
 
-      const data = await response.json();
+      const data = response.data;
 
       if (data.success) {
         dispatch(clearCart());
@@ -155,9 +149,7 @@ const Checkout = () => {
       return;
 
     const handler = window.PaystackPop?.setup({
-      key:
-        process.env.NEXT_PUBLIC_PAYSTACK_KEY ||
-        "pk_test_1b3a68df76c0e6286eea3c5bdb00596428d3ce7a",
+      key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
       email: email,
       amount: orderDetails.total * 100,
       currency: "NGN",
@@ -285,7 +277,12 @@ const Checkout = () => {
               <span>
                 {item.productId.name} (x{item.quantity})
               </span>
-              <span>₦{(item.productId.discountPrice * item.quantity).toLocaleString()}</span>
+              <span>
+                ₦
+                {(
+                  item.productId.discountPrice * item.quantity
+                ).toLocaleString()}
+              </span>
             </div>
           ))}
           <hr className="my-3 border-gray-700" />
