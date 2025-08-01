@@ -37,7 +37,7 @@ export default function CreateProduct({
       {showProductForm && (
         <ProductForm
           onSubmit={handleCreateProduct}
-          onCancel={() => setShowProductForm(false)}
+          onCancel={() => setShowProductForm(false)}minimum quantity
           isSubmitting={isSubmitting}
         />
       )}

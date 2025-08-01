@@ -21,17 +21,20 @@ const NAV_LINKS = [
   { label: "About Us", href: "/Pages/About", icon: FaInfo },
 ];
 
-export default function ClientLayout (
+const ClientNavLayout = ({
   authUser,
   isScrolled,
   isMobileMenuOpen,
+  setIsMobileMenuOpen,
   isLoggedIn,
   handleLogout,
   cartCount,
   pathname,
-  Link
-) {
-  <>
+  Link,
+}) => {
+  return (
+    <header className="w-full">
+      <div className="h-full px-4 flex justify-between items-center">
         {/* Global Styles */}
         <style jsx global>{`
           .navbar-blur {
@@ -56,7 +59,7 @@ export default function ClientLayout (
             }
           }
         `}</style>
-  
+
         {/* Main Navbar */}
         <nav
           className={`fixed top-0 w-full z-50 transition-all duration-300 ${
@@ -88,7 +91,7 @@ export default function ClientLayout (
                   </span>
                 </div>
               </Link>
-  
+
               {/* Desktop Navigation */}
               <div className="hidden lg:flex items-center space-x-1">
                 {NAV_LINKS.map(({ label, href, icon: Icon }) => (
@@ -106,7 +109,7 @@ export default function ClientLayout (
                   </Link>
                 ))}
               </div>
-  
+
               {/* Desktop Right Section */}
               <div className="hidden md:flex items-center space-x-4">
                 {!isLoggedIn ? (
@@ -131,7 +134,7 @@ export default function ClientLayout (
                       <FiBell className="w-5 h-5" />
                       <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
                     </button>
-  
+
                     {/* Cart */}
                     <Link
                       href="/Clients/Cart"
@@ -144,7 +147,7 @@ export default function ClientLayout (
                         </span>
                       )}
                     </Link>
-  
+
                     {/* User Menu */}
                     <div className="relative group">
                       <button className="flex items-center space-x-2 bg-yellow-400/10 hover:bg-yellow-400/20 rounded-lg pl-3 pr-4 py-2 transition-colors duration-200">
@@ -153,7 +156,7 @@ export default function ClientLayout (
                           {authUser?.fullName?.split(" ")[0] || "Guest"}
                         </span>
                       </button>
-  
+
                       {/* Dropdown */}
                       <div className="absolute right-0 mt-2 w-64 bg-black/95 rounded-xl shadow-xl border border-yellow-400/20 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right scale-95 group-hover:scale-100">
                         <div className="p-4 border-b border-yellow-400/20">
@@ -166,7 +169,11 @@ export default function ClientLayout (
                         </div>
                         <div className="py-2">
                           {[
-                            { href: "/profile", icon: FaUser, label: "Profile" },
+                            {
+                              href: "/profile",
+                              icon: FaUser,
+                              label: "Profile",
+                            },
                             {
                               href: "/Clients/Dashboard",
                               icon: FaBox,
@@ -197,7 +204,7 @@ export default function ClientLayout (
                   </>
                 )}
               </div>
-  
+
               {/* Mobile Menu Button */}
               <div className="md:hidden flex items-center space-x-3">
                 {authUser && (
@@ -227,7 +234,7 @@ export default function ClientLayout (
             </div>
           </div>
         </nav>
-  
+
         {/* Mobile Menu Overlay */}
         {isMobileMenuOpen && (
           <div
@@ -235,7 +242,7 @@ export default function ClientLayout (
             onClick={() => setIsMobileMenuOpen(false)}
           />
         )}
-  
+
         {/* Mobile Menu */}
         <div
           className={`fixed top-0 right-0 h-full w-80 bg-black/95 shadow-2xl z-50 transform transition-transform duration-300 md:hidden border-l border-yellow-400/20 ${
@@ -252,7 +259,7 @@ export default function ClientLayout (
               <FiX className="w-5 h-5" />
             </button>
           </div>
-  
+
           <div className="flex flex-col h-full overflow-y-auto">
             {/* User Section */}
             {isLoggedIn && authUser && (
@@ -272,7 +279,7 @@ export default function ClientLayout (
                 </div>
               </div>
             )}
-  
+
             {/* Navigation Links */}
             <div className="flex-1 py-6">
               {NAV_LINKS.map(({ label, href, icon: Icon }) => (
@@ -291,7 +298,7 @@ export default function ClientLayout (
                 </Link>
               ))}
             </div>
-  
+
             {/* Auth Section */}
             <div className="p-6 border-t border-yellow-400/20">
               {!isLoggedIn ? (
@@ -358,8 +365,10 @@ export default function ClientLayout (
             </div>
           </div>
         </div>
-  
-        {/* Spacer */}
-        <div className="h-16"></div>
-      </>
-}
+
+      </div>
+    </header>
+  );
+};
+
+export default ClientNavLayout;

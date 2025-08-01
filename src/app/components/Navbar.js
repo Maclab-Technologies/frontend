@@ -7,23 +7,23 @@ import { useSelector } from "react-redux";
 import { AuthContext } from "../hooks/useAuth";
 import { signOut } from "firebase/auth";
 import { auth } from "../utils/firebaseconfig";
-import ClientLayout from "../Layout/client-layout";
-import VendorLayout from "../Layout/vendor-layout";
-
-
+import VendorNavLayout from "../Layout/vendor-layout";
+import ClientNavLayout from "../Layout/client-layout";
+import AdminNavLayout from "../Layout/admin-layout";
 
 const Navbar = () => {
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const cartItems = useSelector((state) => state.cart.cartItems || []);
-  const { isLoggedIn, authUser, setAuthUser, setIsLoggedIn } = useContext(AuthContext);
+  const { isLoggedIn, authUser, setAuthUser, setIsLoggedIn, logoutUser } =
+    useContext(AuthContext);
 
   const pathname = usePathname();
 
-  const isClient = pathname.startsWith("/Client");
   const isVendor = pathname.startsWith("/Vendor");
   const isAdmin = pathname.startsWith("/Admin");
+  const isAuth = pathname.startsWith("/Auth");
 
   const cartCount = cartItems.length;
 
@@ -42,45 +42,60 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      //awaitng for logout api
-      await signOut(auth);
-      setIsLoggedIn(false);
-      setAuthUser(null);
-      setIsMobileMenuOpen(false);
-      setIsScrolled(null);
-      localStorage.removeItem("userToken");
-      localStorage.removeItem("userData");
-      router.push("/Auth/Login");
-    } catch (error) {
-      console.error("Logout Error:", error.message);
-    }
-  };
+  // const handleLogout = async () => {
+  //   try {
+  //     //awaitng for logout api
+  //     await signOut(auth);
+  //     setIsLoggedIn(false);
+  //     setAuthUser(null);
+  //     setIsMobileMenuOpen(false);
+  //     setIsScrolled(null);
+  //     localStorage.removeItem("userToken");
+  //     localStorage.removeItem("userData");
+  //     localStorage.removeItem("vendor_token");
+  //     localStorage.removeItem("vendor_data");
+  //     localStorage.removeItem("admin_token");
+  //     localStorage.removeItem("admin_data");
+  //     router.push("/Auth/Login");
+  //   } catch (error) {
+  //     console.error("Logout Error:", error.message);
+  //   }
+  // };
 
-  return (
-    <>
-      {isAdmin && <div> Admin Nav bar </div>}
-      {
-      isVendor && (
-        <VendorLayout 
-          isMobileMenuOpen
-          setIsMobileMenuOpen
-          handleLogout
-        />
-      )}
-
-      <ClientLayout
-        authUser={authUser}
-        isScrolled={isScrolled}
+  if (isAdmin) {
+    return (
+      <AdminNavLayout
         isMobileMenuOpen={isMobileMenuOpen}
-        isLoggedIn={isLoggedIn}
-        handleLogout={handleLogout}
-        cartCount={cartCount}
-        pathname={pathname}
-        Link={Link}
+        setIsMobileMenuOpen={setIsMobileMenuOpen}
+        handleLogout={logoutUser}
+        authUser={authUser}
       />
-    </>
+    );
+  }
+  if (isVendor) {
+    return (
+      <VendorNavLayout
+        isMobileMenuOpen={isMobileMenuOpen}
+        setIsMobileMenuOpen={setIsMobileMenuOpen}
+        handleLogout={logoutUser}
+      />
+    );
+  }
+  if (isAuth) {
+    return null
+  }
+  return (
+    <ClientNavLayout
+      authUser={authUser}
+      isScrolled={isScrolled}
+      isMobileMenuOpen={isMobileMenuOpen}
+      setIsMobileMenuOpen={setIsMobileMenuOpen}
+      isLoggedIn={isLoggedIn}
+      handleLogout={logoutUser}
+      cartCount={cartCount}
+      pathname={pathname}
+      Link={Link}
+    /> 
   );
 };
 

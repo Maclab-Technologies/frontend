@@ -26,10 +26,11 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import { AuthContext } from "@/app/hooks/useAuth";
+import { post } from "@/app/hooks/fetch-hook";
 
 const Login = () => {
   const router = useRouter();
-  const { setIsLoggedIn, setAuthUser } = useContext(AuthContext);
+  const { setIsLoggedIn, setAuthUser, setToken } = useContext(AuthContext);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
@@ -38,7 +39,6 @@ const Login = () => {
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
   const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
   const emailInputRef = useRef(null);
-  const [token, setToken] = useState("");
 
   // Auto-focus email input on mount
   useEffect(() => {
@@ -119,18 +119,13 @@ const Login = () => {
     setLoading(true);
     try {
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/users/login`,
+        `/auth/users/login`,
         {
           email: formData.email,
           password: formData.password,
         },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
       );
-      const data = response.data;
+      const data = response.data.data;
       setAuthUser(data.data);
       setIsLoggedIn(true);
       localStorage.setItem("userData", JSON.stringify(data.data));
@@ -172,20 +167,15 @@ const Login = () => {
         uid: user.uid,
       };
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/users/google/login`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${idToken}`,
-          },
-          // Send both the token AND user profile to backend
-          body: JSON.stringify({
+      const response = await post(
+        `/auth/users/google/login`,
+        JSON.stringify({
             idToken,
             userProfile,
           }),
-        }
+          {
+            token: idToken
+          }
       );
 
       if (!response.ok) {
@@ -208,6 +198,7 @@ const Login = () => {
       // Update auth state and storage
       setAuthUser(completeUserData);
       setIsLoggedIn(true);
+      setToken(responseData.token);
       localStorage.setItem("userData", JSON.stringify(completeUserData));
       localStorage.setItem("userToken", responseData.token);
 

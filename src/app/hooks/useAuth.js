@@ -2,12 +2,15 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { get } from "./fetch-hook";
 
 export const AuthContext = React.createContext({
   authUser: null,
   isLoggedIn: false,
   role: null,
   isLoading: true,
+  token: null,
+  setToken: () => {},
   setIsLoggedIn: () => {},
   setAuthUser: () => {},
   setRole: () => {},
@@ -25,47 +28,52 @@ export default function AuthContextProvider({ children }) {
     setAuthUser(userData);
     setRole(userData?.role || null);
     setIsLoggedIn(!!userData);
+    // Store user data in localStorage
+    if (userData) {
+      localStorage.setItem("userData", JSON.stringify(userData));
+    }
   }, []);
 
   const logoutUser = useCallback(() => {
     setIsLoggedIn(false);
-    setVerifiedUser(null);
+    setAuthUser(null);
+    setRole(null);
     localStorage.removeItem("userToken");
     localStorage.removeItem("userData");
-    sessionStorage.removeItem("tempAuthData");
-  }, [setVerifiedUser]);
+    localStorage.removeItem("vendor_token");
+    localStorage.removeItem("vendor_data");
+    localStorage.removeItem("admin_token");
+    localStorage.removeItem("admin_data");
+    router.push("/Auth/Login");
+  }, [router]);
 
   const verifyUser = useCallback(async () => {
-    const token = localStorage.getItem("userToken");
+    const token = JSON.parse(localStorage.getItem("userToken"));
+    const storedUserData = JSON.parse(localStorage.getItem("userData"));
+
+    // If no token but has stored user data, clear it
+    if (!token && storedUserData) {
+      localStorage.removeItem("userData");
+    }
+
     if (!token) {
-      logoutUser();
       setIsLoading(false);
-      // router.push("/Auth/Login");
       return;
     }
 
     setIsLoading(true);
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/verify`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await get("/auth/verify", {
+        token,
+      });
 
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
+      if (!response.success) {
+        throw new Error(response.error || "Verification failed");
       }
 
-      const data = await res.json()
-
-      // const data = await res.json();
-      setIsLoggedIn(true);
-      setAuthUser(data.data);
+      setVerifiedUser(response.data.data);
+      setToken(token);
+      localStorage.setItem('userToken', token)
     } catch (error) {
       console.error("Verification error:", error);
       logoutUser();
@@ -74,12 +82,29 @@ export default function AuthContextProvider({ children }) {
     }
   }, [logoutUser, setVerifiedUser]);
 
+  // Initialize auth state from localStorage
   useEffect(() => {
-    // Initial verification
-    verifyUser();
+    const storedUserData = localStorage.getItem("userData");
+    const token = localStorage.getItem("userToken");
 
-    // Set up periodic verification (every 5 minutes)
-    const interval = setInterval(verifyUser, 5 * 60 * 1000);
+    if (storedUserData && token) {
+      try {
+        const parsedData = JSON.parse(storedUserData);
+        setAuthUser(parsedData);
+        setRole(parsedData?.role || null);
+        setIsLoggedIn(true);
+      } catch (e) {
+        console.error("Failed to parse stored user data", e);
+        localStorage.removeItem("userData");
+      }
+    }
+
+    verifyUser();
+  }, [verifyUser]);
+
+  // Set up periodic verification
+  useEffect(() => {
+    const interval = setInterval(verifyUser, 5 * 60 * 1000); // 5 minutes
     return () => clearInterval(interval);
   }, [verifyUser]);
 
@@ -90,8 +115,8 @@ export default function AuthContextProvider({ children }) {
         isLoggedIn,
         role,
         isLoading,
-        setAuthUser,
         setIsLoggedIn,
+        setAuthUser: setVerifiedUser,
         setRole,
         logoutUser,
       }}

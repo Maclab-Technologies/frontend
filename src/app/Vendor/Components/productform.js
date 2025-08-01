@@ -24,7 +24,7 @@ export default function ProductForm({
     product?.discountPrice || ""
   );
   const [category, setCategory] = useState(product?.category || "");
-  const [stock, setStock] = useState(product?.stock || "");
+  const [minOrder, setMinOrder] = useState(product?.minOrder || "");
   const [productMaterial, setProductMaterial] = useState(
     product?.material || ""
   );
@@ -89,7 +89,7 @@ export default function ProductForm({
       price: parseFloat(productPrice),
       discountPercent: parseFloat(discountPercent) || 0,
       category,
-      stock: parseInt(stock) || 0,
+      minOrder: parseInt(minOrder) || 0,
       material: productMaterial,
       color: selectedColors,
       images: productImages,
@@ -195,12 +195,12 @@ export default function ProductForm({
 
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">
-            Stock Quantity
+            Min Order Quantity
           </label>
           <div className="flex gap-2">
             <select
-              value={stock}
-              onChange={(e) => setStock(e.target.value)}
+              value={minOrder}
+              onChange={(e) => setMinOrder(e.target.value)}
               className="bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
             >
               <option value="">Select quantity</option>
@@ -213,8 +213,8 @@ export default function ProductForm({
             <input
               type="number"
               min="1"
-              value={stock}
-              onChange={(e) => setStock(e.target.value)}
+              value={minOrder}
+              onChange={(e) => setMinOrder(e.target.value)}
               className="w-32 bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
               placeholder="Custom quantity"
             />
@@ -304,7 +304,7 @@ export default function ProductForm({
             )}
           </div>
         </div>
-      </div>
+      </div>minimum quantity
 
       {/* Image previews */}
       <div className="flex flex-wrap gap-2 mt-4">
