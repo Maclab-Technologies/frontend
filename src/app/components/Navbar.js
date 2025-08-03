@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
 import { useState, useEffect, useContext } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
-import { AuthContext } from "../hooks/useAuth";
+import { useAuth } from "../hooks/useAuth"; // Changed import
 import { signOut } from "firebase/auth";
 import { auth } from "../utils/firebaseconfig";
 import VendorNavLayout from "../Layout/vendor-layout";
@@ -16,8 +16,15 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const cartItems = useSelector((state) => state.cart.cartItems || []);
-  const { isLoggedIn, authUser, setAuthUser, setIsLoggedIn, logoutUser } =
-    useContext(AuthContext);
+  
+  // Use the useAuth hook instead of useContext directly
+  const { 
+    isLoggedIn, 
+    authUser, 
+    setAuthUser, 
+    setIsLoggedIn, 
+    logoutUser 
+  } = useAuth();
 
   const pathname = usePathname();
 
@@ -27,7 +34,6 @@ const Navbar = () => {
 
   const cartCount = cartItems.length;
 
-  // Lock body scroll when mobile menu is open
   useEffect(() => {
     document.body.style.overflow = isMobileMenuOpen ? "hidden" : "";
     return () => {
@@ -35,32 +41,11 @@ const Navbar = () => {
     };
   }, [isMobileMenuOpen]);
 
-  // Scroll detection
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  // const handleLogout = async () => {
-  //   try {
-  //     //awaitng for logout api
-  //     await signOut(auth);
-  //     setIsLoggedIn(false);
-  //     setAuthUser(null);
-  //     setIsMobileMenuOpen(false);
-  //     setIsScrolled(null);
-  //     localStorage.removeItem("userToken");
-  //     localStorage.removeItem("userData");
-  //     localStorage.removeItem("vendor_token");
-  //     localStorage.removeItem("vendor_data");
-  //     localStorage.removeItem("admin_token");
-  //     localStorage.removeItem("admin_data");
-  //     router.push("/Auth/Login");
-  //   } catch (error) {
-  //     console.error("Logout Error:", error.message);
-  //   }
-  // };
 
   if (isAdmin) {
     return (
@@ -72,6 +57,7 @@ const Navbar = () => {
       />
     );
   }
+  
   if (isVendor) {
     return (
       <VendorNavLayout
@@ -81,9 +67,11 @@ const Navbar = () => {
       />
     );
   }
+  
   if (isAuth) {
-    return null
+    return null;
   }
+  
   return (
     <ClientNavLayout
       authUser={authUser}

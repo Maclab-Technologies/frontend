@@ -1,0 +1,51 @@
+59Minutes Print New files and Folder structure this is it if you want to consume API app/
+├── Admin/
+│   ├── auth/
+│   │   └── login/
+│   │       └── page.js
+│   ├── dashboard/
+│   │   └── page.js
+│   ├── orders/
+│   │   └── page.js
+│   ├── users/
+│   │   └── page.js
+│   ├── vendors/
+│   │   └── page.js
+│   ├── designs/
+│   │   └── page.js
+│   ├── payouts/
+│   │   └── page.js
+│   ├── payments/
+│   │   └── page.js
+│   ├── components/
+│   │   ├── Dashboard/
+│   │   │   ├── StatsCards.js
+│   │   │   ├── ActivityGraph.js
+│   │   │   └── RecentActivity.js
+│   │   ├── Orders/
+│   │   │   ├── OrdersTable.js
+│   │   │   └── OrderFilters.js
+│   │   ├── Users/
+│   │   │   └── UsersTable.js
+│   │   ├── Vendors/
+│   │   │   └── VendorsTable.js
+│   │   ├── Designs/
+│   │   │   └── DesignsTable.js
+│   │   ├── Payouts/
+│   │   │   ├── PayoutsTable.js
+│   │   │   └── PayoutSummary.js
+│   │   ├── Payments/
+│   │   │   ├── PaymentsTable.js
+│   │   │   └── RevenueSummary.js
+│   │   └── shared/
+│   │       ├── Sidebar.js
+│   │       ├── Header.js
+│   │       ├── Breadcrumbs.js
+│   │       ├── StatsCard.js
+│   │       ├── TablePagination.js
+│   │       ├── SearchInput.js
+│   │       └── StatusBadge.js
+│   /├── context/
+│   │/   └── AdminContext.js
+│   ├/── layout.js
+│   └/── page.js

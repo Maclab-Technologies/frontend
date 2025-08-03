@@ -3,27 +3,22 @@
 import "./globals.css";
 import "react-toastify/dist/ReactToastify.css";
 import ReduxProvider from "./Redux/Provider";
-import AuthContextProvider from "./hooks/useAuth";
+import { AuthProvider } from "./hooks/useAuth";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { ToastContainer } from "react-toastify";
-
-// export const metadata = {
-//   title: "59Minutes Prints",
-//   description: "High-quality printing services delivered fast",
-// };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="min-h-screen flex flex-col w-full bg-black text-white">
         <ReduxProvider>
-          <AuthContextProvider>
+          <AuthProvider>
             <Navbar />
-            {/* <ToastContainer position="top-right" autoClose={2000} /> */}
+            <ToastContainer position="top-right" autoClose={2000} />
             <main className="flex-grow">{children}</main>
             <Footer />
-          </AuthContextProvider>
+          </AuthProvider>
         </ReduxProvider>
       </body>
     </html>
