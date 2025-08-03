@@ -1,16 +1,44 @@
 'use client';
 
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAdmin } from '../../context/AdminContext';
+import { useAuth } from '../../../hooks/useAuth';
 import { FaChartPie, FaBoxOpen, FaUsers, FaUserTie, FaPaintBrush, FaMoneyCheckAlt, FaReceipt, FaSignOutAlt } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 
 export default function Sidebar() {
   const { 
     activeTab, 
     setActiveTab, 
     mobileNavOpen, 
-    setMobileNavOpen,
-    handleLogout 
+    setMobileNavOpen
   } = useAdmin();
+  
+  const { logoutUser } = useAuth();
+  const router = useRouter();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      // Call API logout endpoint if needed
+      // await fetch('/api/admin/logout', { method: 'POST' });
+      
+      // Clear admin context and auth state
+      logoutUser();
+      
+      // Redirect to login
+      router.push('/Admin/auth/login');
+      toast.success('Logged out successfully');
+    } catch (error) {
+      toast.error('Logout failed. Please try again.');
+      console.error('Logout error:', error);
+    } finally {
+      setIsLoggingOut(false);
+      setMobileNavOpen(false);
+    }
+  };
 
   const navItems = [
     { name: "Dashboard", icon: <FaChartPie />, path: "/Admin/dashboard" },
@@ -53,10 +81,13 @@ export default function Sidebar() {
       <div className="p-4 border-t border-gray-700 bg-gray-850 lg:hidden">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center justify-center space-x-3 px-4 py-3 rounded-lg bg-gray-700 text-white hover:bg-gray-650 transition-colors"
+          disabled={isLoggingOut}
+          className={`w-full flex items-center justify-center space-x-3 px-4 py-3 rounded-lg ${
+            isLoggingOut ? 'bg-gray-600' : 'bg-gray-700 hover:bg-gray-600'
+          } text-white transition-colors`}
         >
           <FaSignOutAlt />
-          <span>Logout</span>
+          <span>{isLoggingOut ? 'Logging out...' : 'Logout'}</span>
         </button>
       </div>
     </aside>

@@ -1,27 +1,22 @@
 'use client';
-
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { AdminProvider } from './context/AdminContext';
 import { useAuth } from '../hooks/useAuth';
+import { useRouter } from 'next/navigation';
 
 export default function AdminLayout({ children }) {
-  const router = useRouter();
   const { isLoggedIn, role } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     if (!isLoggedIn || role !== 'admin') {
       router.push('/Admin/auth/login');
     }
-  }, [isLoggedIn, role, router]);
+  }, [isLoggedIn, role]);
 
   if (!isLoggedIn || role !== 'admin') {
-    return null; // Redirect happens automatically
+    return null; // Silent redirect
   }
 
-  return (
-    <AdminProvider>
-      {children}
-    </AdminProvider>
-  );
+  return <AdminProvider>{children}</AdminProvider>;
 }
