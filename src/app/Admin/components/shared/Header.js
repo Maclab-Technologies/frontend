@@ -1,7 +1,7 @@
 'use client';
 
 import { useAdmin } from '../../context/AdminContext';
-import { FaBars, FaUser } from 'react-icons/fa';
+import { FaBars, FaUser, FaSignOutAlt } from 'react-icons/fa';
 
 export default function Header() {
   const { 
