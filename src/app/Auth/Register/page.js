@@ -15,7 +15,6 @@ import { auth } from "../../utils/firebaseconfig";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AuthContext } from "@/app/hooks/useAuth";
-import axios from "axios";
 import { post } from "@/app/hooks/fetch-hook";
 
 const Register = () => {

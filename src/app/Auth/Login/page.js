@@ -24,7 +24,6 @@ import {
 import { auth } from "../../utils/firebaseconfig";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import axios from "axios";
 import { AuthContext } from "@/app/hooks/useAuth";
 import { post } from "@/app/hooks/fetch-hook";
 
@@ -118,14 +117,14 @@ const Login = () => {
 
     setLoading(true);
     try {
-      const response = await axios.post(
+      const response = await post(
         `/auth/users/login`,
         {
           email: formData.email,
           password: formData.password,
         },
       );
-      const data = response.data.data;
+      const data = response.data;
       setAuthUser(data.data);
       setIsLoggedIn(true);
       localStorage.setItem("userData", JSON.stringify(data.data));

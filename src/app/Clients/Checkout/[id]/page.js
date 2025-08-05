@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { clearCart } from "../../../Redux/CartSlice";
 import { get, post } from "@/app/hooks/fetch-hook";
+import { toast } from "react-toastify";
 
 const Checkout = () => {
   const params = useParams();
@@ -26,7 +27,7 @@ const Checkout = () => {
   const [isLoadingOrder, setIsLoadingOrder] = useState(true);
   const [orderError, setOrderError] = useState("");
   const [hasMounted, setHasMounted] = useState(false);
-  const [vendorId, setVendorId] = useState("");
+  // const [vendor, setVendor] = useState([]);
 
   const token = localStorage.getItem("userToken");
 
@@ -40,7 +41,7 @@ const Checkout = () => {
     const fetchOrderDetails = async () => {
       try {
         setIsLoadingOrder(true);
-        const response = await get(`/orders/${orderId}`, {
+        const response = await get(`/orders/order/${orderId}`, {
           token,
         });
 
@@ -52,7 +53,7 @@ const Checkout = () => {
         setFullName(data.user.fullName);
         setEmail(data.user.email);
         setPhone(data.user.phone);
-        setVendorId(data.items.vendorId);
+        // setVendor(()=>(data.items.map(i=> i.vendorId)));
       } catch (error) {
         console.error("Error fetching order details:", error);
         setOrderError("An error occurred while fetching order details");
@@ -110,7 +111,7 @@ const Checkout = () => {
         JSON.stringify({
           reference,
           orderId,
-          vendorId,
+          // vendorId: vendor.id,
           customerDetails: {
             contactName: fullName,
             contactEmail: email,
@@ -127,16 +128,16 @@ const Checkout = () => {
       );
 
       const data = response.data;
+      console.log(data)
 
       if (data.success) {
+        toast.success('Payment successful')
         dispatch(clearCart());
-        window.location.href = "/Clients/Payment-success";
-      } else {
-        alert("Payment verification failed. Please contact support.");
+        window.location.href = `/Clients/Payment-success/${orderId}?reference=${reference}`;
       }
     } catch (error) {
       console.error("Error verifying payment:", error);
-      alert(
+      toast.warning(
         "An error occurred while verifying your payment. Please contact support."
       );
     } finally {
