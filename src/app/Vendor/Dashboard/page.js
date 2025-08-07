@@ -15,13 +15,6 @@ import {
   FaBars,
   FaTimes,
   FaUser,
-  FaFileDownload,
-  FaFileUpload,
-  FaCheck,
-  FaClock,
-  FaTrash,
-  FaEdit,
-  FaDollarSign,
 } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -34,387 +27,6 @@ import Earnings from "../Components/earning";
 import Withdraw from "../Components/withdraw";
 import Payout from "../Components/payout";
 import Orders from "../Components/order";
-
-// // Reusable Product Form Component
-// const ProductForm = ({
-//   product = null,
-//   onSubmit,
-//   onCancel,
-//   isSubmitting = false,
-// }) => {
-//   const [productName, setProductName] = useState(product?.name || "");
-//   const [productDescription, setProductDescription] = useState(
-//     product?.description || ""
-//   );
-//   const [productPrice, setProductPrice] = useState(product?.price || "");
-//   const [discountPercent, setDiscountPercentage] = useState(
-//     product?.discountPercent || ""
-//   );
-//   const [ discountPrice, setDiscountPrice ] = useState(product?.discountPrice || "")
-//   const [category, setCategory] = useState(product?.category || "");
-//   const [stock, setStock] = useState(product?.stock || "");
-//   const [productMaterial, setProductMaterial] = useState(
-//     product?.material || ""
-//   );
-//   const [selectedColors, setSelectedColors] = useState(product?.color || []);
-//   const [productImages, setProductImages] = useState([]);
-//   const [existingImages, setExistingImages] = useState(product?.images || []);
-
-//   const handleImageUpload = (e) => {
-//     const files = Array.from(e.target.files);
-
-//     if (files.length + productImages.length > 5) {
-//       toast.error("You can only upload up to 5 images.");
-//       return;
-//     }
-
-//     const validImages = files.filter((file) =>
-//       ["image/png", "image/jpeg", "image/jpg", "image/gif"].includes(file.type)
-//     );
-
-//     if (validImages.length !== files.length) {
-//       toast.warning(
-//         "Some files were not valid image formats and were skipped."
-//       );
-//     }
-
-//     setProductImages((prev) => [...prev, ...validImages]);
-//   };
-
-//   const handleRemoveImage = (index, isExisting = false) => {
-//     if (isExisting) {
-//       setExistingImages(existingImages.filter((_, i) => i !== index));
-//     } else {
-//       setProductImages(productImages.filter((_, i) => i !== index));
-//     }
-//   };
-
-//   const handleColorToggle = (color) => {
-//     if (selectedColors.includes(color)) {
-//       setSelectedColors(selectedColors.filter((c) => c !== color));
-//     } else {
-//       setSelectedColors([...selectedColors, color]);
-//     }
-//   };
-
-//   const handleSubmit = (e) => {
-//     e.preventDefault();
-
-//     if (
-//       !productName ||
-//       !productDescription ||
-//       !productPrice ||
-//       !productMaterial ||
-//       selectedColors.length === 0
-//     ) {
-//       toast.error("Please fill all required fields");
-//       return;
-//     }
-
-//     const productData = {
-//       name: productName,
-//       description: productDescription,
-//       price: parseFloat(productPrice),
-//       discountPercent: parseFloat(discountPercent) || 0,
-//       category,
-//       stock: parseInt(stock) || 0,
-//       material: productMaterial,
-//       color: selectedColors,
-//       images: productImages,
-//       existingImages,
-//     };
-
-//     onSubmit(productData);
-//   };
-
-//   return (
-//     <form onSubmit={handleSubmit} className="space-y-6">
-//       {/* Product name and category */}
-//       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-//         <div>
-//           <label className="block text-sm font-medium text-gray-300 mb-1">
-//             Product Name
-//           </label>
-//           <input
-//             type="text"
-//             value={productName}
-//             onChange={(e) => setProductName(e.target.value)}
-//             className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
-//             placeholder="e.g. Business Cards"
-//             required
-//           />
-//         </div>
-
-//         <div>
-//           <label className="block text-sm font-medium text-gray-300 mb-1">
-//             Category
-//           </label>
-//           <select
-//             value={category}
-//             onChange={(e) => setCategory(e.target.value)}
-//             className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
-//             required
-//           >
-//             <option value="">Select Category</option>
-//             <option value="Apparel">Apparel</option>
-//             <option value="Banners">Banners</option>
-//             <option value="Brochures">Brochures</option>
-//             <option value="Business Cards">Business Cards</option>
-//             <option value="Flyers">Flyers</option>
-//             <option value="Invitation Cards">Invitation Cards</option>
-//             <option value="Merchandise">Merchandise</option>
-//             <option value="Posters">Posters</option>
-//             <option value="Stationery">Stationery</option>
-//             <option value="Stickers">Stickers</option>
-//             <option value="shirt design">shirt design</option>
-//           </select>
-//         </div>
-//       </div>
-
-//       {/* Product description */}
-//       <div>
-//         <div>
-//           <label className="block text-sm font-medium text-gray-300 mb-1">
-//             Description
-//           </label>
-//           <textarea
-//             value={productDescription}
-//             onChange={(e) => setProductDescription(e.target.value)}
-//             className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
-//             placeholder="Product description"
-//             required
-//             rows={6}
-//           ></textarea>
-//         </div>
-//       </div>
-
-//       {/* Product price, discount, and min order */}
-//       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-//         <div>
-//           <label className="block text-sm font-medium text-gray-300 mb-1">
-//             Price (₦)
-//           </label>
-//           <input
-//             type="number"
-//             value={productPrice}
-//             onChange={(e) => setProductPrice(e.target.value)}
-//             className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
-//             placeholder="Price in Naira"
-//             min="0"
-//             step="0.01"
-//             required
-//           />
-//         </div>
-
-//         <div>
-//           <label className="block text-sm font-medium text-gray-300 mb-1">
-//             Discount (%)
-//           </label>
-//           <input
-//             type="number"
-//             value={discountPercent}
-//             onChange={(e) => setDiscountPercentage(e.target.value)}
-//             className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
-//             placeholder="0"
-//             min="0"
-//             max="100"
-//           />
-//         </div>
-
-//         <div>
-//           <label className="block text-sm font-medium text-gray-300 mb-2">
-//             Stock Quantity
-//           </label>
-//           <div className="flex gap-2">
-//             <select
-//               value={stock}
-//               onChange={(e) => setStock(e.target.value)}
-//               className="bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
-//             >
-//               <option value="">Select quantity</option>
-//               <option value="10">10</option>
-//               <option value="50">50</option>
-//               <option value="100">100</option>
-//               <option value="500">500</option>
-//               <option value="1000">1000</option>
-//             </select>
-//             <input
-//               type="number"
-//               min="1"
-//               value={stock}
-//               onChange={(e) => setStock(e.target.value)}
-//               className="w-32 bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
-//               placeholder="Custom quantity"
-//             />
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* Product material and color */}
-//       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-//         <div>
-//           <label className="block text-sm font-medium text-gray-300 mb-1">
-//             Material
-//           </label>
-//           <input
-//             type="text"
-//             value={productMaterial}
-//             onChange={(e) => setProductMaterial(e.target.value)}
-//             className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
-//             placeholder="e.g. Glossy Paper, Matte, etc."
-//             required
-//           />
-//         </div>
-
-//         <div>
-//           <label className="block text-sm font-medium text-gray-300 mb-2">
-//             Available Colors
-//           </label>
-//           <div className="flex flex-wrap gap-2">
-//             {[
-//               "Red",
-//               "Blue",
-//               "Green",
-//               "Black",
-//               "White",
-//               "Yellow",
-//               "Full Color",
-//             ].map((color) => (
-//               <button
-//                 key={color}
-//                 type="button"
-//                 onClick={() => handleColorToggle(color)}
-//                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors
-//                   ${
-//                     selectedColors.includes(color)
-//                       ? "bg-yellow-500 text-black"
-//                       : "bg-gray-700 text-gray-300 border border-gray-600 hover:bg-gray-600"
-//                   }`}
-//               >
-//                 {color}
-//               </button>
-//             ))}
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* Upload pictures */}
-//       <div>
-//         <label className="block text-sm font-medium text-gray-300 mb-1">
-//           Upload Images (Max 5)
-//         </label>
-//         <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-600 border-dashed rounded-md">
-//           <div className="space-y-1 text-center">
-//             <FaFileUpload className="mx-auto h-12 w-12 text-gray-400" />
-//             <div className="flex text-sm text-gray-400">
-//               <label
-//                 htmlFor="file-upload"
-//                 className="relative cursor-pointer rounded-md font-medium text-yellow-400 hover:text-yellow-300 focus-within:outline-none"
-//               >
-//                 <span>Upload files</span>
-//                 <input
-//                   id="file-upload"
-//                   name="file-upload"
-//                   type="file"
-//                   accept="image/*"
-//                   multiple
-//                   className="sr-only"
-//                   onChange={handleImageUpload}
-//                 />
-//               </label>
-//               <p className="pl-1">or drag and drop</p>
-//             </div>
-//             <p className="text-xs text-gray-400">PNG, JPG, GIF up to 5 files</p>
-//             {(productImages.length > 0 || existingImages.length > 0) && (
-//               <p className="text-sm text-green-400">
-//                 {productImages.length + existingImages.length} images selected
-//               </p>
-//             )}
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* Image previews */}
-//       <div className="flex flex-wrap gap-2 mt-4">
-//         {existingImages.map((image, index) => (
-//           <div key={`existing-${index}`} className="relative">
-//             <img
-//               src={image}
-//               alt={`existing-${index}`}
-//               className="w-24 h-24 object-cover rounded-md border border-gray-400"
-//             />
-//             <button
-//               type="button"
-//               onClick={() => handleRemoveImage(index, true)}
-//               className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-//             >
-//               ×
-//             </button>
-//           </div>
-//         ))}
-//         {productImages.map((file, index) => (
-//           <div key={`new-${index}`} className="relative">
-//             <img
-//               src={URL.createObjectURL(file)}
-//               alt={`upload-${index}`}
-//               className="w-24 h-24 object-cover rounded-md border border-gray-400"
-//             />
-//             <button
-//               type="button"
-//               onClick={() => handleRemoveImage(index)}
-//               className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-//             >
-//               ×
-//             </button>
-//           </div>
-//         ))}
-//       </div>
-
-//       <div className="flex justify-end gap-3">
-//         <button
-//           type="button"
-//           onClick={onCancel}
-//           className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white font-medium rounded-md transition-colors"
-//         >
-//           Cancel
-//         </button>
-//         <button
-//           type="submit"
-//           disabled={isSubmitting}
-//           className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-medium rounded-md transition-colors disabled:opacity-70"
-//         >
-//           {isSubmitting ? (
-//             <span className="flex items-center justify-center">
-//               <svg
-//                 className="animate-spin -ml-1 mr-2 h-4 w-4 text-black"
-//                 xmlns="http://www.w3.org/2000/svg"
-//                 fill="none"
-//                 viewBox="0 0 24 24"
-//               >
-//                 <circle
-//                   className="opacity-25"
-//                   cx="12"
-//                   cy="12"
-//                   r="10"
-//                   stroke="currentColor"
-//                   strokeWidth="4"
-//                 ></circle>
-//                 <path
-//                   className="opacity-75"
-//                   fill="currentColor"
-//                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-//                 ></path>
-//               </svg>
-//               {product ? "Updating..." : "Creating..."}
-//             </span>
-//           ) : (
-//             <span>{product ? "Update Product" : "Create Product"}</span>
-//           )}
-//         </button>
-//       </div>
-//     </form>
-//   );
-// };
 
 // Delete Confirmation Modal
 const DeleteConfirmationModal = ({
@@ -491,6 +103,7 @@ export default function VendorDashboard() {
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [earnings, setEarnings] = useState({});
+  const [earningsStats, setEarningsStats] = useState({});
   const [payouts, setPayouts] = useState([]);
   const [vendorData, setVendorData] = useState(null);
   const [vendorToken, setVendorToken] = useState(null);
@@ -509,14 +122,13 @@ export default function VendorDashboard() {
       try {
         const token = localStorage.getItem("vendor_token");
         const data = JSON.parse(localStorage.getItem("vendor_data"));
+        setVendorToken(token);
+        setVendorData(data);
 
         if (!token || !data) {
           router.push("/Vendor/Login");
           return;
         }
-
-        setVendorToken(token);
-        setVendorData(data);
 
         // Using batchRequests for parallel API calls
         const result = await batchRequests([
@@ -539,8 +151,17 @@ export default function VendorDashboard() {
             },
           },
           {
-            // vendor earnings 
-            url: `/vendors/earnings/${data.id}`,
+            // vendor earnings
+            url: `/payments/vendor/${data.id}`,
+            options: {
+              method: "GET",
+              token,
+              config: { showToast: false },
+            },
+          },
+          {
+            // vendor earnings
+            url: `/payments/earnings/stats/${data.id}`,
             options: {
               method: "GET",
               token,
@@ -559,17 +180,20 @@ export default function VendorDashboard() {
         ]);
 
         // Destructure results (batchRequests returns array in same order)
-        const [productsResult, ordersResult, earningsResult, payoutsResult] =
-          result;
+        const [
+          productsResult,
+          ordersResult,
+          earningsResult,
+          earningStats,
+          payoutsResult,
+        ] = result;
 
         // Handle products
-        if (
-          productsResult.success 
-        ) {
+        if (productsResult.success) {
           setProducts(productsResult.data?.data || []);
-        } else if ( !productsResult.data.data.length === 0 ) {
+        } else if (!productsResult.data.data.length === 0) {
           toast.error("No Product found");
-        } else if ( !productsResult._failed ) {
+        } else if (!productsResult._failed) {
           toast.error("Failed to fetch products");
         }
 
@@ -582,15 +206,21 @@ export default function VendorDashboard() {
 
         // Handle earnings
         if (earningsResult.success) {
-          setEarnings(
-            earningsResult.data?.data || {
-              available: 0,
-              total: 0,
-              pending: 0,
+          setEarnings(earningsResult.data?.data || []);
+        } else if (!earningsResult._failed) {
+          toast.error("Failed to fetch earnings");
+        }
+
+        if (earningStats.success) {
+          setEarningsStats(
+            earningStats.data?.data || {
+              platformFee: 0,
+              netAmount: 0,
+              grossAmount: 0,
             }
           );
         } else if (!earningsResult._failed) {
-          toast.error("Failed to fetch earnings");
+          toast.error("Failed to fetch earnings stats");
         }
 
         // Handle payouts
@@ -770,39 +400,6 @@ export default function VendorDashboard() {
     setProductToEdit(null);
   };
 
-  const handleSubmitWithdrawal = (e) => {
-    e.preventDefault();
-
-    if (!bankName || !accountNumber || !accountName || !withdrawAmount) {
-      toast.error("Please fill all bank details");
-      return;
-    }
-
-    if (parseFloat(withdrawAmount) > earnings.available) {
-      toast.error("Withdrawal amount exceeds available balance");
-      return;
-    }
-
-    // In a real app, this would send a request to the backend
-    const newPayout = {
-      id: `PYT-00${payouts.length + 1}`,
-      date: new Date().toISOString().split("T")[0],
-      amount: `₦${parseFloat(withdrawAmount).toLocaleString()}`,
-      status: "Pending",
-      txnId: `TXN${Math.floor(1000000 + Math.random() * 9000000)}`,
-    };
-
-    setPayouts([newPayout, ...payouts]);
-    setEarnings({
-      ...earnings,
-      available: earnings.available - parseFloat(withdrawAmount),
-      pending: earnings.pending + parseFloat(withdrawAmount),
-    });
-
-    toast.success("Withdrawal request submitted");
-    setWithdrawAmount("");
-  };
-
   const handleDesignLinkSubmit = (orderId, link) => {
     setOrders(
       orders.map((order) =>
@@ -821,7 +418,6 @@ export default function VendorDashboard() {
       </div>
     );
   }
-
   const tabs = {
     dashboard: (
       <Dashboard
@@ -861,23 +457,21 @@ export default function VendorDashboard() {
         isDeleting={isDeleting}
       />
     ),
-    earnings: <Earnings earnings={earnings} />,
+    earnings: <Earnings earnings={earnings} earningsStats={earningsStats} />,
     withdraw: (
       <Withdraw
-        payouts={payouts}
-        earnings={earnings}
+        vendorData={vendorData}
         bankName={bankName}
         setBankName={setBankName}
         accountNumber={accountNumber}
         setAccountNumber={setAccountNumber}
         accountName={accountName}
         setAccountName={setAccountName}
-        handleSubmitWithdrawal={handleSubmitWithdrawal}
         withdrawAmount={withdrawAmount}
         setWithdrawAmount={setWithdrawAmount}
       />
     ),
-    payout: <Payout payouts={payouts} />,
+    // payout: <Payout payouts={payouts} />,
   };
   return (
     <div className="min-h-screen bg-gray-900">

@@ -1,16 +1,84 @@
-export default function Withdraw({ 
-  payouts,
-  earnings,
-  bankName,
-  setBankName,
-  accountNumber,
-  setAccountNumber,
-  accountName,
-  setAccountName,
-  handleSubmitWithdrawal,
-  withdrawAmount,
-  setWithdrawAmount
-}) {
+"use client";
+import { batchRequests } from "@/app/hooks/fetch-hook";
+import { config } from "dotenv";
+import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
+
+export default function Withdraw({ vendorData }) {
+  const [formData, setFormData] = useState({
+    vendorId: "",
+    amount: "",
+    accountNumber: "",
+    bankName: "",
+    accountName: "",
+    saveDetails: false,
+  });
+
+  useEffect(() => {
+    try {
+      const token = localStorage.getItem('vendor_token')
+      if(!token){
+        toast.error('Unable to untenticate user, try again.')
+      }
+
+      const res = batchRequests([
+        {
+          url: "vendors/bank/details",
+          {
+          method: "GET",
+          token,
+          config:{ showToast: false}
+        }
+      ])
+
+      const [bankDetails] = res.data;
+      
+      setFormData(bankDetails.data)
+
+    } catch (error) {
+      console.error(error)
+      toast.warning('Something went wromg while retrieving bank details')
+    }
+  });
+
+  const handleSubmitWithdrawal = (e) => {
+    e.preventDefault();
+
+    if (
+      !formData.bankName ||
+      !formData.accountNumber ||
+      !formData.accountName ||
+      !formData.withdrawAmount
+    ) {
+      toast.error("Please fill all bank details");
+      return;
+    }
+
+    if (parseFloat(withdrawAmount) > earnings.available) {
+      toast.error("Withdrawal amount exceeds available balance");
+      return;
+    }
+
+    // In a real app, this would send a request to the backend
+    const newPayout = {
+      id: `PYT-00${payouts.length + 1}`,
+      date: new Date().toISOString().split("T")[0],
+      amount: `₦${parseFloat(withdrawAmount).toLocaleString()}`,
+      status: "Pending",
+      txnId: `TXN${Math.floor(1000000 + Math.random() * 9000000)}`,
+    };
+
+    setPayouts([newPayout, ...payouts]);
+    setEarnings({
+      ...earnings,
+      available: earnings.available - parseFloat(withdrawAmount),
+      pending: earnings.pending + parseFloat(withdrawAmount),
+    });
+
+    toast.success("Withdrawal request submitted");
+    setWithdrawAmount("");
+  };
+
   return (
     <>
       <div className="bg-gray-800 rounded-lg p-6 text-white">
@@ -21,7 +89,7 @@ export default function Withdraw({
             <div>
               <span className="text-sm text-gray-400">Available Balance</span>
               <h2 className="text-3xl font-bold text-green-400">
-                ₦{earnings.available || 0}
+                {/* ₦{earnings.available || 0} */}0
               </h2>
             </div>
 
@@ -32,18 +100,26 @@ export default function Withdraw({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Bank Details</h2>
-            <form className="space-y-4">
+        <form onSubmit={handleSubmitWithdrawal} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <h2 className="text-xl font-semibold mb-4">Bank Details</h2>
               <div>
+                <input
+                  type="text"
+                  value={vendorData.id}
+                  onChange={(e) => setFormData.vendorId(e.target.value)}
+                  className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  placeholder="Enter your bank name"
+                  hidden
+                />
                 <label className="block text-sm font-medium text-gray-300 mb-1">
                   Bank Name
                 </label>
                 <input
                   type="text"
-                  value={bankName}
-                  onChange={(e) => setBankName(e.target.value)}
+                  value={formData.bankName}
+                  onChange={(e) => setFormData.bankName(e.target.value)}
                   className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   placeholder="Enter your bank name"
                 />
@@ -55,8 +131,8 @@ export default function Withdraw({
                 </label>
                 <input
                   type="text"
-                  value={accountNumber}
-                  onChange={(e) => setAccountNumber(e.target.value)}
+                  value={formData.accountNumber}
+                  onChange={(e) => setFormData.accountNumber(e.target.value)}
                   className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   placeholder="Enter your account number"
                 />
@@ -68,34 +144,47 @@ export default function Withdraw({
                 </label>
                 <input
                   type="text"
-                  value={accountName}
-                  onChange={(e) => setAccountName(e.target.value)}
+                  value={formData.accountName}
+                  onChange={(e) => setFormData.accountName(e.target.value)}
                   className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   placeholder="Enter account holder name"
                 />
               </div>
-            </form>
-          </div>
-
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Request Withdrawal</h2>
-            <form onSubmit={handleSubmitWithdrawal} className="space-y-4">
+              <div>
+                <label className="flex items-center text-sm font-medium text-gray-300 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.saveDetails}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        saveDetails: e.target.checked,
+                      })
+                    }
+                    className="mr-2 h-4 w-4 text-yellow-500 bg-gray-700 border-gray-600 rounded focus:ring-yellow-500 focus:ring-2"
+                  />
+                  Save Bank Details
+                </label>
+              </div>
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold mb-4">Request Withdrawal</h2>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">
                   Amount (₦)
                 </label>
                 <input
                   type="number"
-                  value={withdrawAmount}
-                  onChange={(e) => setWithdrawAmount(e.target.value)}
+                  value={formData.amount}
+                  onChange={(e) => setFormData.amount(e.target.value)}
                   min="5000"
-                  max={earnings.available}
+                  // max={earnings.available}
                   className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   placeholder="Enter amount to withdraw"
                 />
                 <p className="text-xs text-gray-400 mt-1">
-                  Minimum withdrawal: ₦5,000 | Available: ₦
-                  {earnings.available || 0}
+                  Minimum withdrawal: ₦5,000 | Available: ₦0
+                  {/* {earnings.available || 0} */}
                 </p>
               </div>
 
@@ -116,9 +205,9 @@ export default function Withdraw({
                   Request Withdrawal
                 </button>
               </div>
-            </form>
+            </div>
           </div>
-        </div>
+        </form>
 
         <div className="mt-8">
           <h2 className="text-xl font-semibold mb-4">Recent Withdrawals</h2>
@@ -137,7 +226,7 @@ export default function Withdraw({
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-700">
+              {/* <tbody className="divide-y divide-gray-700">
                 {payouts.slice(0, 3).map((payout, index) => (
                   <tr key={index}>
                     <td className="px-4 py-3 whitespace-nowrap text-sm">
@@ -159,7 +248,7 @@ export default function Withdraw({
                     </td>
                   </tr>
                 ))}
-              </tbody>
+              </tbody> */}
             </table>
           </div>
         </div>

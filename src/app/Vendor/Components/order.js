@@ -1,3 +1,4 @@
+"use client"
 import { FaFileDownload, FaCheck } from 'react-icons/fa';
 
 export default function Orders({ orders, handleDesignLinkSubmit }) {
