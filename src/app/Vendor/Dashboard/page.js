@@ -104,7 +104,6 @@ export default function VendorDashboard() {
   const [orders, setOrders] = useState([]);
   const [earnings, setEarnings] = useState({});
   const [earningsStats, setEarningsStats] = useState({});
-  const [payouts, setPayouts] = useState([]);
   const [vendorData, setVendorData] = useState(null);
   const [vendorToken, setVendorToken] = useState(null);
 
@@ -168,15 +167,6 @@ export default function VendorDashboard() {
               config: { showToast: false },
             },
           },
-          {
-            // vendor payouts
-            url: `/vendors/payouts/${data.id}`,
-            options: {
-              method: "GET",
-              token,
-              config: { showToast: false },
-            },
-          },
         ]);
 
         // Destructure results (batchRequests returns array in same order)
@@ -185,30 +175,29 @@ export default function VendorDashboard() {
           ordersResult,
           earningsResult,
           earningStats,
-          payoutsResult,
         ] = result;
 
         // Handle products
         if (productsResult.success) {
           setProducts(productsResult.data?.data || []);
         } else if (!productsResult.data.data.length === 0) {
-          toast.error("No Product found");
+          toast.warning("No Product found");
         } else if (!productsResult._failed) {
-          toast.error("Failed to fetch products");
+          toast.warning("Failed to fetch products");
         }
 
         // Handle orders
         if (ordersResult.success) {
           setOrders(ordersResult.data?.data || []);
         } else if (!ordersResult._failed) {
-          toast.error("Failed to fetch orders");
+          toast.warning("Failed to fetch orders");
         }
 
         // Handle earnings
         if (earningsResult.success) {
           setEarnings(earningsResult.data?.data || []);
         } else if (!earningsResult._failed) {
-          toast.error("Failed to fetch earnings");
+          toast.warning("Failed to fetch earnings");
         }
 
         if (earningStats.success) {
@@ -220,14 +209,7 @@ export default function VendorDashboard() {
             }
           );
         } else if (!earningsResult._failed) {
-          toast.error("Failed to fetch earnings stats");
-        }
-
-        // Handle payouts
-        if (payoutsResult.success) {
-          setPayouts(payoutsResult.data?.data || []);
-        } else if (!payoutsResult._failed) {
-          toast.error("Failed to fetch payouts");
+          toast.warning("Failed to fetch earnings stats");
         }
 
         // Check if any critical requests failed
@@ -286,7 +268,6 @@ export default function VendorDashboard() {
         }
       );
 
-      console.log(response.data);
       if (response.success) {
         setProducts((prev) => [...prev, response.data]);
         toast.success("Product created successfully!");
@@ -645,7 +626,7 @@ export default function VendorDashboard() {
                 <span className="text-left">Withdraw</span>
               </button>
 
-              <button
+              {/* <button
                 onClick={() => {
                   setActiveTab("payout");
                   setMobileNavOpen(false);
@@ -664,7 +645,7 @@ export default function VendorDashboard() {
                   <FaHistory />
                 </span>
                 <span className="text-left">Payouts Received</span>
-              </button>
+              </button> */}
             </nav>
           </aside>
 
