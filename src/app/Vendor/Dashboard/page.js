@@ -27,6 +27,7 @@ import Earnings from "../Components/earning";
 import Withdraw from "../Components/withdraw";
 import Payout from "../Components/payout";
 import Orders from "../Components/order";
+import LoadingMiddleware from "@/app/middleware/loading-middleware";
 
 // Delete Confirmation Modal
 const DeleteConfirmationModal = ({
@@ -105,6 +106,7 @@ export default function VendorDashboard() {
   const [earnings, setEarnings] = useState({});
   const [earningsStats, setEarningsStats] = useState({});
   const [vendorData, setVendorData] = useState(null);
+  const [summary, setSummary] = useState({});
   const [vendorToken, setVendorToken] = useState(null);
 
   // Modal states
@@ -159,8 +161,17 @@ export default function VendorDashboard() {
             },
           },
           {
-            // vendor earnings
+            // vendor earnings stats
             url: `/payments/earnings/stats/${data.id}`,
+            options: {
+              method: "GET",
+              token,
+              config: { showToast: false },
+            },
+          },
+          {
+            // vendor stats summary
+            url: `/payments/vendor/${data.id}/summary`,
             options: {
               method: "GET",
               token,
@@ -175,6 +186,7 @@ export default function VendorDashboard() {
           ordersResult,
           earningsResult,
           earningStats,
+          statsSummary,
         ] = result;
 
         // Handle products
@@ -201,15 +213,15 @@ export default function VendorDashboard() {
         }
 
         if (earningStats.success) {
-          setEarningsStats(
-            earningStats.data?.data || {
-              platformFee: 0,
-              netAmount: 0,
-              grossAmount: 0,
-            }
-          );
-        } else if (!earningsResult._failed) {
+          setEarningsStats(earningStats.data?.data || []);
+        } else if (!earningStats._failed) {
           toast.warning("Failed to fetch earnings stats");
+        }
+        // Handle vendor summary
+        if (statsSummary.success) {
+          setSummary(statsSummary.data?.data || []);
+        } else if (!statsSummary._failed) {
+          toast.warning("Failed to fetch earnings");
         }
 
         // Check if any critical requests failed
@@ -392,23 +404,23 @@ export default function VendorDashboard() {
     toast.success("Design link submitted for review");
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400"></div>
-      </div>
-    );
-  }
   const tabs = {
     dashboard: (
       <Dashboard
         vendorData={vendorData}
         orders={orders}
         products={products}
-        earnings={earnings}
+        summary={summary}
+        loading={loading}
       />
     ),
-    orders: <Orders orders={orders} handleDesignLinkSubmit={orders} />,
+    orders: (
+      <Orders
+        orders={orders}
+        handleDesignLinkSubmit={orders}
+        loading={loading}
+      />
+    ),
     addProduct: (
       <AddProduct
         products={products}
@@ -436,21 +448,18 @@ export default function VendorDashboard() {
         handleConfirmDelete={handleConfirmDelete}
         handleCancelDelete={handleCancelDelete}
         isDeleting={isDeleting}
+        loading={loading}
       />
     ),
-    earnings: <Earnings earnings={earnings} earningsStats={earningsStats} />,
-    withdraw: (
-      <Withdraw
-        vendorData={vendorData}
-        bankName={bankName}
-        setBankName={setBankName}
-        accountNumber={accountNumber}
-        setAccountNumber={setAccountNumber}
-        accountName={accountName}
-        setAccountName={setAccountName}
-        withdrawAmount={withdrawAmount}
-        setWithdrawAmount={setWithdrawAmount}
+    earnings: (
+      <Earnings
+        earnings={earnings}
+        earningsStats={earningsStats}
+        loading={loading}
       />
+    ),
+    withdraw: (
+      <Withdraw vendorData={vendorData} summary={summary} />
     ),
     // payout: <Payout payouts={payouts} />,
   };

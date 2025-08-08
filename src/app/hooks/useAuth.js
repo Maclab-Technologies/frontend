@@ -1,6 +1,12 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState, useCallback, useContext, createContext } from "react";
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useContext,
+  createContext,
+} from "react";
 import { useRouter } from "next/navigation";
 import { get } from "./fetch-hook";
 
@@ -29,13 +35,23 @@ export function AuthProvider({ children }) {
     setAuthUser(null);
     setRole(null);
     setToken(null);
+    const user = localStorage.removeItem("userToken");
+    const vendor = localStorage.removeItem("vendoroken");
+    const admin = localStorage.removeItem("adminToken");
+
+    if (user) {
+      router.push("/Auth/Login");
+    } else if (vendor) {
+      router.push("/Vendor/Login");
+    } else {
+      router.push("/Admin/auth/Login");
+    }
     localStorage.removeItem("userToken");
     localStorage.removeItem("userData");
     localStorage.removeItem("vendor_token");
     localStorage.removeItem("vendor_data");
     localStorage.removeItem("admin_token");
     localStorage.removeItem("admin_data");
-    router.push("/Auth/Login");
   }, [router]);
 
   const verifyUser = useCallback(async () => {
@@ -59,7 +75,7 @@ export function AuthProvider({ children }) {
       }
       setVerifiedUser(response.data.data);
       setToken(token);
-      localStorage.setItem('userToken', token);
+      localStorage.setItem("userToken", token);
     } catch (error) {
       console.error("Verification error:", error);
       logoutUser();
@@ -93,18 +109,20 @@ export function AuthProvider({ children }) {
   }, [verifyUser]);
 
   return (
-    <AuthContext.Provider value={{
-      authUser,
-      isLoggedIn,
-      role,
-      isLoading,
-      token,
-      setToken,
-      setIsLoggedIn,
-      setAuthUser: setVerifiedUser,
-      setRole,
-      logoutUser,
-    }}>
+    <AuthContext.Provider
+      value={{
+        authUser,
+        isLoggedIn,
+        role,
+        isLoading,
+        token,
+        setToken,
+        setIsLoggedIn,
+        setAuthUser: setVerifiedUser,
+        setRole,
+        logoutUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -113,7 +131,7 @@ export function AuthProvider({ children }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

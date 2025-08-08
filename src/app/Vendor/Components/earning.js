@@ -1,12 +1,14 @@
 "use client";
+import LoadingMiddleware from "@/app/middleware/loading-middleware";
 import { FaMoneyBillWave, FaDollarSign, FaClock } from "react-icons/fa";
 
-export default function Earnings({ earnings, earningsStats }) {
+export default function Earnings({ earnings, earningsStats, loading }) {
   return (
     <div className="bg-gray-800 rounded-lg p-6 text-white">
       <h1 className="text-2xl font-bold mb-6">Your Earnings</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        { loading ? (<LoadingMiddleware /> ) : (
         <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-lg font-medium">Net Profit</h3>
@@ -17,7 +19,9 @@ export default function Earnings({ earnings, earningsStats }) {
           </p>
           <p className="text-sm text-gray-400 mt-2">Ready to withdraw</p>
         </div>
+        )}
 
+{ loading ? (<LoadingMiddleware /> ) : (
         <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-lg font-medium">Platform Fee</h3>
@@ -28,7 +32,9 @@ export default function Earnings({ earnings, earningsStats }) {
           </p>
           <p className="text-sm text-gray-400 mt-2">Comission fee</p>
         </div>
+        )}
 
+{ loading ? (<LoadingMiddleware /> ) : (
         <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-lg font-medium">Gross Profit</h3>
@@ -39,6 +45,7 @@ export default function Earnings({ earnings, earningsStats }) {
           </p>
           <p className="text-sm text-gray-400 mt-2">All payments</p>
         </div>
+)}
       </div>
 
       <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
@@ -85,8 +92,8 @@ export default function Earnings({ earnings, earningsStats }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700">
-              {earnings.map((e) => (
-                <tr>
+              {earnings.map((e, idx) => (
+                <tr key={idx}>
                   <td className="px-4 py-3 whitespace-nowrap text-sm">
                     {e.payment.id || e.payment._id || NAN}
                   </td>

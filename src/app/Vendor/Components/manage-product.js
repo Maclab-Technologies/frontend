@@ -1,26 +1,29 @@
-import { FaEdit, FaTrash, FaTimes } from 'react-icons/fa';
+import LoadingMiddleware from "@/app/middleware/loading-middleware";
+import { FaEdit, FaTrash, FaTimes } from "react-icons/fa";
 
-export default function ManageProducts({ 
-  products, 
-  handleEditProduct, 
-  handleDeleteClick, 
-  showProductForm, 
-  productToEdit, 
-  handleCancelEdit, 
-  ProductForm, 
-  handleUpdateProduct, 
+export default function ManageProducts({
+  products,
+  handleEditProduct,
+  handleDeleteClick,
+  showProductForm,
+  productToEdit,
+  handleCancelEdit,
+  ProductForm,
+  handleUpdateProduct,
   isSubmitting,
   showDeleteModal,
   DeleteConfirmationModal,
   productToDelete,
   handleConfirmDelete,
   handleCancelDelete,
-  isDeleting 
+  isDeleting,
+  loading,
 }) {
   return (
     <div className="bg-gray-800 rounded-lg p-6 text-white relative">
       <h1 className="text-2xl font-bold mb-6">Manage Your Products</h1>
 
+      {loading && <LoadingMiddleware />}
       {products.length === 0 ? (
         <div className="text-center py-10">
           <p className="text-gray-400">

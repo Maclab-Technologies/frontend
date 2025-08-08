@@ -1,7 +1,8 @@
 "use client"
+import LoadingMiddleware from '@/app/middleware/loading-middleware';
 import { FaFileDownload, FaCheck } from 'react-icons/fa';
 
-export default function Orders({ orders, handleDesignLinkSubmit }) {
+export default function Orders({ orders, handleDesignLinkSubmit, loading }) {
   return (
     <div className="bg-gray-800 rounded-lg p-6 text-white">
       <div className="flex justify-between items-center mb-6">
@@ -58,6 +59,7 @@ export default function Orders({ orders, handleDesignLinkSubmit }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-700">
+            {loading && <LoadingMiddleware /> }
             {orders ? orders.map((order) => (
               <tr key={order.id}>
                 <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-white">

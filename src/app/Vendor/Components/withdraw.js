@@ -1,9 +1,10 @@
 "use client";
 import { batchRequests, post } from "@/app/hooks/fetch-hook";
+import LoadingMiddleware from "@/app/middleware/loading-middleware";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
-export default function Withdraw({ vendorData }) {
+export default function Withdraw({ vendorData, summary }) {
   const [formData, setFormData] = useState({
     vendorId: vendorData?.id || "",
     amount: "",
@@ -12,6 +13,7 @@ export default function Withdraw({ vendorData }) {
     accountName: "",
     saveDetails: false,
   });
+  const [history, setHistory] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -35,23 +37,38 @@ export default function Withdraw({ vendorData }) {
               config: { showToast: false },
             },
           },
+          {
+            url: "/withdrawals/history",
+            options: {
+              method: "GET",
+              token,
+              config: { showToast: false },
+            },
+          },
         ]);
 
-        if (res.success && res.data && res.data[0]) {
-          const bankDetails = res.data[0];
-          if (bankDetails.success && bankDetails.data) {
-            // Merge existing form data with fetched bank details
-            setFormData(prevData => ({
-              ...prevData,
-              accountNumber: bankDetails.data.accountNumber || "",
-              bankName: bankDetails.data.bankName || "",
-              accountName: bankDetails.data.accountName || "",
-            }));
-          }
+        const [details, historyData] = res;
+
+        if (details.success) {
+          const bank = details.data?.data;
+          setFormData((prevData) => ({
+            ...prevData,
+            accountNumber: bank.accountNumber || "",
+            bankName: bank.bankName || "",
+            accountName: bank.accountName || "",
+          }));
+        } else {
+          toast.warning("Failed to fetch bank details");
+        }
+
+        if (historyData.success) {
+          setHistory(historyData.data?.data);
+        } else {
+          toast.warning("Failed to fetch withdraw history");
         }
       } catch (error) {
         console.error("Error fetching bank details:", error);
-        toast.warning(error.message ||  "Something went wrong while retrieving bank details");
+        toast.warning(error.message || "Something went wrong, try again later");
       } finally {
         setLoading(false);
       }
@@ -62,19 +79,19 @@ export default function Withdraw({ vendorData }) {
 
   // Handle input changes properly
   const handleInputChange = (field, value) => {
-    setFormData(prevData => ({
+    setFormData((prevData) => ({
       ...prevData,
-      [field]: value
+      [field]: value,
     }));
   };
 
   const handleSubmitWithdrawal = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-    
+
     try {
       const token = localStorage.getItem("vendor_token");
-      
+
       if (
         !formData.bankName ||
         !formData.accountNumber ||
@@ -99,9 +116,9 @@ export default function Withdraw({ vendorData }) {
       if (res.success) {
         toast.success("Withdrawal request submitted successfully");
         // Reset only the amount field, keep bank details
-        setFormData(prevData => ({
+        setFormData((prevData) => ({
           ...prevData,
-          amount: ""
+          amount: "",
         }));
       } else {
         toast.error(res.message || "Failed to submit withdrawal request");
@@ -114,28 +131,21 @@ export default function Withdraw({ vendorData }) {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="bg-gray-800 rounded-lg p-6 text-white">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-700 rounded w-1/4 mb-6"></div>
-          <div className="h-32 bg-gray-700 rounded mb-8"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-4">
-              <div className="h-4 bg-gray-700 rounded w-1/3"></div>
-              <div className="h-10 bg-gray-700 rounded"></div>
-              <div className="h-10 bg-gray-700 rounded"></div>
-              <div className="h-10 bg-gray-700 rounded"></div>
-            </div>
-            <div className="space-y-4">
-              <div className="h-4 bg-gray-700 rounded w-1/3"></div>
-              <div className="h-10 bg-gray-700 rounded"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Helper function to format date
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      return "N/A";
+    }
+  };
 
   return (
     <>
@@ -147,7 +157,7 @@ export default function Withdraw({ vendorData }) {
             <div>
               <span className="text-sm text-gray-400">Available Balance</span>
               <h2 className="text-3xl font-bold text-green-400">
-                ₦{0} {/* Replace with actual earnings */}
+                ₦{summary.availableBalance || 0}
               </h2>
             </div>
 
@@ -162,14 +172,14 @@ export default function Withdraw({ vendorData }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <h2 className="text-xl font-semibold mb-4">Bank Details</h2>
-              
+
               {/* Hidden vendor ID field */}
               <input
                 type="hidden"
                 value={formData.vendorId}
-                onChange={(e) => handleInputChange('vendorId', e.target.value)}
+                onChange={(e) => handleInputChange("vendorId", e.target.value)}
               />
-              
+
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-300 mb-1">
                   Bank Name
@@ -177,7 +187,9 @@ export default function Withdraw({ vendorData }) {
                 <input
                   type="text"
                   value={formData.bankName}
-                  onChange={(e) => handleInputChange('bankName', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("bankName", e.target.value)
+                  }
                   className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   placeholder="Enter your bank name"
                   required
@@ -191,7 +203,9 @@ export default function Withdraw({ vendorData }) {
                 <input
                   type="text"
                   value={formData.accountNumber}
-                  onChange={(e) => handleInputChange('accountNumber', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("accountNumber", e.target.value)
+                  }
                   className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   placeholder="Enter your account number"
                   required
@@ -205,26 +219,30 @@ export default function Withdraw({ vendorData }) {
                 <input
                   type="text"
                   value={formData.accountName}
-                  onChange={(e) => handleInputChange('accountName', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("accountName", e.target.value)
+                  }
                   className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   placeholder="Enter account holder name"
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="flex items-center text-sm font-medium text-gray-300 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formData.saveDetails}
-                    onChange={(e) => handleInputChange('saveDetails', e.target.checked)}
+                    onChange={(e) =>
+                      handleInputChange("saveDetails", e.target.checked)
+                    }
                     className="mr-2 h-4 w-4 text-yellow-500 bg-gray-700 border-gray-600 rounded focus:ring-yellow-500 focus:ring-2"
                   />
                   Save Bank Details
                 </label>
               </div>
             </div>
-            
+
             <div>
               <h2 className="text-xl font-semibold mb-4">Request Withdrawal</h2>
               <div className="mb-4">
@@ -234,14 +252,14 @@ export default function Withdraw({ vendorData }) {
                 <input
                   type="number"
                   value={formData.amount}
-                  onChange={(e) => handleInputChange('amount', e.target.value)}
+                  onChange={(e) => handleInputChange("amount", e.target.value)}
                   min="5000"
                   className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   placeholder="Enter amount to withdraw"
                   required
                 />
                 <p className="text-xs text-gray-400 mt-1">
-                  Minimum withdrawal: ₦5,000 | Available: ₦0
+                  Minimum withdrawal: ₦5,000 | Available: ₦{summary?.availableBalance || 0}
                 </p>
               </div>
 
@@ -274,6 +292,9 @@ export default function Withdraw({ vendorData }) {
               <thead>
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    Withdrawal ID
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                     Date
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
@@ -285,11 +306,46 @@ export default function Withdraw({ vendorData }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-700">
-                <tr>
-                  <td className="px-4 py-3 text-center text-gray-400" colSpan="3">
-                    No withdrawal history found
-                  </td>
-                </tr>
+                {loading ? (
+                  <tr>
+                    <td colSpan="4" className="px-4 py-3 text-center">
+                      <LoadingMiddleware />
+                    </td>
+                  </tr>
+                ) : history.length !== 0 ? (
+                  history.map((h, idx) => (
+                    <tr key={idx}>
+                      <td className="px-4 py-3 text-center text-gray-400">
+                        {h._id || h.id || "N/A"}
+                      </td>
+                      <td className="px-4 py-3 text-center text-gray-400">
+                        {formatDate(h.requestedAt)}
+                      </td>
+                      <td className="px-4 py-3 text-center text-gray-400">
+                        ₦{h.amount || "N/A"}
+                      </td>
+                      <td className="px-4 py-3 text-center text-gray-400">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          h.status === 'completed' ? 'bg-green-100 text-green-800' :
+                          h.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          h.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {h.status || "N/A"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      className="px-4 py-3 text-center text-gray-400"
+                      colSpan="4"
+                    >
+                      No withdrawal history found
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

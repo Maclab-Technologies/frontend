@@ -116,24 +116,7 @@ export default function VendorLogin() {
   
     } catch (error) {
       console.error("Login error:", error);
-  
-      // Friendly error messages
-      const backendMsg = error?.message?.toLowerCase();
-      let errorMessage = "Login failed. Please try again.";
-  
-      if (backendMsg?.includes("not found")) {
-        errorMessage = "No account found with this email. Please register first.";
-      } else if (backendMsg?.includes("invalid") || backendMsg?.includes("email")) {
-        errorMessage = "Please enter a valid email address.";
-      } else if (backendMsg?.includes("password")) {
-        errorMessage = "Incorrect password. Please try again.";
-      } else if (backendMsg?.includes("too many")) {
-        errorMessage = "Too many failed attempts. Please try again later.";
-      } else if (backendMsg?.includes("network")) {
-        errorMessage = "Network error. Check your internet connection.";
-      }
-  
-      toast.error(errorMessage);
+      toast.error(error.message || "Faile to login, try again");
     } finally {
       setLoading(false);
     }
