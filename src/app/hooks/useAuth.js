@@ -44,7 +44,7 @@ export function AuthProvider({ children }) {
     } else if (vendor) {
       router.push("/Vendor/Login");
     } else {
-      router.push("/Admin/auth/Login");
+      router.push("/Admin/Auth/Login");
     }
     localStorage.removeItem("userToken");
     localStorage.removeItem("userData");

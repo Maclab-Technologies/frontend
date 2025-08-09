@@ -10,7 +10,7 @@ export default function AdminLayout({ children }) {
 
   useEffect(() => {
     if (!isLoggedIn || role !== 'admin') {
-      router.push('/Admin/auth/login');
+      router.push('/Admin/Auth');
     }
   }, [isLoggedIn, role]);
 

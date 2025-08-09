@@ -57,7 +57,7 @@ export function AdminProvider({ children }) {
       localStorage.removeItem('adminToken');
       localStorage.removeItem('admin_data');
       toast.success("Logged out successfully");
-      router.push("/Admin/auth/login");
+      router.push("/Admin/Auth");
     } catch (error) {
       toast.error("Error signing out");
       console.error("Logout error:", error);

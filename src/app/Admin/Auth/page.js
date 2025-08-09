@@ -1,34 +1,51 @@
-'use client';
-
+"use client";
+import React from 'react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { post } from '@/app/hooks/fetch-hook';
 
-export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+const LoginPage = () => {
+  const [adminID, setAdminID] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
     
     try {
       // Basic client-side validation
-      if (!email || !password) {
+      if (!adminID || !adminPassword) {
         throw new Error('Please fill in all fields');
       }
 
-      // Validate credentials
-      if (email === 'admin@59minutes.com' && password === 'admin123') {
-        localStorage.setItem('adminToken', 'dummy-token-123');
+      const res = await post('/admin/login', {
+        adminID,
+        adminPassword
+      });
+
+      if (!res.success) {
+        throw new Error(res.error || 'Login failed');
+      }
+
+      const response = res.data;
+      
+      if (response?.token) {
+        localStorage.setItem('adminToken', response.token);
+        localStorage.setItem('adminData', JSON.stringify(response.data));
         toast.success('Login successful');
-        router.push('/Admin/dashboard');
+        router.push('/Admin/Dashboard');
       } else {
-        throw new Error('Invalid credentials');
+        throw new Error('Invalid response from server');
       }
     } catch (error) {
-      toast.error(error.message);
+      console.error('Login error:', error);
+      toast.error(error.message || 'An error occurred during login');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -42,16 +59,16 @@ export default function LoginPage() {
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-              Email Address
+            <label htmlFor="adminID" className="block text-sm font-medium text-gray-300 mb-2">
+              Admin ID:
             </label>
             <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              id="adminID"
+              type="text"
+              value={adminID}
+              onChange={(e) => setAdminID(e.target.value)}
               className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-              placeholder="admin@59minutes.com"
+              placeholder="Enter your admin ID"
               required
             />
           </div>
@@ -63,8 +80,8 @@ export default function LoginPage() {
             <input
               id="password"
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={adminPassword}
+              onChange={(e) => setAdminPassword(e.target.value)}
               className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
               placeholder="••••••••"
               required
@@ -73,9 +90,12 @@ export default function LoginPage() {
           
           <button
             type="submit"
-            className="w-full py-3 px-4 bg-yellow-500 hover:bg-yellow-600 rounded-lg font-bold text-gray-900 transition-colors duration-200"
+            disabled={isLoading}
+            className={`w-full py-3 px-4 rounded-lg font-bold text-gray-900 transition-colors duration-200 ${
+              isLoading ? 'bg-yellow-600 cursor-not-allowed' : 'bg-yellow-500 hover:bg-yellow-600'
+            }`}
           >
-            Sign In
+            {isLoading ? 'Signing In...' : 'Sign In'}
           </button>
         </form>
 
@@ -86,3 +106,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+export default LoginPage;
