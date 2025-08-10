@@ -1,104 +1,66 @@
-'use client';
+import { FiTruck, FiMail, FiPhone, FiCheckCircle, FiXCircle, FiEdit2 } from 'react-icons/fi'
 
-import { FaUser, FaCheck, FaEdit, FaTrash } from 'react-icons/fa';
-import { useState } from 'react';
+export default function VendorsTable() {
+  // Sample vendors data
+  const vendors = [
+    { id: 'VDR-2001', name: 'PrintHub Lagos', email: 'contact@printhublagos.com', phone: '08011223344', location: 'Lagos', joined: '2023-01-15', status: 'Approved', balance: 1250000 },
+    { id: 'VDR-2002', name: 'SignMaster', email: 'info@signmaster.com', phone: '08022334455', location: 'Abuja', joined: '2023-02-20', status: 'Approved', balance: 850000 },
+    { id: 'VDR-2003', name: 'QuickPrint', email: 'support@quickprint.com', phone: '08033445566', location: 'Port Harcourt', joined: '2023-03-05', status: 'Pending', balance: 0 },
+    { id: 'VDR-2004', name: 'StickerPro', email: 'hello@stickerpro.com', phone: '08044556677', location: 'Lagos', joined: '2023-04-12', status: 'Suspended', balance: 320000 },
+    { id: 'VDR-2005', name: 'BannerKing', email: 'sales@bannerking.com', phone: '08055667788', location: 'Ibadan', joined: '2023-05-18', status: 'Approved', balance: 2100000 }
+  ]
 
-export default function VendorsTable({ vendors }) {
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
-  const totalPages = Math.ceil(vendors.length / itemsPerPage);
-  const currentVendors = vendors.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const getStatusBadge = (status) => {
+    const baseClasses = "px-2 py-1 text-xs rounded-full inline-flex items-center"
+    switch(status) {
+      case 'Approved':
+        return <span className={`${baseClasses} bg-green-100 text-green-800`}><FiCheckCircle className="mr-1" /> {status}</span>
+      case 'Pending':
+        return <span className={`${baseClasses} bg-yellow-100 text-yellow-800`}>⏳ {status}</span>
+      case 'Suspended':
+        return <span className={`${baseClasses} bg-red-100 text-red-800`}><FiXCircle className="mr-1" /> {status}</span>
+      default:
+        return <span className={`${baseClasses} bg-gray-100 text-gray-800`}>{status}</span>
+    }
+  }
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead>
-          <tr className="text-left border-b border-gray-700">
-            <th className="pb-3 pr-6">Name</th>
-            <th className="pb-3 pr-6">Email</th>
-            <th className="pb-3 pr-6">Status</th>
-            <th className="pb-3 pr-6">Account Number</th>
-            <th className="pb-3 pr-6">Assigned Orders</th>
-            <th className="pb-3">Actions</th>
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor ID</th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Balance</th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-700">
-          {currentVendors.map((vendor) => (
-            <tr key={vendor.id} className="hover:bg-gray-700">
-              <td className="py-4 pr-6">{vendor.name}</td>
-              <td className="py-4 pr-6">{vendor.email}</td>
-              <td className="py-4 pr-6">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  vendor.status === "Active" 
-                    ? "bg-green-900 text-green-200" 
-                    : "bg-yellow-900 text-yellow-200"
-                }`}>
-                  {vendor.status}
-                </span>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {vendors.map((vendor) => (
+            <tr key={vendor.id}>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-yellow-600">{vendor.id}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 flex items-center">
+                <FiTruck className="mr-2 text-gray-500" /> {vendor.name}
               </td>
-              <td className="py-4 pr-6">{vendor.accountNumber}</td>
-              <td className="py-4 pr-6">{vendor.assignedOrders}</td>
-              <td className="py-4 flex items-center space-x-2">
-                <button className="p-1 text-blue-400 hover:text-blue-300 transition" title="View Details">
-                  <FaUser />
-                </button>
-                {vendor.status === "Pending Approval" ? (
-                  <button className="p-1 text-green-400 hover:text-green-300 transition" title="Approve">
-                    <FaCheck />
-                  </button>
-                ) : (
-                  <button className="p-1 text-yellow-400 hover:text-yellow-300 transition" title="Edit">
-                    <FaEdit />
-                  </button>
-                )}
-                <button className="p-1 text-red-400 hover:text-red-300 transition" title="Delete">
-                  <FaTrash />
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <div className="flex items-center"><FiMail className="mr-1" /> {vendor.email}</div>
+                <div className="flex items-center mt-1"><FiPhone className="mr-1" /> {vendor.phone}</div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{vendor.location}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm">{getStatusBadge(vendor.status)}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₦{vendor.balance.toLocaleString()}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <button className="text-yellow-600 hover:text-yellow-900">
+                  <FiEdit2 className="inline mr-1" /> Manage
                 </button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-
-      {/* Pagination */}
-      <div className="flex justify-between items-center mt-6">
-        <p className="text-gray-400 text-sm">
-          Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-          {Math.min(currentPage * itemsPerPage, vendors.length)} of {vendors.length} entries
-        </p>
-        <div className="flex space-x-1">
-          <button
-            onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
-            disabled={currentPage === 1}
-            className="px-3 py-1 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 transition disabled:opacity-50"
-          >
-            Previous
-          </button>
-          {Array.from({ length: totalPages }).map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrentPage(i + 1)}
-              className={`px-3 py-1 rounded-md ${
-                currentPage === i + 1
-                  ? 'bg-yellow-400 text-black'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-              }`}
-            >
-              {i + 1}
-            </button>
-          ))}
-          <button
-            onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
-            disabled={currentPage >= totalPages}
-            className="px-3 py-1 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 transition disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
-      </div>
     </div>
-  );
+  )
 }

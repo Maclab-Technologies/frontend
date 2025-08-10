@@ -1,50 +1,31 @@
-'use client';
+import { FiPackage, FiUsers, FiTruck, FiDollarSign } from 'react-icons/fi'
 
-import { FaUsers, FaBoxOpen, FaUserTie, FaMoneyCheckAlt } from 'react-icons/fa';
-
-export default function StatsCards({ stats }) {
-  const cards = [
-    { 
-      title: "Total Users", 
-      value: stats.totalUsers, 
-      icon: <FaUsers className="text-yellow-400" />,
-      bg: "bg-black bg-opacity-30"
-    },
-    { 
-      title: "Total Orders", 
-      value: stats.totalOrders, 
-      icon: <FaBoxOpen className="text-yellow-400" />,
-      bg: "bg-black bg-opacity-30"
-    },
-    { 
-      title: "Total Vendors", 
-      value: stats.totalVendors, 
-      icon: <FaUserTie className="text-yellow-400" />,
-      bg: "bg-black bg-opacity-30"
-    },
-    { 
-      title: "Total Earnings", 
-      value: stats.totalEarnings, 
-      icon: <FaMoneyCheckAlt className="text-yellow-400" />,
-      bg: "bg-black bg-opacity-30"
-    }
-  ];
+export default function StatsCards() {
+  const stats = [
+    { title: 'Total Orders', value: '1,248', change: '+12%', icon: <FiPackage className="w-5 h-5" /> },
+    { title: 'Active Clients', value: '893', change: '+5%', icon: <FiUsers className="w-5 h-5" /> },
+    { title: 'Vendors', value: '156', change: '+3%', icon: <FiTruck className="w-5 h-5" /> },
+    { title: 'Revenue', value: '₦48,256,000', change: '+18%', icon: <FiDollarSign className="w-5 h-5" /> }
+  ]
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      {cards.map((card, index) => (
-        <div key={index} className={`${card.bg} rounded-lg p-4 border border-gray-700`}>
-          <div className="flex items-center">
-            <div className="bg-yellow-400 bg-opacity-20 p-3 rounded-full mr-3">
-              {card.icon}
-            </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {stats.map((stat, index) => (
+        <div key={index} className="bg-white p-6 rounded-lg shadow">
+          <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-300">{card.title}</p>
-              <p className="text-xl font-bold text-white">{card.value}</p>
+              <p className="text-sm font-medium text-gray-500">{stat.title}</p>
+              <p className="text-2xl font-bold mt-1">{stat.value}</p>
+              <p className={`text-sm mt-1 ${stat.change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
+                {stat.change} from last month
+              </p>
+            </div>
+            <div className="p-3 rounded-full bg-yellow-50 text-yellow-600">
+              {stat.icon}
             </div>
           </div>
         </div>
       ))}
     </div>
-  );
+  )
 }

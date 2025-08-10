@@ -1,23 +1,39 @@
-'use client';
+import { FiCheckCircle, FiXCircle, FiClock, FiAlertCircle } from 'react-icons/fi'
 
 export default function StatusBadge({ status }) {
-  const statusStyles = {
-    Completed: 'bg-green-900 text-green-200',
-    Approved: 'bg-green-900 text-green-200',
-    Paid: 'bg-green-900 text-green-200',
-    Active: 'bg-green-900 text-green-200',
-    Pending: 'bg-yellow-900 text-yellow-200',
-    'Awaiting Approval': 'bg-yellow-900 text-yellow-200',
-    Assigned: 'bg-blue-900 text-blue-200',
-    Revision: 'bg-red-900 text-red-200',
-    default: 'bg-gray-700 text-gray-300'
-  };
+  const statusConfig = {
+    active: {
+      icon: <FiCheckCircle className="mr-1" />,
+      bg: 'bg-green-100',
+      text: 'text-green-800'
+    },
+    pending: {
+      icon: <FiClock className="mr-1" />,
+      bg: 'bg-yellow-100',
+      text: 'text-yellow-800'
+    },
+    suspended: {
+      icon: <FiXCircle className="mr-1" />,
+      bg: 'bg-red-100',
+      text: 'text-red-800'
+    },
+    processing: {
+      icon: <FiAlertCircle className="mr-1" />,
+      bg: 'bg-blue-100',
+      text: 'text-blue-800'
+    },
+    default: {
+      icon: null,
+      bg: 'bg-gray-100',
+      text: 'text-gray-800'
+    }
+  }
+
+  const config = statusConfig[status.toLowerCase()] || statusConfig.default
 
   return (
-    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-      statusStyles[status] || statusStyles.default
-    }`}>
-      {status}
+    <span className={`px-2 py-1 text-xs rounded-full inline-flex items-center ${config.bg} ${config.text}`}>
+      {config.icon} {status}
     </span>
-  );
+  )
 }

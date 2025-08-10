@@ -1,110 +1,84 @@
-"use client";
-import React from 'react';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { post } from '@/app/hooks/fetch-hook';
+'use client'
 
-const LoginPage = () => {
-  const [adminID, setAdminID] = useState('');
-  const [adminPassword, setAdminPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    try {
-      // Basic client-side validation
-      if (!adminID || !adminPassword) {
-        throw new Error('Please fill in all fields');
-      }
+export default function LoginPage() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const router = useRouter()
 
-      const res = await post('/admin/login', {
-        adminID,
-        adminPassword
-      });
+  // Hardcoded credentials
+  const ADMIN_EMAIL = 'admin@59minutes.com'
+  const ADMIN_PASSWORD = '59Minutes@2024'
 
-      if (!res.success) {
-        throw new Error(res.error || 'Login failed');
-      }
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    setError('')
 
-      const response = res.data;
-      
-      if (response?.token) {
-        localStorage.setItem('adminToken', response.token);
-        localStorage.setItem('adminData', JSON.stringify(response.data));
-        toast.success('Login successful');
-        router.push('/Admin/Dashboard');
-      } else {
-        throw new Error('Invalid response from server');
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-      toast.error(error.message || 'An error occurred during login');
-    } finally {
-      setIsLoading(false);
+    if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+      // In a real app, you would set auth token or session here
+      router.push('/Admin/dashboard')
+    } else {
+      setError('Invalid credentials. Please try again.')
     }
-  };
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 p-4">
-      <div className="w-full max-w-md bg-gray-800 rounded-lg shadow-lg p-8 border border-gray-700">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-yellow-400 mb-2">59Minutes Admin</h1>
-          <p className="text-gray-400">Enter your credentials to continue</p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <h1 className="text-2xl font-bold text-center mb-6 text-yellow-600">
+          59Minutes Prints Admin
+        </h1>
         
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="p-2 bg-red-100 text-red-700 text-sm rounded">
+              {error}
+            </div>
+          )}
+          
           <div>
-            <label htmlFor="adminID" className="block text-sm font-medium text-gray-300 mb-2">
-              Admin ID:
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              Email
             </label>
             <input
-              id="adminID"
-              type="text"
-              value={adminID}
-              onChange={(e) => setAdminID(e.target.value)}
-              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-              placeholder="Enter your admin ID"
+              type="email"
+              id="email"
+              value={email}
+              placeholder='Enter your email'
+              onChange={(e) => setEmail(e.target.value)}
+              className="text-black mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
               required
             />
           </div>
           
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
               Password
             </label>
             <input
-              id="password"
               type="password"
-              value={adminPassword}
-              onChange={(e) => setAdminPassword(e.target.value)}
-              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-              placeholder="••••••••"
+              id="password"
+              placeholder='Enter your password'
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
               required
             />
           </div>
           
-          <button
-            type="submit"
-            disabled={isLoading}
-            className={`w-full py-3 px-4 rounded-lg font-bold text-gray-900 transition-colors duration-200 ${
-              isLoading ? 'bg-yellow-600 cursor-not-allowed' : 'bg-yellow-500 hover:bg-yellow-600'
-            }`}
-          >
-            {isLoading ? 'Signing In...' : 'Sign In'}
-          </button>
+          <div>
+            <button
+              type="submit"
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+            >
+              Sign in
+            </button>
+          </div>
         </form>
-
-        <div className="mt-6 text-center text-sm text-gray-400">
-          <p>Having trouble? Contact support</p>
-        </div>
       </div>
     </div>
-  );
+  )
 }
-
-export default LoginPage;

@@ -1,30 +1,67 @@
-'use client';
-
-import { FaBoxOpen, FaClock, FaCheck, FaSearch } from 'react-icons/fa';
+import { FiSearch, FiFilter, FiCalendar } from 'react-icons/fi'
 
 export default function OrderFilters() {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-      <div className="flex items-center space-x-2">
-        <button className="bg-yellow-400 text-black px-4 py-2 rounded-lg font-medium flex items-center">
-          <FaBoxOpen className="mr-2" /> All Orders
-        </button>
-        <button className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg font-medium flex items-center transition">
-          <FaClock className="mr-2" /> Pending
-        </button>
-        <button className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg font-medium flex items-center transition">
-          <FaCheck className="mr-2" /> Completed
-        </button>
-      </div>
+    <div className="bg-white p-4 rounded-lg shadow mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Search Input */}
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <FiSearch className="text-gray-400" />
+          </div>
+          <input
+            type="text"
+            placeholder="Search orders..."
+            className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm"
+          />
+        </div>
 
-      <div className="relative">
-        <input
-          type="text"
-          placeholder="Search orders..."
-          className="bg-gray-700 text-white px-4 py-2 pl-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
-        />
-        <FaSearch className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+        {/* Status Filter */}
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <FiFilter className="text-gray-400" />
+          </div>
+          <select
+            className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm"
+            defaultValue=""
+          >
+            <option value="">All Statuses</option>
+            <option value="processing">Processing</option>
+            <option value="design_review">Design Review</option>
+            <option value="shipped">Shipped</option>
+            <option value="delivered">Delivered</option>
+          </select>
+        </div>
+
+        {/* Date Filter */}
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <FiCalendar className="text-gray-400" />
+          </div>
+          <select
+            className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm"
+            defaultValue=""
+          >
+            <option value="">All Dates</option>
+            <option value="today">Today</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+            <option value="custom">Custom Range</option>
+          </select>
+        </div>
+
+        {/* Vendor Filter */}
+        <select
+          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm"
+          defaultValue=""
+        >
+          <option value="">All Vendors</option>
+          <option value="printhub">PrintHub Lagos</option>
+          <option value="signmaster">SignMaster</option>
+          <option value="quickprint">QuickPrint</option>
+          <option value="stickerpro">StickerPro</option>
+        </select>
       </div>
     </div>
-  );
+  )
 }

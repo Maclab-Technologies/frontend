@@ -1,15 +1,16 @@
-'use client';
-
-import { useAdmin } from '../context/AdminContext';
-import VendorsTable from '../components/Vendors/VendorsTable';
+import VendorsTable from '../components/Vendors/VendorsTable'
 
 export default function VendorsPage() {
-  const { vendors } = useAdmin();
-
   return (
-    <div className="bg-gray-800 rounded-lg p-6 text-white">
-      <h1 className="text-2xl font-bold mb-6">Vendor Management</h1>
-      <VendorsTable vendors={vendors} />
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Vendors Management</h1>
+      </div>
+      
+      {/* Vendors Table */}
+      <div className="mt-6 bg-white rounded-lg shadow overflow-hidden">
+        <VendorsTable />
+      </div>
     </div>
-  );
+  )
 }

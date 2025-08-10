@@ -1,22 +1,21 @@
-'use client';
-import { useEffect } from 'react';
-import { AdminProvider } from './context/AdminContext';
-import { useAuth } from '../hooks/useAuth';
-import { useRouter } from 'next/navigation';
+import { Inter } from 'next/font/google'
+// import './globals.css'
+
+const inter = Inter({ subsets: ['latin'] })
+
+export const metadata = {
+  title: '59Minutes Prints - Admin Dashboard',
+  description: 'Admin dashboard for 59Minutes Prints platform',
+}
 
 export default function AdminLayout({ children }) {
-  const { isLoggedIn, role } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!isLoggedIn || role !== 'admin') {
-      router.push('/Admin/Auth');
-    }
-  }, [isLoggedIn, role]);
-
-  if (!isLoggedIn || role !== 'admin') {
-    return null; // Silent redirect
-  }
-
-  return <AdminProvider>{children}</AdminProvider>;
+  return (
+    <html lang="en">
+      <body className={`${inter.className} bg-gray-50`}>
+        <div className="min-h-screen">
+          {children}
+        </div>
+      </body>
+    </html>
+  )
 }

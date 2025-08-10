@@ -1,17 +1,27 @@
-'use client';
+export default function StatsCard({ title, value, change, icon, color = 'yellow' }) {
+  const colorClasses = {
+    yellow: { bg: 'bg-yellow-50', text: 'text-yellow-600' },
+    green: { bg: 'bg-green-50', text: 'text-green-600' },
+    blue: { bg: 'bg-blue-50', text: 'text-blue-600' },
+    red: { bg: 'bg-red-50', text: 'text-red-600' }
+  }
 
-export default function StatsCard({ title, value, icon, bgColor = 'bg-black bg-opacity-30', textColor = 'text-white' }) {
   return (
-    <div className={`${bgColor} rounded-lg p-4 border border-gray-700`}>
-      <div className="flex items-center">
-        <div className="bg-yellow-400 bg-opacity-20 p-3 rounded-full mr-3">
-          {icon}
-        </div>
+    <div className="bg-white p-6 rounded-lg shadow">
+      <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-gray-300">{title}</p>
-          <p className={`text-xl font-bold ${textColor}`}>{value}</p>
+          <p className="text-sm font-medium text-gray-500">{title}</p>
+          <p className="text-2xl font-bold mt-1">{value}</p>
+          {change && (
+            <p className={`text-sm mt-1 ${change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
+              {change} from last month
+            </p>
+          )}
+        </div>
+        <div className={`p-3 rounded-full ${colorClasses[color].bg} ${colorClasses[color].text}`}>
+          {icon}
         </div>
       </div>
     </div>
-  );
+  )
 }

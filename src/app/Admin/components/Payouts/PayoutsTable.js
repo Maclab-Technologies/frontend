@@ -1,84 +1,70 @@
-'use client';
+import { FiDollarSign, FiUser, FiCalendar, FiCheckCircle, FiClock } from 'react-icons/fi'
 
-import { FaUser, FaCheck, FaTimes } from 'react-icons/fa';
-import { toast } from 'react-toastify';
+export default function PayoutsTable() {
+  // Sample payouts data
+  const payouts = [
+    { id: 'PYT-4001', vendor: 'PrintHub Lagos', amount: 1250000, date: '2023-06-15', status: 'Completed', method: 'Bank Transfer' },
+    { id: 'PYT-4002', vendor: 'SignMaster', amount: 850000, date: '2023-06-14', status: 'Completed', method: 'Bank Transfer' },
+    { id: 'PYT-4003', vendor: 'QuickPrint', amount: 320000, date: '2023-06-12', status: 'Pending', method: 'Paystack' },
+    { id: 'PYT-4004', vendor: 'StickerPro', amount: 450000, date: '2023-06-10', status: 'Failed', method: 'Bank Transfer' },
+    { id: 'PYT-4005', vendor: 'BannerKing', amount: 2100000, date: '2023-06-08', status: 'Processing', method: 'Flutterwave' }
+  ]
 
-export default function PayoutsTable({ payouts, setPayouts }) {
-  const handleMarkAsPaid = (payoutId) => {
-    setPayouts(payouts.map(p => 
-      p.id === payoutId ? { ...p, status: "Paid" } : p
-    ));
-    toast.success(`Payout ${payoutId} marked as paid`);
-  };
+  const getStatusBadge = (status) => {
+    const baseClasses = "px-2 py-1 text-xs rounded-full inline-flex items-center"
+    switch(status) {
+      case 'Completed':
+        return <span className={`${baseClasses} bg-green-100 text-green-800`}><FiCheckCircle className="mr-1" /> {status}</span>
+      case 'Pending':
+        return <span className={`${baseClasses} bg-yellow-100 text-yellow-800`}><FiClock className="mr-1" /> {status}</span>
+      case 'Processing':
+        return <span className={`${baseClasses} bg-blue-100 text-blue-800`}>⏳ {status}</span>
+      case 'Failed':
+        return <span className={`${baseClasses} bg-red-100 text-red-800`}>✖ {status}</span>
+      default:
+        return <span className={`${baseClasses} bg-gray-100 text-gray-800`}>{status}</span>
+    }
+  }
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead>
-          <tr className="text-left border-b border-gray-700">
-            <th className="pb-3 pr-6">Payout ID</th>
-            <th className="pb-3 pr-6">Vendor Name</th>
-            <th className="pb-3 pr-6">Order ID</th>
-            <th className="pb-3 pr-6">Amount (80%)</th>
-            <th className="pb-3 pr-6">Bank Details</th>
-            <th className="pb-3 pr-6">Status</th>
-            <th className="pb-3">Actions</th>
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payout ID</th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Method</th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-700">
-          {payouts.length > 0 ? (
-            payouts.map((payout) => (
-              <tr key={payout.id} className="hover:bg-gray-700">
-                <td className="py-4 pr-6">{payout.id}</td>
-                <td className="py-4 pr-6">{payout.vendorName}</td>
-                <td className="py-4 pr-6">{payout.orderId}</td>
-                <td className="py-4 pr-6 font-medium text-yellow-400">{payout.amount}</td>
-                <td className="py-4 pr-6 font-mono">{payout.bankDetails}</td>
-                <td className="py-4 pr-6">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    payout.status === "Pending" 
-                      ? "bg-yellow-900 text-yellow-200" 
-                      : "bg-green-900 text-green-200"
-                  }`}>
-                    {payout.status}
-                  </span>
-                </td>
-                <td className="py-4 flex items-center space-x-2">
-                  <button
-                    className="p-1 text-blue-400 hover:text-blue-300 transition"
-                    title="View Details"
-                  >
-                    <FaUser />
-                  </button>
-                  {payout.status === "Pending" && (
-                    <>
-                      <button
-                        onClick={() => handleMarkAsPaid(payout.id)}
-                        className="p-1 text-green-400 hover:text-green-300 transition"
-                        title="Mark as Paid"
-                      >
-                        <FaCheck />
-                      </button>
-                      <button
-                        className="p-1 text-red-400 hover:text-red-300 transition"
-                        title="Reject"
-                      >
-                        <FaTimes />
-                      </button>
-                    </>
-                  )}
-                </td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="7" className="py-8 text-center text-gray-400">
-                No payouts found
+        <tbody className="bg-white divide-y divide-gray-200">
+          {payouts.map((payout) => (
+            <tr key={payout.id}>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-yellow-600">{payout.id}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 flex items-center">
+                <FiUser className="mr-2 text-gray-500" /> {payout.vendor}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 flex items-center">
+                <FiDollarSign className="mr-1 text-gray-500" /> ₦{payout.amount.toLocaleString()}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 flex items-center">
+                <FiCalendar className="mr-1" /> {payout.date}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm">{getStatusBadge(payout.status)}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{payout.method}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                {payout.status === 'Pending' && (
+                  <button className="text-green-600 hover:text-green-900 mr-3">Approve</button>
+                )}
+                <button className="text-blue-600 hover:text-blue-900">Details</button>
               </td>
             </tr>
-          )}
+          ))}
         </tbody>
       </table>
     </div>
-  );
+  )
 }

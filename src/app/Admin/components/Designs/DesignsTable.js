@@ -1,64 +1,68 @@
-'use client';
+import { FiImage, FiUser, FiCalendar, FiCheck, FiX, FiEdit } from 'react-icons/fi'
 
-import { FaDownload, FaCheck, FaEdit, FaUserTie } from 'react-icons/fa';
+export default function DesignsTable() {
+  // Sample designs data
+  const designs = [
+    { id: 'DSN-3001', name: 'Business Card V1', customer: 'John Doe', uploaded: '2023-06-10', status: 'Approved', revisions: 0 },
+    { id: 'DSN-3002', name: 'Company Flyer', customer: 'Sarah Smith', uploaded: '2023-06-12', status: 'Pending', revisions: 1 },
+    { id: 'DSN-3003', name: 'Product Label', customer: 'Mike Johnson', uploaded: '2023-06-08', status: 'Revision', revisions: 2 },
+    { id: 'DSN-3004', name: 'Event Banner', customer: 'Emma Wilson', uploaded: '2023-06-15', status: 'Rejected', revisions: 1 },
+    { id: 'DSN-3005', name: 'Menu Design', customer: 'David Brown', uploaded: '2023-06-14', status: 'Approved', revisions: 0 }
+  ]
 
-export default function DesignsTable({ designs }) {
+  const getStatusBadge = (status) => {
+    const baseClasses = "px-2 py-1 text-xs rounded-full inline-flex items-center"
+    switch(status) {
+      case 'Approved':
+        return <span className={`${baseClasses} bg-green-100 text-green-800`}><FiCheck className="mr-1" /> {status}</span>
+      case 'Pending':
+        return <span className={`${baseClasses} bg-yellow-100 text-yellow-800`}>⏳ {status}</span>
+      case 'Revision':
+        return <span className={`${baseClasses} bg-blue-100 text-blue-800`}><FiEdit className="mr-1" /> {status}</span>
+      case 'Rejected':
+        return <span className={`${baseClasses} bg-red-100 text-red-800`}><FiX className="mr-1" /> {status}</span>
+      default:
+        return <span className={`${baseClasses} bg-gray-100 text-gray-800`}>{status}</span>
+    }
+  }
+
   return (
     <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead>
-          <tr className="text-left border-b border-gray-700">
-            <th className="pb-3 pr-6">Design ID</th>
-            <th className="pb-3 pr-6">Order ID</th>
-            <th className="pb-3 pr-6">Client</th>
-            <th className="pb-3 pr-6">Vendor</th>
-            <th className="pb-3 pr-6">Submitted Date</th>
-            <th className="pb-3 pr-6">Status</th>
-            <th className="pb-3">Actions</th>
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Design ID</th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Design</th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Uploaded</th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revisions</th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-700">
+        <tbody className="bg-white divide-y divide-gray-200">
           {designs.map((design) => (
-            <tr key={design.id} className="hover:bg-gray-700">
-              <td className="py-4 pr-6">{design.id}</td>
-              <td className="py-4 pr-6">{design.orderId}</td>
-              <td className="py-4 pr-6">{design.clientName}</td>
-              <td className="py-4 pr-6">{design.vendorName}</td>
-              <td className="py-4 pr-6">{design.submittedDate}</td>
-              <td className="py-4 pr-6">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  design.status === "Approved" 
-                    ? "bg-green-900 text-green-200" :
-                  design.status === "Awaiting Approval" 
-                    ? "bg-yellow-900 text-yellow-200" 
-                    : "bg-red-900 text-red-200"
-                }`}>
-                  {design.status}
-                </span>
+            <tr key={design.id}>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-yellow-600">{design.id}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 flex items-center">
+                <FiImage className="mr-2 text-gray-500" /> {design.name}
               </td>
-              <td className="py-4 flex items-center space-x-2">
-                <button
-                  className="p-1 text-blue-400 hover:text-blue-300 transition"
-                  title="Download"
-                >
-                  <FaDownload />
-                </button>
-                {design.status !== "Approved" && (
-                  <button className="p-1 text-green-400 hover:text-green-300 transition" title="Approve">
-                    <FaCheck />
-                  </button>
-                )}
-                <button className="p-1 text-yellow-400 hover:text-yellow-300 transition" title="Request Revision">
-                  <FaEdit />
-                </button>
-                <button className="p-1 text-purple-400 hover:text-purple-300 transition" title="Reassign">
-                  <FaUserTie />
-                </button>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 flex items-center">
+                <FiUser className="mr-1" /> {design.customer}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 flex items-center">
+                <FiCalendar className="mr-1" /> {design.uploaded}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm">{getStatusBadge(design.status)}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{design.revisions}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <button className="text-yellow-600 hover:text-yellow-900 mr-3">Preview</button>
+                <button className="text-blue-600 hover:text-blue-900">Review</button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
     </div>
-  );
+  )
 }

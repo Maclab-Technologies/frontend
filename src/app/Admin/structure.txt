@@ -3,7 +3,7 @@
 │   ├── auth/
 │   │   └── login/
 │   │       └── page.js
-│   ├── dashboard/
+│   ├── Dashboard/
 │   │   └── page.js
 │   ├── orders/
 │   │   └── page.js

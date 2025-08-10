@@ -1,47 +1,42 @@
-'use client';
+import { FiMenu, FiBell, FiSearch, FiUser } from 'react-icons/fi'
 
-import { useAdmin } from '../../context/AdminContext';
-import { FaBars, FaUser, FaSignOutAlt } from 'react-icons/fa';
-
-export default function Header() {
-  const { 
-    activeTab, 
-    mobileNavOpen, 
-    setMobileNavOpen,
-    handleLogout 
-  } = useAdmin();
-
+export default function Header({ toggleSidebar }) {
   return (
-    <div className="bg-gray-800/80 backdrop-blur-sm sticky top-16 z-10 border-b border-gray-700 px-6 py-4">
-      <div className="flex justify-between items-center">
+    <header className="fixed top-0 right-0 left-64 bg-white shadow-sm z-10">
+      <div className="flex items-center justify-between px-6 py-4">
+        {/* Left Section - Search and Menu (mobile) */}
         <div className="flex items-center">
           <button 
-            onClick={() => setMobileNavOpen(!mobileNavOpen)}
-            className="mr-4 lg:hidden text-gray-300 hover:text-white"
+            onClick={toggleSidebar}
+            className="mr-4 text-gray-500 lg:hidden"
           >
-            <FaBars size={20} />
+            <FiMenu className="w-5 h-5" />
           </button>
-          <h2 className="text-xl font-bold text-white flex items-center">
-            {activeTab}
-          </h2>
+          <div className="relative hidden md:block">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <FiSearch className="text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search..."
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-yellow-500 focus:border-yellow-500"
+            />
+          </div>
         </div>
         
+        {/* Right Section - Notifications and Profile */}
         <div className="flex items-center space-x-4">
-          <div className="hidden md:flex items-center space-x-2 bg-gray-750 px-3 py-2 rounded-lg">
-            <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-yellow-400">
-              <FaUser size={14} />
-            </div>
-            <span className="text-sm font-medium">Admin</span>
-          </div>
-          <button 
-            onClick={handleLogout}
-            className="hidden md:flex items-center space-x-2 text-gray-300 hover:text-white text-sm"
-          >
-            <FaSignOutAlt size={14} />
-            <span>Logout</span>
+          <button className="p-2 text-gray-500 rounded-full hover:bg-gray-100">
+            <FiBell className="w-5 h-5" />
           </button>
+          <div className="flex items-center">
+            <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600 mr-2">
+              <FiUser className="w-4 h-4" />
+            </div>
+            <span className="text-sm font-medium">Admin User</span>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    </header>
+  )
 }

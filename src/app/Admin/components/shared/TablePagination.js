@@ -1,48 +1,27 @@
-'use client';
+import { FiChevronLeft, FiChevronRight } from 'react-icons/fi'
 
-export default function TablePagination({ 
-  currentPage, 
-  totalItems, 
-  itemsPerPage, 
-  onPageChange 
-}) {
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-
+export default function TablePagination({ currentPage, totalPages, onPageChange }) {
   return (
-    <div className="flex justify-between items-center mt-6">
-      <p className="text-gray-400 text-sm">
-        Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-        {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} entries
-      </p>
-      <div className="flex space-x-1">
+    <div className="flex items-center justify-between px-6 py-3 bg-white border-t border-gray-200">
+      <div className="text-sm text-gray-500">
+        Page {currentPage} of {totalPages}
+      </div>
+      <div className="flex space-x-2">
         <button
-          onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
+          onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="px-3 py-1 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 transition disabled:opacity-50"
+          className={`px-3 py-1 rounded-md ${currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'}`}
         >
-          Previous
+          <FiChevronLeft className="w-5 h-5" />
         </button>
-        {Array.from({ length: totalPages }).map((_, i) => (
-          <button
-            key={i}
-            onClick={() => onPageChange(i + 1)}
-            className={`px-3 py-1 rounded-md ${
-              currentPage === i + 1
-                ? 'bg-yellow-400 text-black'
-                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-            }`}
-          >
-            {i + 1}
-          </button>
-        ))}
         <button
-          onClick={() => onPageChange(Math.min(currentPage + 1, totalPages))}
-          disabled={currentPage >= totalPages}
-          className="px-3 py-1 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 transition disabled:opacity-50"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className={`px-3 py-1 rounded-md ${currentPage === totalPages ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'}`}
         >
-          Next
+          <FiChevronRight className="w-5 h-5" />
         </button>
       </div>
     </div>
-  );
+  )
 }

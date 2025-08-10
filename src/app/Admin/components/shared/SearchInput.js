@@ -1,23 +1,40 @@
-'use client';
+import { FiSearch, FiX } from 'react-icons/fi'
+import { useState } from 'react'
 
-import { FaSearch } from 'react-icons/fa';
+export default function SearchInput({ placeholder = 'Search...', onSearch }) {
+  const [query, setQuery] = useState('')
 
-export default function SearchInput({ 
-  placeholder = 'Search...', 
-  value, 
-  onChange,
-  className = ''
-}) {
+  const handleSearch = (e) => {
+    e.preventDefault()
+    onSearch(query)
+  }
+
+  const clearSearch = () => {
+    setQuery('')
+    onSearch('')
+  }
+
   return (
-    <div className={`relative ${className}`}>
+    <form onSubmit={handleSearch} className="relative">
+      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <FiSearch className="text-gray-400" />
+      </div>
       <input
         type="text"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
         placeholder={placeholder}
-        value={value}
-        onChange={onChange}
-        className="w-full bg-gray-700 text-white px-4 py-2 pl-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
+        className="pl-10 pr-8 py-2 w-full border border-gray-300 rounded-lg focus:ring-yellow-500 focus:border-yellow-500"
       />
-      <FaSearch className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-    </div>
-  );
+      {query && (
+        <button
+          type="button"
+          onClick={clearSearch}
+          className="absolute inset-y-0 right-0 pr-3 flex items-center"
+        >
+          <FiX className="text-gray-400 hover:text-gray-500" />
+        </button>
+      )}
+    </form>
+  )
 }

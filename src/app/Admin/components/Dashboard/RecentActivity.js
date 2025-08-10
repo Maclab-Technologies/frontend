@@ -1,51 +1,32 @@
-'use client';
-
-import { FaUser, FaBoxOpen, FaPaintBrush } from 'react-icons/fa';
+import { FiUser, FiEdit, FiCheckCircle, FiTruck, FiShoppingCart } from 'react-icons/fi'
 
 export default function RecentActivity() {
   const activities = [
-    { 
-      id: 1,
-      icon: <FaUser />,
-      title: "New user registered",
-      description: "Michael Wong • 2023-09-15",
-      color: "text-yellow-400"
-    },
-    { 
-      id: 2,
-      icon: <FaBoxOpen />,
-      title: "New order received",
-      description: "ORD-1003 • 2023-09-25",
-      color: "text-yellow-400"
-    },
-    { 
-      id: 3,
-      icon: <FaPaintBrush />,
-      title: "Design submitted for approval",
-      description: "DSG-1002 • 2023-09-19",
-      color: "text-yellow-400"
-    }
-  ];
+    { id: 1, user: 'John Doe', action: 'placed new order', time: '2 mins ago', orderId: '#ORD-1248', icon: <FiShoppingCart className="w-4 h-4" /> },
+    { id: 2, user: 'Sarah Smith', action: 'requested design revision', time: '15 mins ago', orderId: '#ORD-1247', icon: <FiEdit className="w-4 h-4" /> },
+    { id: 3, user: 'Mike Johnson', action: 'completed payment', time: '1 hour ago', orderId: '#ORD-1246', icon: <FiCheckCircle className="w-4 h-4" /> },
+    { id: 4, user: 'PrintHub Vendor', action: 'marked order as shipped', time: '2 hours ago', orderId: '#ORD-1245', icon: <FiTruck className="w-4 h-4" /> },
+    { id: 5, user: 'Emma Wilson', action: 'created new account', time: '3 hours ago', icon: <FiUser className="w-4 h-4" /> }
+  ]
 
   return (
-    <div className="bg-gray-800 rounded-lg p-6 text-white">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-bold">Recent Activity</h2>
-        <button className="text-sm text-yellow-400 hover:underline">View All</button>
-      </div>
-      <div className="space-y-3">
-        {activities.map(activity => (
-          <div key={activity.id} className="bg-black bg-opacity-30 rounded-lg p-3 border border-gray-700 flex items-center">
-            <div className={`bg-yellow-400 bg-opacity-20 p-2 rounded-full mr-3 ${activity.color}`}>
-              {activity.icon}
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium">{activity.title}</p>
-              <p className="text-xs text-gray-400">{activity.description}</p>
-            </div>
+    <div className="space-y-4">
+      {activities.map(activity => (
+        <div key={activity.id} className="flex items-start pb-4 border-b border-gray-100 last:border-0 last:pb-0">
+          <div className="flex-shrink-0 h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600 mr-3">
+            {activity.icon}
           </div>
-        ))}
-      </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-900 truncate">
+              {activity.user} <span className="text-gray-500 font-normal">{activity.action}</span>
+            </p>
+            {activity.orderId && (
+              <p className="text-xs text-yellow-600 font-medium">{activity.orderId}</p>
+            )}
+            <p className="text-xs text-gray-500">{activity.time}</p>
+          </div>
+        </div>
+      ))}
     </div>
-  );
-}   
+  )
+}

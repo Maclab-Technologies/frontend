@@ -1,35 +1,56 @@
-'use client';
+import { FiDollarSign, FiTrendingUp, FiTrendingDown, FiPieChart } from 'react-icons/fi'
 
-export default function RevenueSummary({ payments }) {
-  const totalRevenue = payments.reduce(
-    (sum, p) => sum + (parseFloat(p.amountPaid.replace(/[^0-9.]/g, '')) || 0), 
-    0
-  ).toFixed(2);
-  
-  const vendorPayouts = payments.reduce(
-    (sum, p) => sum + (parseFloat(p.vendorCut.replace(/[^0-9.]/g, '')) || 0), 
-    0
-  ).toFixed(2);
-  
-  const platformEarnings = payments.reduce(
-    (sum, p) => sum + (parseFloat(p.platformCommission.replace(/[^0-9.]/g, '')) || 0), 
-    0
-  ).toFixed(2);
+export default function RevenueSummary() {
+  const revenueData = {
+    totalRevenue: 4856000,
+    platformEarnings: 971200, // 20%
+    vendorPayouts: 3884800, // 80%
+    growthRate: 18.5
+  }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-gray-700">
-        <p className="text-gray-400 text-sm mb-1">Total Revenue</p>
-        <p className="text-2xl font-bold">₦{totalRevenue}</p>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      {/* Total Revenue */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-gray-500">Total Revenue</p>
+            <p className="text-2xl font-bold mt-1">₦{revenueData.totalRevenue.toLocaleString()}</p>
+            <p className={`text-sm mt-1 ${revenueData.growthRate > 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {revenueData.growthRate > 0 ? '↑' : '↓'} {Math.abs(revenueData.growthRate)}% from last month
+            </p>
+          </div>
+          <div className="p-3 rounded-full bg-yellow-50 text-yellow-600">
+            <FiDollarSign className="w-5 h-5" />
+          </div>
+        </div>
       </div>
-      <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-gray-700">
-        <p className="text-gray-400 text-sm mb-1">Vendor Payouts (80%)</p>
-        <p className="text-2xl font-bold text-yellow-400">₦{vendorPayouts}</p>
+
+      {/* Platform Earnings */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-gray-500">Platform Earnings (20%)</p>
+            <p className="text-2xl font-bold mt-1">₦{revenueData.platformEarnings.toLocaleString()}</p>
+          </div>
+          <div className="p-3 rounded-full bg-green-50 text-green-600">
+            <FiTrendingUp className="w-5 h-5" />
+          </div>
+        </div>
       </div>
-      <div className="bg-black bg-opacity-30 rounded-lg p-4 border border-gray-700">
-        <p className="text-gray-400 text-sm mb-1">Platform Earnings (20%)</p>
-        <p className="text-2xl font-bold text-green-400">₦{platformEarnings}</p>
+
+      {/* Vendor Payouts */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-gray-500">Vendor Payouts (80%)</p>
+            <p className="text-2xl font-bold mt-1">₦{revenueData.vendorPayouts.toLocaleString()}</p>
+          </div>
+          <div className="p-3 rounded-full bg-blue-50 text-blue-600">
+            <FiPieChart className="w-5 h-5" />
+          </div>
+        </div>
       </div>
     </div>
-  );
+  )
 }
