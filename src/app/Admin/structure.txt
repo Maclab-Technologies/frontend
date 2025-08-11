@@ -45,6 +45,7 @@
 │   │       ├── TablePagination.js
 │   │       ├── SearchInput.js
 │   │       └── StatusBadge.js
+            └── MobileSidebar.js
 │   /├── context/
 │   │/   └── AdminContext.js
 │   ├/── layout.js

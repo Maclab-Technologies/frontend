@@ -1,9 +1,13 @@
+'use client'
 import { FiHome, FiShoppingCart, FiUsers, FiTruck, FiImage, FiDollarSign, FiCreditCard, FiSettings, FiLogOut } from 'react-icons/fi'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
+import { usePathname } from 'next/navigation'
+import { useAdmin } from '../../context/AdminContext'
 
 export default function Sidebar() {
-  const router = useRouter()
+  const pathname = usePathname()
+  const { logout } = useAdmin()
+  
   const navItems = [
     { path: '/Admin/Dashboard', icon: <FiHome />, label: 'Dashboard' },
     { path: '/Admin/orders', icon: <FiShoppingCart />, label: 'Orders' },
@@ -15,23 +19,28 @@ export default function Sidebar() {
   ]
 
   return (
-    <div className="fixed inset-y-0 left-0 w-64 bg-white shadow-lg z-10">
+    <div className="fixed inset-y-0 left-0 w-64 bg-white shadow-lg z-10 border-r border-gray-200">
       <div className="flex flex-col h-full">
         {/* Logo */}
         <div className="flex items-center justify-center h-16 border-b border-gray-200">
-          <h1 className="text-xl font-bold text-yellow-600">59Minutes Prints</h1>
+          <h1 className="text-xl font-bold text-amber-600">59Minutes Prints</h1>
         </div>
         
         {/* Navigation */}
-        <nav className="flex-1 px-4 py-6 overflow-y-auto">
-          <ul className="space-y-2">
+        <nav className="flex-1 px-2 py-4 overflow-y-auto">
+          <ul className="space-y-1">
             {navItems.map((item) => (
               <li key={item.path}>
-                <Link href={item.path}>
-                  <a className={`flex items-center px-4 py-3 rounded-lg transition-colors ${router.pathname === item.path ? 'bg-yellow-100 text-yellow-600' : 'text-gray-700 hover:bg-gray-100'}`}>
-                    <span className="mr-3">{item.icon}</span>
-                    <span>{item.label}</span>
-                  </a>
+                <Link
+                  href={item.path}
+                  className={`flex items-center px-3 py-3 rounded-lg mx-2 transition-colors ${
+                    pathname === item.path 
+                      ? 'bg-amber-50 text-amber-600 font-medium' 
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <span className="mr-3">{item.icon}</span>
+                  <span>{item.label}</span>
                 </Link>
               </li>
             ))}
@@ -39,19 +48,25 @@ export default function Sidebar() {
         </nav>
         
         {/* Bottom Section */}
-        <div className="px-4 py-6 border-t border-gray-200">
-          <ul className="space-y-2">
+        <div className="px-2 py-4 border-t border-gray-200">
+          <ul className="space-y-1">
             <li>
-              <a href="#" className="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100">
+              <Link 
+                href="#"
+                className="flex items-center px-3 py-3 rounded-lg mx-2 text-gray-700 hover:bg-gray-100"
+              >
                 <FiSettings className="mr-3" />
                 <span>Settings</span>
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="#" className="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100">
+              <button 
+                onClick={logout}
+                className="flex items-center w-full px-3 py-3 rounded-lg mx-2 text-gray-700 hover:bg-gray-100"
+              >
                 <FiLogOut className="mr-3" />
                 <span>Logout</span>
-              </a>
+              </button>
             </li>
           </ul>
         </div>
