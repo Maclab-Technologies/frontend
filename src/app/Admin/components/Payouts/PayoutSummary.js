@@ -1,4 +1,4 @@
-import { FiDollarSign, FiTrendingUp, FiAlertCircle } from 'react-icons/fi'
+import { FiUser,  FiDollarSign, FiTrendingUp, FiAlertCircle } from 'react-icons/fi'
 
 export default function PayoutSummary() {
   const summaryData = {

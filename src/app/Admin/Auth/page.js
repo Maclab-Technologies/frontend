@@ -1,197 +1,122 @@
 'use client'
 import { useState } from 'react'
-import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react'
 import { useAdmin } from '../context/AdminContext'
-import { toast } from 'react-toastify'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 export default function LoginPage() {
-  const { login } = useAdmin()
-  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-
-  // Hardcoded admin credentials
-  const ADMIN_CREDENTIALS = {
-    email: 'admin@59minutes.com',
-    password: '59Minutes@2024'
-  }
+  const { login } = useAdmin()
+  const router = useRouter()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setIsLoading(true)
     setError('')
     
-    // Basic validation
-    if (!email || !password) {
-      setError('Please fill in all fields')
-      return
-    }
-
-    setIsLoading(true)
-
     try {
-      // Check against hardcoded credentials
-      if (email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        
-        // Call login function from context
-        const result = await login(email, password)
-        
-        if (result.success) {
-          toast.success('Login successful! Redirecting...')
-          router.push('/Admin/Dashboard')
-        } else {
-          setError(result.error || 'Login failed')
-        }
-      } else {
-        setError('Invalid credentials')
-        toast.error('Invalid email or password')
-      }
+      await login(email, password)
+      router.push('/Admin/Dashboard')
     } catch (err) {
-      console.error('Login error:', err)
-      setError('An unexpected error occurred')
-      toast.error('Login failed. Please try again.')
+      setError(err.message || 'Login failed')
     } finally {
       setIsLoading(false)
     }
   }
 
-  // Pre-fill demo credentials for testing (remove in production)
-  const fillDemoCredentials = () => {
-    setEmail(ADMIN_CREDENTIALS.email)
-    setPassword(ADMIN_CREDENTIALS.password)
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4 md:p-8">
-      <div className="w-full max-w-md">
-        {/* Logo/Brand Section */}
-        <div className="text-center mb-6 md:mb-8">
-          <div className="inline-flex items-center justify-center w-24 h-16 md:w-28 md:h-20 px-4 bg-yellow-600 rounded-xl md:rounded-2xl mb-3 md:mb-4 shadow-lg">
-            <span className="text-white font-bold text-lg md:text-xl">59MP</span>
-          </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1 md:mb-2">
-            Admin Portal
-          </h1>
-          <p className="text-sm md:text-base text-gray-600">
-            Sign in to manage your print business
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            59Minutes Prints Admin
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Sign in to your admin account
           </p>
         </div>
+        
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-500 p-4">
+            <div className="flex">
+              <div className="text-red-500">
+                <p className="text-sm">{error}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
-        {/* Login Form */}
-        <div className="bg-white rounded-xl md:rounded-2xl shadow-lg border border-gray-200 p-6 md:p-8">
-          <div className="space-y-4 md:space-y-6">
-            {error && (
-              <div className="flex items-center gap-2 p-3 md:p-4 bg-red-50 border border-red-200 text-red-700 text-xs md:text-sm rounded-lg">
-                <AlertCircle className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
-                <span>{error}</span>
-              </div>
-            )}
-            
-            {/* Email Field */}
-            <div className="space-y-1 md:space-y-2">
-              <label htmlFor="email" className="text-xs md:text-sm font-semibold text-gray-700">
-                Email Address
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-gray-400" />
-                <input
-                  type="email"
-                  id="email"
-                  value={email}
-                  placeholder="admin@59minutes.com"
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 md:py-3 text-xs md:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-400"
-                  required
-                />
-              </div>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="rounded-md shadow-sm space-y-4">
+            <div>
+              <label htmlFor="email" className="sr-only">Email address</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-amber-500 focus:border-amber-500 focus:z-10 sm:text-sm"
+                placeholder="Email address"
+              />
             </div>
-            
-            {/* Password Field */}
-            <div className="space-y-1 md:space-y-2">
-              <label htmlFor="password" className="text-xs md:text-sm font-semibold text-gray-700">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-gray-400" />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  id="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-10 py-2 md:py-3 text-xs md:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-400"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-4 h-4 md:w-5 md:h-5" />
-                  ) : (
-                    <Eye className="w-4 h-4 md:w-5 md:h-5" />
-                  )}
-                </button>
-              </div>
+            <div>
+              <label htmlFor="password" className="sr-only">Password</label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-amber-500 focus:border-amber-500 focus:z-10 sm:text-sm"
+                placeholder="Password"
+              />
             </div>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <input
+                id="remember-me"
+                name="remember-me"
+                type="checkbox"
+                className="h-4 w-4 text-amber-600 focus:ring-amber-500 border-gray-300 rounded"
+              />
+              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
+                Remember me
+              </label>
+            </div>
+
             
-            {/* Demo Credentials Button (remove in production) */}
+          </div>
+
+          <div>
             <button
-              type="button"
-              onClick={fillDemoCredentials}
-              className="text-xs text-yellow-600 hover:text-yellow-700 underline"
-            >
-              Use demo admin credentials
-            </button>
-            
-            {/* Remember Me & Forgot Password */}
-            <div className="flex items-center justify-between text-xs md:text-sm">
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  className="w-3 h-3 md:w-4 md:h-4 text-yellow-600 border-gray-300 rounded focus:ring-yellow-500" 
-                />
-                <span className="text-gray-600">Remember me</span>
-              </label>
-              <Link href="#" className="text-yellow-600 hover:text-yellow-700 font-medium transition-colors duration-200">
-                Forgot password?
-              </Link>
-            </div>
-            
-            {/* Submit Button */}
-            <button
-              onClick={handleSubmit}
+              type="submit"
               disabled={isLoading}
-              className="w-full bg-yellow-600 hover:bg-yellow-700 disabled:bg-yellow-400 text-white font-semibold py-2 md:py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-md hover:shadow-lg disabled:cursor-not-allowed group text-xs md:text-sm"
+              className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 ${
+                isLoading ? 'opacity-75 cursor-not-allowed' : ''
+              }`}
             >
               {isLoading ? (
                 <>
-                  <div className="w-3 h-3 md:w-4 md:h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Signing in...</span>
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Signing in...
                 </>
-              ) : (
-                <>
-                  <span>Sign in</span>
-                  <ArrowRight className="w-3 h-3 md:w-4 md:h-4 group-hover:translate-x-0.5 transition-transform duration-200" />
-                </>
-              )}
+              ) : 'Sign in'}
             </button>
           </div>
-        </div>
-        
-        {/* Footer */}
-        <div className="mt-4 md:mt-6 text-center">
-          <p className="text-xs text-gray-500">
-            © 2025 59Minutes Prints. All rights reserved.
-          </p>
-        </div>
+        </form>
       </div>
     </div>
   )

@@ -1,8 +1,7 @@
-// app/Admin/Providers.js
 'use client'
 import { AdminProvider } from './context/AdminContext'
 
-export function Providers({ children }) {
+export function AdminProviders({ children }) {
   return (
     <AdminProvider>
       {children}
