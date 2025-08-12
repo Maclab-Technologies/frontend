@@ -2,11 +2,9 @@
 import { FiHome, FiShoppingCart, FiUsers, FiTruck, FiImage, FiDollarSign, FiCreditCard, FiSettings, FiLogOut } from 'react-icons/fi'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useAdmin } from '../../context/AdminContext'
 
 export default function Sidebar() {
   const pathname = usePathname()
-  const { logout } = useAdmin()
   
   const navItems = [
     { path: '/Admin/Dashboard', icon: <FiHome />, label: 'Dashboard' },

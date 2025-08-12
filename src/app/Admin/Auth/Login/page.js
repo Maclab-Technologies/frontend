@@ -1,15 +1,12 @@
 'use client'
 import { useState } from 'react'
-import { useAdmin } from '../context/AdminContext'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const { login } = useAdmin()
+  const [isLoading, setIsLoading] = useState(null)
   const router = useRouter()
 
   const handleSubmit = async (e) => {
@@ -18,7 +15,6 @@ export default function LoginPage() {
     setError('')
     
     try {
-      await login(email, password)
       router.push('/Admin/Dashboard')
     } catch (err) {
       setError(err.message || 'Login failed')

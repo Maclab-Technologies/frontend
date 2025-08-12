@@ -1,11 +1,12 @@
 'use client'
-import { useAdmin } from '../context/AdminContext'
 import StatsCards from '../components/Dashboard/StatsCards'
 import ActivityGraph from '../components/Dashboard/ActivityGraph'
 import RecentActivity from '../components/Dashboard/RecentActivity'
+import { useState } from 'react'
 
 export default function DashboardPage() {
-  const { admin, dashboardData } = useAdmin()
+  const [ dashboardData, setDashboardData ] = useState({})
+  const [ admin, setAdmin ] = useState({})
 
   return (
     <>

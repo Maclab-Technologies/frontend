@@ -21,7 +21,7 @@ import {
   onAuthStateChanged,
   sendPasswordResetEmail,
 } from "firebase/auth";
-import { auth } from "../../utils/firebaseconfig";
+import { auth } from "zzzz../../utils/firebaseconfig";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AuthContext } from "@/app/hooks/useAuth";
