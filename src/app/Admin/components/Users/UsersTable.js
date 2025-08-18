@@ -1,41 +1,93 @@
-'use client';
-
-import { FaUser, FaEdit, FaTrash } from 'react-icons/fa';
+"use client";
+import { FiUser, FiMail, FiPhone, FiCalendar, FiEdit2, FiTrash2 } from 'react-icons/fi'
 
 export default function UsersTable({ users }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full">
         <thead>
-          <tr className="text-left border-b border-gray-700">
-            <th className="pb-3 pr-6">Name</th>
-            <th className="pb-3 pr-6">Email</th>
-            <th className="pb-3 pr-6">Date Joined</th>
-            <th className="pb-3 pr-6">Total Orders</th>
-            <th className="pb-3">Actions</th>
+          <tr>
+            <th
+              scope="col"
+              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              User ID
+            </th>
+            <th
+              scope="col"
+              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Name
+            </th>
+            <th
+              scope="col"
+              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Contact
+            </th>
+            <th
+              scope="col"
+              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Joined
+            </th>
+            <th
+              scope="col"
+              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Orders
+            </th>
+            <th
+              scope="col"
+              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Total Spent
+            </th>
+            <th
+              scope="col"
+              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Actions
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-700">
           {users.map((user) => (
-            <tr key={user.id} className="hover:bg-gray-700">
-              <td className="py-4 pr-6">{user.name}</td>
-              <td className="py-4 pr-6">{user.email}</td>
-              <td className="py-4 pr-6">{user.dateJoined}</td>
-              <td className="py-4 pr-6">{user.totalOrders}</td>
-              <td className="py-4 flex items-center space-x-2">
-                <button className="p-1 text-blue-400 hover:text-blue-300 transition" title="View Profile">
-                  <FaUser />
+            <tr key={user.id}>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-yellow-600">
+                {user.id}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 flex items-center">
+                <FiUser className="mr-2 text-gray-500" /> {user.name}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <div className="flex items-center">
+                  <FiMail className="mr-1" /> {user.email}
+                </div>
+                <div className="flex items-center mt-1">
+                  <FiPhone className="mr-1" /> {user.phone}
+                </div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 flex items-center">
+                <FiCalendar className="mr-1" /> {user.joined}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {user.orders}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                ₦{user.totalSpent.toLocaleString()}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <button className="text-yellow-600 hover:text-yellow-900 mr-3">
+                  <FiEdit2 className="inline mr-1" /> Edit
                 </button>
-                <button className="p-1 text-yellow-400 hover:text-yellow-300 transition" title="Edit">
-                  <FaEdit />
-                </button>
-                <button className="p-1 text-red-400 hover:text-red-300 transition" title="Delete">
-                  <FaTrash />
+                <button className="text-red-600 hover:text-red-900">
+                  <FiTrash2 className="inline mr-1" /> Delete
                 </button>
               </td>
             </tr>
           ))}
-        </tbody>    
+        </tbody>
       </table>
     </div>
   );

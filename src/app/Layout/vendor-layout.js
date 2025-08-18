@@ -23,6 +23,9 @@ export default function VendorNavLayout({
             <h1 className="text-xl font-bold">
               <span className="text-yellow-400">59Minutes</span>Print
             </h1>
+            <span className="hidden md:inline-block text-gray-400 ml-2 border-l border-gray-600 pl-2">
+            Vendor
+          </span>
           </div>
           <div className="flex items-center space-x-4">
             <button

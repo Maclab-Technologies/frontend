@@ -8,7 +8,7 @@ export default function VendorsPage() {
       </div>
       
       {/* Vendors Table */}
-      <div className="mt-6 bg-white rounded-lg shadow overflow-hidden">
+      <div className="mt-6 bg-black rounded-lg shadow overflow-hidden">
         <VendorsTable />
       </div>
     </div>

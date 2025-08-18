@@ -27,7 +27,7 @@ export default function VendorsTable() {
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
+        <thead className="bg-black text-white">
           <tr>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor ID</th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
@@ -38,7 +38,7 @@ export default function VendorsTable() {
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+        <tbody className="bg-gray-800 divide-y divide-gray-200 text-white">
           {vendors.map((vendor) => (
             <tr key={vendor.id}>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-yellow-600">{vendor.id}</td>
