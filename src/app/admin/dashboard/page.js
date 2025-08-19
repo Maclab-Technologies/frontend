@@ -1,0 +1,49 @@
+'use client'
+import StatsCards from '../components/StatsCards'
+import ActivityGraph from '../components/ActivityGraph'
+import RecentActivity from '../components/RecentActivity'
+import { useState } from 'react'
+
+export default function DashboardPage() {
+  const [ dashboardData, setDashboardData ] = useState({})
+  const [ admin, setAdmin ] = useState({})
+
+  return (
+    <>
+      {/* Welcome Banner */}
+      <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 md:p-6 mb-g p-4g p-46">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-white mb-1">
+              Welcome back, {admin?.name || 'Admin'}!
+            </h2>
+            <p className="text-sm text-white">
+              Here's what's happening with your business today.
+            </p>
+          </div>
+          <div className="mt-2 md:mt-0">
+            <span className="text-xs font-medium px-3 py-2 bg-gray-400 text-white rounded-full">
+              Last login: {new Date(admin?.lastLogin).toLocaleString()}
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      {/* Stats Cards */}
+      <StatsCards data={dashboardData?.stats} />
+      
+      {/* Charts and Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mt-6">
+        {/* Order Activity Chart */}
+        <div className="lg:col-span-2 bg-gray-900 p-4 rounded-lg shadow-sm border border-gray-700">
+          <ActivityGraph />
+        </div>
+        
+        {/* Recent Activity */}
+        <div className="bg-gray-900 p-4 rounded-lg shadow-sm border border-gray-700">
+          <RecentActivity activities={dashboardData?.recentActivities} />
+        </div>
+      </div>
+    </>
+  )
+}

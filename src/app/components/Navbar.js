@@ -29,7 +29,7 @@ const Navbar = () => {
   const pathname = usePathname();
 
   const isVendor = pathname.startsWith("/Vendor");
-  const isAdmin = pathname.startsWith("/Admin");
+  const isAdmin = pathname.startsWith("/admin");
   const isAuth = pathname.startsWith("/Auth");
 
   const cartCount = cartItems.length;

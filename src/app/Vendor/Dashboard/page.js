@@ -134,9 +134,9 @@ export default function VendorDashboard() {
         // Using batchRequests for parallel API calls
         const result = await batchRequests([
           {
+            // Vendor Products
             url: `/products/vendor/${data.id}`,
             options: {
-              // Fixed: was 'option', should be 'options'
               method: "GET",
               token,
               config: { showToast: false }, // Disable individual toasts
