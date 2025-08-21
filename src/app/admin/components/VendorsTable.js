@@ -42,8 +42,8 @@ export default function VendorsTable() {
           {vendors.map((vendor) => (
             <tr key={vendor.id}>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-yellow-600">{vendor.id}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 flex items-center">
-                <FiTruck className="mr-2 text-white" /> {vendor.name}
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-white flex items-center">
+                <FiTruck className="mr-2 text-gray-200" /> {vendor.name}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                 <div className="flex items-center"><FiMail className="mr-1" /> {vendor.email}</div>
@@ -51,7 +51,7 @@ export default function VendorsTable() {
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-white">{vendor.location}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm">{getStatusBadge(vendor.status)}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₦{vendor.balance.toLocaleString()}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-white">₦{vendor.balance.toLocaleString()}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <button className="text-yellow-600 hover:text-yellow-900">
                   <FiEdit2 className="inline mr-1" /> Manage

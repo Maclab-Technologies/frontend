@@ -57,7 +57,7 @@ export default function UsersTable({ users }) {
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-yellow-600">
                 {user.id}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 flex items-center">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-white flex items-center">
                 <FiUser className="mr-2 text-gray-200" /> {user.name}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-200">
@@ -71,10 +71,10 @@ export default function UsersTable({ users }) {
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-200 flex items-center">
                 <FiCalendar className="mr-1" /> {user.joined}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                 {user.orders}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                 ₦{user.totalSpent.toLocaleString()}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">

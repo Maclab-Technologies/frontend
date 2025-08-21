@@ -42,20 +42,20 @@ export default function PayoutsTable() {
         </thead>
         <tbody className="bg-gray-800 divide-y divide-gray-500">
           {payouts.map((payout) => (
-            <tr key={payout.id}>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-yellow-600">{payout.id}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-200 flex items-center">
-                <FiUser className="mr-2 text-gray-500" /> {payout.vendor}
+            <tr className="py-4" key={payout.id}>
+              <td className="px-6 whitespace-nowrap text-sm font-medium text-yellow-600">{payout.id}</td>
+              <td className="px-6 whitespace-nowrap text-sm text-gray-200 flex items-center">
+                <FiUser className="mr-2 text-gray-200" /> {payout.vendor}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 flex items-center">
-                <FiDollarSign className="mr-1 text-gray-500" /> ₦{payout.amount.toLocaleString()}
+              <td className="px-6 whitespace-nowrap text-sm text-white flex items-center">
+                <b className="mr-1 text-gray-200"> ₦ </b> {payout.amount.toLocaleString()}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-200 flex items-center">
+              <td className="px-6 whitespace-nowrap text-sm text-gray-200 flex items-center">
                 <FiCalendar className="mr-1" /> {payout.date}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm">{getStatusBadge(payout.status)}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-200">{payout.method}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+              <td className="px-6 whitespace-nowrap text-sm">{getStatusBadge(payout.status)}</td>
+              <td className="px-6 whitespace-nowrap text-sm text-gray-200">{payout.method}</td>
+              <td className="px-6 whitespace-nowrap text-sm font-medium">
                 {payout.status === 'Pending' && (
                   <button className="text-green-600 hover:text-green-900 mr-3">Approve</button>
                 )}
