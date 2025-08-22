@@ -1,6 +1,23 @@
-import { FiDollarSign, FiUser, FiCalendar, FiCreditCard } from 'react-icons/fi'
+"use client"
+import { FiDollarSign, FiUser, FiCalendar, FiCreditCard, FiEye, FiClipboard } from 'react-icons/fi'
+import { useState, useEffect } from 'react'
 
 export default function PaymentsTable() {
+  const [isMobile, setIsMobile] = useState(false)
+  
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    
+    checkIsMobile()
+    window.addEventListener('resize', checkIsMobile)
+    
+    return () => {
+      window.removeEventListener('resize', checkIsMobile)
+    }
+  }, [])
+  
   // Sample payments data
   const payments = [
     { id: 'PMT-5001', customer: 'John Doe', amount: 45000, date: '2023-06-15', method: 'Card', status: 'Successful', orderId: 'ORD-1248' },
@@ -26,38 +43,104 @@ export default function PaymentsTable() {
     }
   }
 
+  // Mobile card view
+  if (isMobile) {
+    return (
+      <div className="p-4">
+        {payments.map((payment) => (
+          <div key={payment.id} className="mb-4 p-4 bg-gray-700 rounded-lg shadow">
+            <div className="flex justify-between items-start mb-3">
+              <div className="flex-1 min-w-0">
+                <div className="text-yellow-500 font-medium text-sm truncate">{payment.id}</div>
+                <div className="text-white font-medium flex items-center mt-1 truncate">
+                  <FiUser className="mr-2 flex-shrink-0" /> {payment.customer}
+                </div>
+              </div>
+              <div className="text-right ml-2">
+                {getStatusBadge(payment.status)}
+                <div className="text-xs text-gray-400 mt-1">{payment.method}</div>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="flex items-center text-gray-300">
+                <FiDollarSign className="mr-2 flex-shrink-0" /> ₦{payment.amount.toLocaleString()}
+              </div>
+              <div className="flex items-center text-gray-300">
+                <FiCalendar className="mr-2 flex-shrink-0" /> {payment.date}
+              </div>
+            </div>
+            
+            <div className="mt-3 pt-3 border-t border-gray-600">
+              <div className="text-sm text-gray-400">Order: {payment.orderId}</div>
+            </div>
+            
+            <div className="flex justify-between mt-4">
+              <button className="text-yellow-500 hover:text-yellow-400 text-sm flex items-center">
+                <FiEye className="mr-1" /> Details
+              </button>
+              <button className="text-blue-500 hover:text-blue-400 text-sm flex items-center">
+                <FiClipboard className="mr-1" /> Actions
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  // Desktop table view
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200">
+      <table className="min-w-full divide-y divide-gray-700">
         <thead className="bg-gray-800">
           <tr>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Payment ID</th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Customer</th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Amount</th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Order</th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Date</th>
-            {/* <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Method</th> */}
-            {/* <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Status</th> */}
+            <th scope="col" className="px-4 md:px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Payment ID</th>
+            <th scope="col" className="px-4 md:px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Customer</th>
+            <th scope="col" className="px-4 md:px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider hidden md:table-cell">Amount</th>
+            <th scope="col" className="px-4 md:px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider hidden lg:table-cell">Order</th>
+            <th scope="col" className="px-4 md:px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Date</th>
+            <th scope="col" className="px-4 md:px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider hidden xl:table-cell">Method</th>
+            <th scope="col" className="px-4 md:px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Status</th>
+            <th scope="col" className="px-4 md:px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Actions</th>
           </tr>
         </thead>
-        <tbody className="bg-gray-800 divide-y divide-gray-200">
+        <tbody className="bg-gray-800 divide-y divide-gray-700">
           {payments.map((payment) => (
-            <tr key={payment.id}>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-yellow-600">{payment.id}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 flex items-center">
-                <FiUser className="mr-2 text-white" /> {payment.customer}
+            <tr key={payment.id} className="hover:bg-gray-750">
+              <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm font-medium text-yellow-500">{payment.id}</td>
+              <td className="px-4 md:px-6 py-4 text-sm text-gray-100">
+                <div className="flex items-center">
+                  <FiUser className="mr-2" /> {payment.customer}
+                </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 flex items-center">
-                <FiDollarSign className="mr-1 text-white" /> ₦{payment.amount.toLocaleString()}
+              <td className="px-4 md:px-6 py-4 text-sm text-gray-100 hidden md:table-cell">
+                <div className="flex items-center">
+                  <FiDollarSign className="mr-1" /> ₦{payment.amount.toLocaleString()}
+                </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-yellow-600">{payment.orderId}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-white flex items-center">
-                <FiCalendar className="mr-1" /> {payment.date}
+              <td className="px-4 md:px-6 py-4 text-sm text-yellow-500 hidden lg:table-cell">
+                {payment.orderId}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-white flex items-center">
-                <FiCreditCard className="mr-1" /> {payment.method}
+              <td className="px-4 md:px-6 py-4 text-sm text-gray-100">
+                <div className="flex items-center">
+                  <FiCalendar className="mr-1" /> {payment.date}
+                </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm">{getStatusBadge(payment.status)}</td>
+              <td className="px-4 md:px-6 py-4 text-sm text-gray-100 hidden xl:table-cell">
+                <div className="flex items-center">
+                  <FiCreditCard className="mr-1" /> {payment.method}
+                </div>
+              </td>
+              <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm">
+                {getStatusBadge(payment.status)}
+              </td>
+              <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <div className="flex space-x-3">
+                  <button className="text-yellow-500 hover:text-yellow-400">Details</button>
+                  <button className="text-blue-500 hover:text-blue-400">Actions</button>
+                </div>
+              </td>
             </tr>
           ))}
         </tbody>

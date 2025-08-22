@@ -1,64 +1,117 @@
-import { FiEdit, FiTruck, FiPrinter, FiDollarSign, FiCheckCircle } from 'react-icons/fi'
+"use client";
+import React, { useState } from 'react';
+import { Search, Filter, Calendar, Eye, Edit, Truck, Printer, CheckCircle, DollarSign, MoreVertical } from 'lucide-react';
 
-export default function OrdersTable() {
-  // Sample orders data
-  const orders = [
-    { id: 'ORD-1248', customer: 'John Doe', product: 'Business Cards', amount: 45000, status: 'Processing', vendor: 'PrintHub Lagos', date: '2023-06-15' },
-    { id: 'ORD-1247', customer: 'Sarah Smith', product: 'Banner Stand', amount: 125000, status: 'Design Review', vendor: 'SignMaster', date: '2023-06-14' },
-    { id: 'ORD-1246', customer: 'Mike Johnson', product: 'Flyers (500)', amount: 65000, status: 'Shipped', vendor: 'QuickPrint', date: '2023-06-13' },
-    { id: 'ORD-1245', customer: 'Emma Wilson', product: 'Stickers', amount: 32000, status: 'Delivered', vendor: 'StickerPro', date: '2023-06-12' },
-    { id: 'ORD-1244', customer: 'David Brown', product: 'Brochures', amount: 89000, status: 'Processing', vendor: 'PrintHub Lagos', date: '2023-06-11' }
-  ]
-
+// Orders Table Component
+function OrdersTable({ filteredOrders }) {
   const getStatusBadge = (status) => {
-    const baseClasses = "px-2 py-1 text-xs rounded-full"
+    const baseClasses = "inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium";
     switch(status) {
       case 'Processing':
-        return <span className={`${baseClasses} bg-blue-100 text-blue-800`}><FiPrinter className="inline mr-1" /> {status}</span>
+        return <span className={`${baseClasses} bg-blue-500/20 text-blue-400 border border-blue-500/30`}><Printer size={12} /> {status}</span>
       case 'Design Review':
-        return <span className={`${baseClasses} bg-purple-100 text-purple-800`}><FiEdit className="inline mr-1" /> {status}</span>
+        return <span className={`${baseClasses} bg-purple-500/20 text-purple-400 border border-purple-500/30`}><Edit size={12} /> {status}</span>
       case 'Shipped':
-        return <span className={`${baseClasses} bg-yellow-100 text-yellow-800`}><FiTruck className="inline mr-1" /> {status}</span>
+        return <span className={`${baseClasses} bg-yellow-500/20 text-yellow-400 border border-yellow-500/30`}><Truck size={12} /> {status}</span>
       case 'Delivered':
-        return <span className={`${baseClasses} bg-green-100 text-green-800`}><FiCheckCircle className="inline mr-1" /> {status}</span>
+        return <span className={`${baseClasses} bg-green-500/20 text-green-400 border border-green-500/30`}><CheckCircle size={12} /> {status}</span>
       default:
-        return <span className={`${baseClasses} bg-gray-100 text-gray-800`}>{status}</span>
+        return <span className={`${baseClasses} bg-gray-500/20 text-gray-400 border border-gray-500/30`}>{status}</span>
     }
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-800">
-          <tr>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Order ID</th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Customer</th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Product</th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Amount</th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Status</th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Vendor</th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Date</th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="bg-gray-800 divide-y divide-gray-200">
-          {orders.map((order) => (
-            <tr key={order.id}>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-yellow-600">{order.id}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-white">{order.customer}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-white">{order.product}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-white">₦{order.amount.toLocaleString()}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm">{getStatusBadge(order.status)}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-white">{order.vendor}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-white">{order.date}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <button className="text-yellow-600 hover:text-yellow-900 mr-3">View</button>
-                <button className="text-blue-600 hover:text-blue-900">Edit</button>
-              </td>
+    <div className="overflow-hidden">
+      {/* Desktop Table View */}
+      <div className="hidden lg:block overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-gray-700">
+              <th className="text-left p-4 text-sm font-semibold text-gray-300 uppercase tracking-wider">Order ID</th>
+              <th className="text-left p-4 text-sm font-semibold text-gray-300 uppercase tracking-wider">Customer</th>
+              <th className="text-left p-4 text-sm font-semibold text-gray-300 uppercase tracking-wider">Product</th>
+              <th className="text-left p-4 text-sm font-semibold text-gray-300 uppercase tracking-wider">Amount</th>
+              <th className="text-left p-4 text-sm font-semibold text-gray-300 uppercase tracking-wider">Status</th>
+              <th className="text-left p-4 text-sm font-semibold text-gray-300 uppercase tracking-wider">Vendor</th>
+              <th className="text-left p-4 text-sm font-semibold text-gray-300 uppercase tracking-wider">Date</th>
+              <th className="text-left p-4 text-sm font-semibold text-gray-300 uppercase tracking-wider">Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-gray-700">
+            {filteredOrders.map((order) => (
+              <tr key={order.id} className="hover:bg-gray-700/50 transition-colors">
+                <td className="p-4 text-sm font-mono text-yellow-400 font-medium">{order.id}</td>
+                <td className="p-4 text-sm text-gray-100">{order.customer}</td>
+                <td className="p-4 text-sm text-gray-100">{order.product}</td>
+                <td className="p-4 text-sm text-gray-100 font-semibold">₦{order.amount.toLocaleString()}</td>
+                <td className="p-4">{getStatusBadge(order.status)}</td>
+                <td className="p-4 text-sm text-gray-300">{order.vendor}</td>
+                <td className="p-4 text-sm text-gray-300">{new Date(order.date).toLocaleDateString()}</td>
+                <td className="p-4">
+                  <div className="flex items-center gap-2">
+                    <button className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors">
+                      <Eye size={16} />
+                    </button>
+                    <button className="p-2 text-yellow-400 hover:bg-yellow-500/20 rounded-lg transition-colors">
+                      <Edit size={16} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="lg:hidden space-y-4 p-4">
+        {filteredOrders.map((order) => (
+          <div key={order.id} className="bg-gray-700/50 rounded-xl p-4 space-y-3 backdrop-blur-sm border border-gray-600/50">
+            <div className="flex items-center justify-between">
+              <span className="text-yellow-400 font-mono font-semibold text-sm">{order.id}</span>
+              <button className="p-1 text-gray-400 hover:text-white">
+                <MoreVertical size={16} />
+              </button>
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-300 text-sm">Customer</span>
+                <span className="text-white font-medium">{order.customer}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-300 text-sm">Product</span>
+                <span className="text-white">{order.product}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-300 text-sm">Amount</span>
+                <span className="text-white font-semibold">₦{order.amount.toLocaleString()}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-300 text-sm">Vendor</span>
+                <span className="text-gray-100">{order.vendor}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-300 text-sm">Date</span>
+                <span className="text-gray-100">{new Date(order.date).toLocaleDateString()}</span>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between pt-2 border-t border-gray-600">
+              {getStatusBadge(order.status)}
+              <div className="flex items-center gap-2">
+                <button className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors">
+                  <Eye size={16} />
+                </button>
+                <button className="p-2 text-yellow-400 hover:bg-yellow-500/20 rounded-lg transition-colors">
+                  <Edit size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
-  )
+  );
 }
+export default OrdersTable;

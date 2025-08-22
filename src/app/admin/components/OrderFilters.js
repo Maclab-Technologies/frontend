@@ -1,43 +1,58 @@
-import { FiSearch, FiFilter, FiCalendar } from 'react-icons/fi'
+"use client"
+import { useState } from "react"
+import { FiSearch, FiFilter, FiCalendar, FiDollarSign } from 'react-icons/fi'
 
-export default function OrderFilters() {
+export default function OrderFilters({ onFilterChange }) {
+  const [filters, setFilters] = useState({
+    search: '',
+    status: '',
+    date: '',
+    vendor: ''
+  });
+
+  const handleFilterChange = (key, value) => {
+    const newFilters = { ...filters, [key]: value };
+    setFilters(newFilters);
+    onFilterChange(newFilters);
+  };
+
   return (
-    <div className="bg-gray-800 p-4 rounded-lg shadow mb-6">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div className="bg-gray-800/80 backdrop-blur-sm p-6 rounded-2xl shadow-xl border border-gray-700/50 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Search Input */}
         <div className="relative">
           <input
             type="text"
             placeholder="Search orders..."
-            className="p-4 block w-full rounded-md border-gray-300 shadow-sm text-black focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm"
+            value={filters.search}
+            onChange={(e) => handleFilterChange('search', e.target.value)}
+            className="w-full p-3 pl-10 bg-gray-700/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 transition-all"
           />
-          <div className="absolute inset-y-0 right-5 pl-3 flex items-center pointer-events-none">
-            <FiSearch className="text-black" />
-          </div>
+          <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
         </div>
 
         {/* Status Filter */}
         <div className="relative">
           <select
-            className="p-4 block w-full rounded-md border-gray-300 text-black shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm"
-            defaultValue=""
+            value={filters.status}
+            onChange={(e) => handleFilterChange('status', e.target.value)}
+            className="w-full p-3 pl-10 bg-gray-700/50 border border-gray-600 rounded-xl text-white focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 transition-all appearance-none"
           >
             <option value="">All Statuses</option>
-            <option value="processing">Processing</option>
-            <option value="design_review">Design Review</option>
-            <option value="shipped">Shipped</option>
-            <option value="delivered">Delivered</option>
+            <option value="Processing">Processing</option>
+            <option value="Design Review">Design Review</option>
+            <option value="Shipped">Shipped</option>
+            <option value="Delivered">Delivered</option>
           </select>
-          <div className="absolute inset-y-0 right-10 pl-3 flex items-center pointer-events-none">
-            <FiFilter className="text-gray-700" />
-          </div>
+          <FiFilter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
         </div>
 
         {/* Date Filter */}
         <div className="relative">
           <select
-            className="p-4 block w-full rounded-md border-gray-300 shadow-sm text-black focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm"
-            defaultValue=""
+            value={filters.date}
+            onChange={(e) => handleFilterChange('date', e.target.value)}
+            className="w-full p-3 pl-10 bg-gray-700/50 border border-gray-600 rounded-xl text-white focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 transition-all appearance-none"
           >
             <option value="">All Dates</option>
             <option value="today">Today</option>
@@ -45,23 +60,25 @@ export default function OrderFilters() {
             <option value="month">This Month</option>
             <option value="custom">Custom Range</option>
           </select>
-          <div className="absolute inset-y-0 right-10 pl-3 flex items-center pointer-events-none">
-            <FiCalendar className="text-gray-700" />
-          </div>
+          <FiCalendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
         </div>
 
         {/* Vendor Filter */}
-        <select
-          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 text-black focus:ring-yellow-500 sm:text-sm"
-          defaultValue=""
-        >
-          <option value="">All Vendors</option>
-          <option value="printhub">PrintHub Lagos</option>
-          <option value="signmaster">SignMaster</option>
-          <option value="quickprint">QuickPrint</option>
-          <option value="stickerpro">StickerPro</option>
-        </select>
+        <div className="relative">
+          <select
+            value={filters.vendor}
+            onChange={(e) => handleFilterChange('vendor', e.target.value)}
+            className="w-full p-3 pl-10 bg-gray-700/50 border border-gray-600 rounded-xl text-white focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 transition-all appearance-none"
+          >
+            <option value="">All Vendors</option>
+            <option value="PrintHub Lagos">PrintHub Lagos</option>
+            <option value="SignMaster">SignMaster</option>
+            <option value="QuickPrint">QuickPrint</option>
+            <option value="StickerPro">StickerPro</option>
+          </select>
+          <FiDollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+        </div>
       </div>
     </div>
-  )
+  );
 }

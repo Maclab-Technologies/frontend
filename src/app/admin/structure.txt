@@ -1,8 +1,6 @@
 59Minutes Print New files and Folder structure this is it if you want to consume API app/
 ├── Admin/
-│   ├── auth/
-│   │   └── login/
-│   │       └── page.js
+│   
 │   ├── Dashboard/
 │   │   └── page.js
 │   ├── orders/
@@ -49,4 +47,3 @@
 │   /├── context/
 │   │/   └── AdminContext.js
 │   ├/── layout.js
-│   └/── page.js

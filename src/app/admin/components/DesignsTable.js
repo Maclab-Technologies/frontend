@@ -1,6 +1,24 @@
-import { FiImage, FiUser, FiCalendar, FiCheck, FiX, FiEdit } from 'react-icons/fi'
+// components/DesignsTable.js
+"use client";
+import { FiImage, FiUser, FiCalendar, FiCheck, FiX, FiEdit, FiEye, FiClipboard } from 'react-icons/fi'
+import { useState, useEffect } from 'react'
 
 export default function DesignsTable() {
+  const [isMobile, setIsMobile] = useState(false)
+  
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    
+    checkIsMobile()
+    window.addEventListener('resize', checkIsMobile)
+    
+    return () => {
+      window.removeEventListener('resize', checkIsMobile)
+    }
+  }, [])
+  
   // Sample designs data
   const designs = [
     { id: 'DSN-3001', name: 'Business Card V1', customer: 'John Doe', uploaded: '2023-06-10', status: 'Approved', revisions: 0 },
@@ -26,38 +44,93 @@ export default function DesignsTable() {
     }
   }
 
+  // Mobile card view
+  if (isMobile) {
+    return (
+      <div className="p-4">
+        {designs.map((design) => (
+          <div key={design.id} className="mb-4 p-4 bg-gray-700 rounded-lg shadow">
+            <div className="flex justify-between items-start mb-3">
+              <div>
+                <div className="text-yellow-500 font-medium text-sm">{design.id}</div>
+                <div className="text-white font-medium flex items-center mt-1">
+                  <FiImage className="mr-2" /> {design.name}
+                </div>
+              </div>
+              <div className="text-right">
+                {getStatusBadge(design.status)}
+                <div className="text-xs text-gray-400 mt-1">Revisions: {design.revisions}</div>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="flex items-center text-gray-300">
+                <FiUser className="mr-2" /> {design.customer}
+              </div>
+              <div className="flex items-center text-gray-300">
+                <FiCalendar className="mr-2" /> {design.uploaded}
+              </div>
+            </div>
+            
+            <div className="flex justify-between mt-4 pt-3 border-t border-gray-600">
+              <button className="text-yellow-500 hover:text-yellow-400 text-sm flex items-center">
+                <FiEye className="mr-1" /> Preview
+              </button>
+              <button className="text-blue-500 hover:text-blue-400 text-sm flex items-center">
+                <FiClipboard className="mr-1" /> Review
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  // Desktop table view
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200">
+      <table className="min-w-full divide-y divide-gray-700">
         <thead className="bg-gray-800">
           <tr>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Design ID</th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Design</th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Customer</th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Uploaded</th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Status</th>
-            {/* <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Revisions</th> */}
-            {/* <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Actions</th> */}
+            <th scope="col" className="px-4 md:px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Design ID</th>
+            <th scope="col" className="px-4 md:px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Design</th>
+            <th scope="col" className="px-4 md:px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider hidden md:table-cell">Customer</th>
+            <th scope="col" className="px-4 md:px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider hidden lg:table-cell">Uploaded</th>
+            <th scope="col" className="px-4 md:px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Status</th>
+            <th scope="col" className="px-4 md:px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider hidden xl:table-cell">Revisions</th>
+            <th scope="col" className="px-4 md:px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Actions</th>
           </tr>
         </thead>
-        <tbody className="bg-gray700 divide-y divide-gray-500">
+        <tbody className="bg-gray-800 divide-y divide-gray-700">
           {designs.map((design) => (
-            <tr key={design.id}>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-yellow-600">{design.id}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-100 flex items-center">
-                <FiImage className="mr-2 text-gray-100" /> {design.name}
+            <tr key={design.id} className="hover:bg-gray-750">
+              <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm font-medium text-yellow-500">{design.id}</td>
+              <td className="px-4 md:px-6 py-4 text-sm text-gray-100">
+                <div className="flex items-center">
+                  <FiImage className="mr-2" /> {design.name}
+                </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-100 flex items-center">
-                <FiUser className="mr-1" /> {design.customer}
+              <td className="px-4 md:px-6 py-4 text-sm text-gray-100 hidden md:table-cell">
+                <div className="flex items-center">
+                  <FiUser className="mr-1" /> {design.customer}
+                </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-100 flex items-center">
-                <FiCalendar className="mr-1" /> {design.uploaded}
+              <td className="px-4 md:px-6 py-4 text-sm text-gray-100 hidden lg:table-cell">
+                <div className="flex items-center">
+                  <FiCalendar className="mr-1" /> {design.uploaded}
+                </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm">{getStatusBadge(design.status)}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-100">{design.revisions}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <button className="text-yellow-600 hover:text-yellow-900 mr-3">Preview</button>
-                <button className="text-blue-600 hover:text-blue-900">Review</button>
+              <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm">
+                {getStatusBadge(design.status)}
+              </td>
+              <td className="px-4 md:px-6 py-4 text-sm text-gray-100 hidden xl:table-cell">
+                {design.revisions}
+              </td>
+              <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <div className="flex space-x-3">
+                  <button className="text-yellow-500 hover:text-yellow-400">Preview</button>
+                  <button className="text-blue-500 hover:text-blue-400">Review</button>
+                </div>
               </td>
             </tr>
           ))}
