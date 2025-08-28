@@ -1,9 +1,40 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { AuthContext } from '@/app/context/useAuth';
 import { Search, Filter, Calendar, Eye, Edit, Truck, Printer, CheckCircle, DollarSign, MoreVertical } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 // Orders Table Component
-function OrdersTable({ filteredOrders }) {
+const OrdersTable = ({ filterQueries }) => {
+  const { token } = useContext(AuthContext);
+  const [filteredOrders, setFilteredOrders] = useState([])
+
+    useEffect(() => {
+      const fetchOrders = async () => {
+        let secret = token
+          ? token
+          : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4OTdjYzg3ODZlYWExM2VmZjk0ZGE1OSIsInJvbGUiOiJhZG1pbiIsInBlcm1pc3Npb25zIjp7ImNhbk1hbmFnZVByb2R1Y3RzIjpmYWxzZSwiY2FuTWFuYWdlVXNlcnMiOmZhbHNlLCJjYW5NYW5hZ2VWZW5kb3JzIjpmYWxzZSwiY2FuTWFuYWdlT3JkZXJzIjpmYWxzZSwiY2FuTWFuYWdlQ29udGVudCI6ZmFsc2UsImNhblZpZXdBbmFseXRpY3MiOmZhbHNlfSwiaWF0IjoxNzU2MTM1NjE2LCJleHAiOjE3NTYyMjIwMTZ9.2Gjepd-IQdm_QjB-zl84O8iEA_sRIFoecfCATOBJS0w";
+  
+        try {
+          const res = await get("/admin/orders", { token: secret });
+  
+          if (res.success) {
+            const data = res.data;
+            if(data.data.length !== 0){
+              setFilteredOrders(data?.data)
+            } else {
+              toast.warning('No order found')
+            }   
+          }
+        } catch (error) {
+          console.error("Fetch Error: ", error);
+          toast.error("Failed to fetch order");
+        }
+      };
+  
+      fetchOrders();
+    }, [token, filterQueries]);
+
   const getStatusBadge = (status) => {
     const baseClasses = "inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium";
     switch(status) {

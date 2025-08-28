@@ -4,12 +4,10 @@ import { useState, useEffect, useContext } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
-import { useAuth } from "../hooks/useAuth"; // Changed import
-import { signOut } from "firebase/auth";
-import { auth } from "../utils/firebaseconfig";
-import VendorNavLayout from "../Layout/vendor-layout";
-import ClientNavLayout from "../Layout/client-layout";
-import AdminNavLayout from "../Layout/admin-layout";
+import { useAuth } from "../context/useAuth"; // Changed import
+import VendorNavLayout from "../layout/vendor-layout";
+import ClientNavLayout from "../layout/client-layout";
+import AdminNavLayout from "../layout/admin-layout";
 
 const Navbar = () => {
   const router = useRouter();
@@ -26,11 +24,11 @@ const Navbar = () => {
     logoutUser 
   } = useAuth();
 
-  const pathname = usePathname();
+  // const pathname = usePathname();
 
-  const isVendor = pathname.startsWith("/Vendor");
-  const isAdmin = pathname.startsWith("/admin");
-  const isAuth = pathname.startsWith("/Auth");
+  // const isVendor = pathname.startsWith("/Vendor");
+  // const isAdmin = pathname.startsWith("/admin");
+  // const isAuth = pathname.startsWith("/Auth");
 
   const cartCount = cartItems.length;
 
@@ -47,30 +45,30 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  if (isAdmin) {
-    return (
-      <AdminNavLayout
-        isMobileMenuOpen={isMobileMenuOpen}
-        setIsMobileMenuOpen={setIsMobileMenuOpen}
-        handleLogout={logoutUser}
-        authUser={authUser}
-      />
-    );
-  }
+  // if (isAdmin) {
+  //   return (
+  //     <AdminNavLayout
+  //       isMobileMenuOpen={isMobileMenuOpen}
+  //       setIsMobileMenuOpen={setIsMobileMenuOpen}
+  //       handleLogout={logoutUser}
+  //       authUser={authUser}
+  //     />
+  //   );
+  // }
   
-  if (isVendor) {
-    return (
-      <VendorNavLayout
-        isMobileMenuOpen={isMobileMenuOpen}
-        setIsMobileMenuOpen={setIsMobileMenuOpen}
-        handleLogout={logoutUser}
-      />
-    );
-  }
+  // if (isVendor) {
+  //   return (
+  //     <VendorNavLayout
+  //       isMobileMenuOpen={isMobileMenuOpen}
+  //       setIsMobileMenuOpen={setIsMobileMenuOpen}
+  //       handleLogout={logoutUser}
+  //     />
+  //   );
+  // }
   
-  if (isAuth) {
-    return null;
-  }
+  // if (isAuth) {
+  //   return null;
+  // }
   
   return (
     <ClientNavLayout
@@ -81,7 +79,6 @@ const Navbar = () => {
       isLoggedIn={isLoggedIn}
       handleLogout={logoutUser}
       cartCount={cartCount}
-      pathname={pathname}
       Link={Link}
     /> 
   );

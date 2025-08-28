@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useContext } from "react";
 import { FiX } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
-import { AuthContext } from "@/app/hooks/useAuth";
+import { AuthContext } from "@/app/context/useAuth";
 
 export default function CheckoutModal({ params }) {
   const router = useRouter();

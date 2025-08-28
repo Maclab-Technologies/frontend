@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { FiUser, FiEdit, FiCheckCircle, FiTruck, FiShoppingCart, FiMoreHorizontal, FiFilter } from 'react-icons/fi'
 
-export default function RecentActivity({ activities: propActivities }) {
+export default function RecentActivity() {
   const [filter, setFilter] = useState('all')
   
   const defaultActivities = [
@@ -16,7 +16,7 @@ export default function RecentActivity({ activities: propActivities }) {
     { id: 7, user: 'Maria Garcia', action: 'cancelled order', time: '5 hours ago', orderId: '#ORD-1243', icon: <FiShoppingCart className="w-4 h-4" />, type: 'order', status: 'cancelled' }
   ]
 
-  const activities = propActivities || defaultActivities
+  const activities = defaultActivities
 
   const getIconBgColor = (type, status) => {
     switch (type) {

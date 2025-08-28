@@ -1,7 +1,15 @@
+"use client";
+import { useContext } from 'react'
+import { AuthContext } from '@/app/context/useAuth'
+import { AdminAuth } from '@/app/context/useAuthContext'
 import PaymentsTable from '../components/PaymentsTable'
 import RevenueSummary from '../components/RevenueSummary'
 
 export default function PaymentsPage() {
+    // const {role, isLoggedIn, isLoading, authUser } = useContext(AuthContext)
+    // AdminAuth( role, isLoggedIn, isLoading, authUser);
+      AdminAuth()
+    
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">

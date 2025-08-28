@@ -1,13 +1,16 @@
-"use client"
-import { useState } from "react"
-import { FiSearch, FiFilter, FiCalendar, FiDollarSign } from 'react-icons/fi'
+"use client";
+import { get } from "@/app/hooks/fetch-hook";
+import { useEffect, useState } from "react";
+import { FiSearch, FiFilter, FiCalendar, FiDollarSign } from "react-icons/fi";
+import { toast } from "react-toastify";
 
 export default function OrderFilters({ onFilterChange }) {
+
   const [filters, setFilters] = useState({
-    search: '',
-    status: '',
-    date: '',
-    vendor: ''
+    search: "",
+    status: "",
+    date: "",
+    vendor: "",
   });
 
   const handleFilterChange = (key, value) => {
@@ -25,17 +28,20 @@ export default function OrderFilters({ onFilterChange }) {
             type="text"
             placeholder="Search orders..."
             value={filters.search}
-            onChange={(e) => handleFilterChange('search', e.target.value)}
+            onChange={(e) => handleFilterChange("search", e.target.value)}
             className="w-full p-3 pl-10 bg-gray-700/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 transition-all"
           />
-          <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+          <FiSearch
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+            size={18}
+          />
         </div>
 
         {/* Status Filter */}
         <div className="relative">
           <select
             value={filters.status}
-            onChange={(e) => handleFilterChange('status', e.target.value)}
+            onChange={(e) => handleFilterChange("status", e.target.value)}
             className="w-full p-3 pl-10 bg-gray-700/50 border border-gray-600 rounded-xl text-white focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 transition-all appearance-none"
           >
             <option value="">All Statuses</option>
@@ -44,14 +50,17 @@ export default function OrderFilters({ onFilterChange }) {
             <option value="Shipped">Shipped</option>
             <option value="Delivered">Delivered</option>
           </select>
-          <FiFilter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+          <FiFilter
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+            size={18}
+          />
         </div>
 
         {/* Date Filter */}
         <div className="relative">
           <select
             value={filters.date}
-            onChange={(e) => handleFilterChange('date', e.target.value)}
+            onChange={(e) => handleFilterChange("date", e.target.value)}
             className="w-full p-3 pl-10 bg-gray-700/50 border border-gray-600 rounded-xl text-white focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 transition-all appearance-none"
           >
             <option value="">All Dates</option>
@@ -60,14 +69,17 @@ export default function OrderFilters({ onFilterChange }) {
             <option value="month">This Month</option>
             <option value="custom">Custom Range</option>
           </select>
-          <FiCalendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+          <FiCalendar
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+            size={18}
+          />
         </div>
 
         {/* Vendor Filter */}
         <div className="relative">
           <select
             value={filters.vendor}
-            onChange={(e) => handleFilterChange('vendor', e.target.value)}
+            onChange={(e) => handleFilterChange("vendor", e.target.value)}
             className="w-full p-3 pl-10 bg-gray-700/50 border border-gray-600 rounded-xl text-white focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 transition-all appearance-none"
           >
             <option value="">All Vendors</option>
@@ -76,7 +88,10 @@ export default function OrderFilters({ onFilterChange }) {
             <option value="QuickPrint">QuickPrint</option>
             <option value="StickerPro">StickerPro</option>
           </select>
-          <FiDollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+          <FiDollarSign
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+            size={18}
+          />
         </div>
       </div>
     </div>

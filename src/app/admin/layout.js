@@ -1,6 +1,7 @@
+"use client"
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import SideNav from "./UI/sidenav";
+import SideNav from "./components/UI/sidenav";
 
 const AdminLayout = ({ children }) => {
   return (

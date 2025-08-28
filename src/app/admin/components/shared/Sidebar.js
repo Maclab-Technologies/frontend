@@ -2,8 +2,11 @@
 import { FiHome, FiShoppingCart, FiUsers, FiTruck, FiImage, FiDollarSign, FiCreditCard, FiSettings, FiLogOut } from 'react-icons/fi'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useContext } from 'react'
+import { AuthContext } from '@/app/context/useAuth'
 
 export default function Sidebar() {
+  const {logout} = useContext(AuthContext)
   const pathname = usePathname()
   
   const navItems = [
