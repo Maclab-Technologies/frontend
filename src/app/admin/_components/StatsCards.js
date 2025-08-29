@@ -26,9 +26,8 @@ export default function StatsCards() {
     const fetchStatsData = async () => {
       setLoading(true);
       let secret = token
-        ? token
-        : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4OTdjYzg3ODZlYWExM2VmZjk0ZGE1OSIsInJvbGUiOiJhZG1pbiIsInBlcm1pc3Npb25zIjp7ImNhbk1hbmFnZVByb2R1Y3RzIjpmYWxzZSwiY2FuTWFuYWdlVXNlcnMiOmZhbHNlLCJjYW5NYW5hZ2VWZW5kb3JzIjpmYWxzZSwiY2FuTWFuYWdlT3JkZXJzIjpmYWxzZSwiY2FuTWFuYWdlQ29udGVudCI6ZmFsc2UsImNhblZpZXdBbmFseXRpY3MiOmZhbHNlfSwiaWF0IjoxNzU2Mzg3NjM3LCJleHAiOjE3NTY0NzQwMzd9.2CtR7gj0gIoHJMJzI2fa7LMHU8EJDh3YwqwwhVUo8C4";
-
+        ? token : process.env.NEXT_PUBLIC_TOKEN;
+        
       try {
         if (!secret) {
           throw new Error("No token found");
@@ -66,7 +65,7 @@ export default function StatsCards() {
             if (growth.orderGrowth !== undefined) {
               setOrderGrowth(growth.orderGrowth);
             } else {
-              setError((prev) => ({
+              setError.orderGrowth((prev) => ({
                 ...prev,
                 orderGrowth: "Order growth data missing",
               }));
@@ -129,12 +128,11 @@ export default function StatsCards() {
     };
     fetchStatsData();
   }, [batchRequests, token]);
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-5">
       <div className="bg-gray-800 p-6 rounded-lg shadow">
-        {loading ? (
-          <LoadingErrorHandler loading={loading} error={error.overview} />
-        ) : (
+        <LoadingErrorHandler loading={loading} error={error.orderGrowth || error.overview}>
           <div className="flex flex-col">
             <div className="w-fit p2 bg-white rounded-full text-yellow-600">
               <FiPackage />
@@ -146,31 +144,27 @@ export default function StatsCards() {
               </p>
               <p
                 className={`text-sm mt-1 ${
-                  userGrowth.growthRate?.toString().startsWith("")
-                    ? "text-gray-50"
-                    : userGrowth.growthRate?.toString().startsWith("+")
-                      ? "text-green-600"
-                      : userGrowth.growthRate?.toString().startsWith("-")
-                        ? "text-red-600"
-                        : "text-gray-500"
+                  userGrowth.growthRate?.toString().startsWith("+")
+                    ? "text-green-600"
+                    : userGrowth.growthRate?.toString().startsWith("-")
+                      ? "text-red-600"
+                      : "text-gray-50"
                 }`}
               >
                 {orderGrowth.growthRate || "NAN"}% l-m
               </p>
             </div>
           </div>
-        )}
+        </LoadingErrorHandler>
       </div>
 
       <div className="bg-gray-800 p-6 rounded-lg shadow">
-        {loading ? (
-          <LoadingErrorHandler loading={loading} error={error.userGrowth} />
-        ) : (
+        <LoadingErrorHandler loading={loading} error={error.userGrowth || error.overview}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-white">Total Users</p>
               <p className="text-2xl font-bold mt-1">
-                {overview.totalOrders || "NAN"}
+                {overview.totalUsers || "NAN"}
               </p>
               <p
                 className={`text-sm mt-1 ${
@@ -188,13 +182,11 @@ export default function StatsCards() {
               <FiUsers className="h-6 w-6" />
             </div>
           </div>
-        )}
+        </LoadingErrorHandler>
       </div>
 
       <div className="bg-gray-800 p-6 rounded-lg shadow">
-        {loading ? (
-          <LoadingErrorHandler loading={loading} error={error.vendorGrowth} />
-        ) : (
+        <LoadingErrorHandler loading={loading} error={error.vendorGrowth || error.overview}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-white">Total Vendors</p>
@@ -210,20 +202,18 @@ export default function StatsCards() {
                       : "text-gray-50"
                 }`}
               >
-                {vendorGrowth.growthRate | "NAN"}% l-m
+                {vendorGrowth.growthRate || "NAN"}% l-m
               </p>
             </div>
             <div className="p-3 rounded-full bg-yellow-50 text-yellow-600">
               <FiTruck className="h-6 w-6" />
             </div>
           </div>
-        )}
+        </LoadingErrorHandler>
       </div>
 
       <div className="bg-gray-800 p-6 rounded-lg shadow">
-        {loading ? (
-          <LoadingErrorHandler loading={loading} error={error.revenueGrowth} />
-        ) : (
+        <LoadingErrorHandler loading={loading} error={error.revenueGrowth || error.overview}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-white">Total Revenue</p>
@@ -246,7 +236,7 @@ export default function StatsCards() {
               <FiDollarSign className="h-6 w-6" />
             </div>
           </div>
-        )}
+        </LoadingErrorHandler>
       </div>
     </div>
   );

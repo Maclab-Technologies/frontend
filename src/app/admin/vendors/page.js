@@ -1,4 +1,4 @@
-import VendorsTable from "../components/VendorsTable";
+import VendorsTable from "../_components/VendorsTable";
 
 export const metadata = {
   title: 'Vendors Management | Admin',

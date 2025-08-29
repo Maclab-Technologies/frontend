@@ -1,5 +1,5 @@
 import { AdminAuth } from "@/app/context/useAuthMiddleware";
-import UsersTable from "../components/UsersTable";
+import UsersTable from "../_components/UsersTable";
 
 export const metadata = {
   title: 'Users Management | Admin',

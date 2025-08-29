@@ -1,5 +1,5 @@
-import Sidebar from "../admin/components/shared/Sidebar";
-import SideNav from "../admin/components/UI/sidenav";
+import Sidebar from "../admin/_components/shared/Sidebar";
+import SideNav from "../admin/_components/UI/sidenav";
 
 export default function AdminNavLayout(children) {
   return (

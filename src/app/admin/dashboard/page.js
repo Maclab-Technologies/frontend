@@ -1,6 +1,6 @@
-import StatsCards from "../components/StatsCards";
-import ActivityGraph from "../components/ActivityGraph";
-import RecentActivity from "../components/RecentActivity";
+import StatsCards from "../_components/StatsCards";
+import ActivityGraph from "../_components/ActivityGraph";
+import RecentActivity from "../_components/RecentActivity";
 import { AdminAuth } from "@/app/context/useAuthMiddleware";
 
 export const metadata = {

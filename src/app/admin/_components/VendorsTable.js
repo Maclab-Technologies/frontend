@@ -11,6 +11,7 @@ import {
   FiXCircle,
   FiEdit2,
 } from "react-icons/fi";
+import LoadingErrorHandler from "@/app/components/LoadingErrorHandler";
 
 export default function VendorsTable() {
   const [vendors, setVendors] = useState([]);
@@ -21,10 +22,8 @@ export default function VendorsTable() {
 
   useEffect(() => {
     const fetchOrders = async () => {
-      let secret = token
-        ? token
-        : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4OTdjYzg3ODZlYWExM2VmZjk0ZGE1OSIsInJvbGUiOiJhZG1pbiIsInBlcm1pc3Npb25zIjp7ImNhbk1hbmFnZVByb2R1Y3RzIjpmYWxzZSwiY2FuTWFuYWdlVXNlcnMiOmZhbHNlLCJjYW5NYW5hZ2VWZW5kb3JzIjpmYWxzZSwiY2FuTWFuYWdlT3JkZXJzIjpmYWxzZSwiY2FuTWFuYWdlQ29udGVudCI6ZmFsc2UsImNhblZpZXdBbmFseXRpY3MiOmZhbHNlfSwiaWF0IjoxNzU2Mzg3NjM3LCJleHAiOjE3NTY0NzQwMzd9.2CtR7gj0gIoHJMJzI2fa7LMHU8EJDh3YwqwwhVUo8C4";
-
+      setLoading(true);
+      let secret = token ? token : process.env.NEXT_PUBLIC_TOKEN;
       try {
         const res = await get(
           "/admin/vendors?page=1&limit=20&status=&verified=&search=&sortBy=createdAt&sortOrder=desc",
@@ -35,13 +34,18 @@ export default function VendorsTable() {
           const data = res.data;
           if (data.data.length !== 0) {
             setVendors(data?.data);
+            setLoading(false);
           } else {
             toast.warning("No vendor found");
+            setError("No vendor found");
+            setLoading(false);
           }
         }
       } catch (error) {
         console.error("Fetch Error: ", error);
         toast.error("Failed to fetch vendors");
+        setError("Failed to fetch vendors");
+        setLoading(false);
       }
     };
 
@@ -131,38 +135,41 @@ export default function VendorsTable() {
           </tr>
         </thead>
         <tbody className="bg-gray-800 divide-y divide-gray-500 text-white">
-          {vendors.map((vendor) => (
-            <tr key={vendor.id || vendor._id}>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-yellow-600">
-                {vendor.id || vendor._id}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-white flex items-center">
-                <FiTruck className="mr-2 text-gray-200" /> {vendor.businessName}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
-                <div className="flex items-center">
-                  <FiMail className="mr-1" /> {vendor.businessEmail}
-                </div>
-                <div className="flex items-center mt-1">
-                  <FiPhone className="mr-1" /> {vendor.businessPhoneNumber}
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
-                {vendor.totalSales}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm">
-                {getStatusBadge(vendor.verificationStatus)}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
-                {vendor.createdAt}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <button className="text-yellow-600 hover:text-yellow-900">
-                  <FiEdit2 className="inline mr-1" /> Manage
-                </button>
-              </td>
-            </tr>
-          ))}
+          <LoadingErrorHandler loading={loading} error={error}>
+            {vendors.map((vendor) => (
+              <tr key={vendor.id || vendor._id}>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-yellow-600">
+                  {vendor.id || vendor._id}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-white flex items-center">
+                  <FiTruck className="mr-2 text-gray-200" />{" "}
+                  {vendor.businessName}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
+                  <div className="flex items-center">
+                    <FiMail className="mr-1" /> {vendor.businessEmail}
+                  </div>
+                  <div className="flex items-center mt-1">
+                    <FiPhone className="mr-1" /> {vendor.businessPhoneNumber}
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
+                  {vendor.totalSales}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                  {getStatusBadge(vendor.verificationStatus)}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
+                  {vendor.createdAt}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <button className="text-yellow-600 hover:text-yellow-900">
+                    <FiEdit2 className="inline mr-1" /> Manage
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </LoadingErrorHandler>
         </tbody>
       </table>
     </div>

@@ -1,6 +1,6 @@
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import SideNav from "./components/UI/sidenav";
+import SideNav from "./_components/UI/sidenav";
 
 const AdminLayout = ({ children }) => {
   return (

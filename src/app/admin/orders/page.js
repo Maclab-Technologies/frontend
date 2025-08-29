@@ -1,6 +1,6 @@
 import { AdminAuth } from "@/app/context/useAuthMiddleware";
-import OrdersTable from "../components/OrdersTable";
-import OrderFilters from "../components/OrderFilters";
+import OrdersTable from "../_components/OrdersTable";
+import OrderFilters from "../_components/OrderFilters";
 
 export const metadata = {
   title: 'Orders Management | Admin',

@@ -1,5 +1,5 @@
 import { AuthContext } from "@/app/context/useAuth";
-import DesignsTable from "../components/DesignsTable";
+import DesignsTable from "../_components/DesignsTable";
 
 export const metadata = {
   title: 'Designs Management | Admin',

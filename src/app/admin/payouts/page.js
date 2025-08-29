@@ -1,6 +1,6 @@
 import { AdminAuth } from "@/app/context/useAuthMiddleware";
-import PayoutsTable from "../components/PayoutsTable";
-import PayoutSummary from "../components/PayoutSummary";
+import PayoutsTable from "../_components/PayoutsTable";
+import PayoutSummary from "../_components/PayoutSummary";
 
 export const metadata = {
   title: 'Payouts Management | Admin',

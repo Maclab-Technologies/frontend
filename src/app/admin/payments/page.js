@@ -1,6 +1,6 @@
 import { AdminAuth } from "@/app/context/useAuthMiddleware";
-import PaymentsTable from "../components/PaymentsTable";
-import RevenueSummary from "../components/RevenueSummary";
+import PaymentsTable from "../_components/PaymentsTable";
+import RevenueSummary from "../_components/RevenueSummary";
 
 export const metadata = {
   title: "Payments Overview | Admin",
