@@ -1,8 +1,10 @@
-"use client";
-import { useContext, useState } from "react";
 import { AuthContext } from "@/app/context/useAuth";
 import DesignsTable from "../components/DesignsTable";
 
+export const metadata = {
+  title: 'Designs Management | Admin',
+  description: 'Manage all designs from this admin panel',
+};
 export default function DesignsPage() {
   // AdminAuth();
   return (

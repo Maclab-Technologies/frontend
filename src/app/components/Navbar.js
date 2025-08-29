@@ -44,31 +44,6 @@ const Navbar = () => {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  // if (isAdmin) {
-  //   return (
-  //     <AdminNavLayout
-  //       isMobileMenuOpen={isMobileMenuOpen}
-  //       setIsMobileMenuOpen={setIsMobileMenuOpen}
-  //       handleLogout={logoutUser}
-  //       authUser={authUser}
-  //     />
-  //   );
-  // }
-  
-  // if (isVendor) {
-  //   return (
-  //     <VendorNavLayout
-  //       isMobileMenuOpen={isMobileMenuOpen}
-  //       setIsMobileMenuOpen={setIsMobileMenuOpen}
-  //       handleLogout={logoutUser}
-  //     />
-  //   );
-  // }
-  
-  // if (isAuth) {
-  //   return null;
-  // }
   
   return (
     <ClientNavLayout

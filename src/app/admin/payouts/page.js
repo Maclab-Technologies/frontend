@@ -1,9 +1,11 @@
-"use client";
-import { useContext } from "react";
-import { AuthContext } from "@/app/context/useAuth";
-import { AdminAuth } from "@/app/context/useAuthContext";
+import { AdminAuth } from "@/app/context/useAuthMiddleware";
 import PayoutsTable from "../components/PayoutsTable";
 import PayoutSummary from "../components/PayoutSummary";
+
+export const metadata = {
+  title: 'Payouts Management | Admin',
+  description: 'Manage all payouts from this admin panel',
+};
 
 export default function PayoutsPage() {
     // AdminAuth()

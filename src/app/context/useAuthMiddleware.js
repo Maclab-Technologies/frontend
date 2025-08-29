@@ -1,13 +1,13 @@
 "use client";
 import { useContext } from "react";
-import { useRouter } from "next/navigation"; // ⚠️ use next/navigation in Next.js 13+
+import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { AuthContext } from "./useAuth";
 import Loading from "../components/loading";
 
 function useAuthHelper() {
-  // const { role, isLoggedIn, isLoading, authUser } = useContext(AuthContext);
-  // const router = useRouter();
+  const { role, isLoggedIn, isLoading, authUser } = useContext(AuthContext);
+  const router = useRouter();
   return { ...useContext(AuthContext), router};
 }
 

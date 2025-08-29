@@ -5,13 +5,14 @@ import { FiSearch, FiFilter, FiCalendar, FiDollarSign } from "react-icons/fi";
 import { toast } from "react-toastify";
 
 export default function OrderFilters({ onFilterChange }) {
-
   const [filters, setFilters] = useState({
     search: "",
     status: "",
     date: "",
     vendor: "",
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const handleFilterChange = (key, value) => {
     const newFilters = { ...filters, [key]: value };

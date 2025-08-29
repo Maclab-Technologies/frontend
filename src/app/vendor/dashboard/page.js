@@ -30,62 +30,6 @@ import Orders from "../Components/order";
 import LoadingMiddleware from "@/app/components/loading";
 
 // Delete Confirmation Modal
-const DeleteConfirmationModal = ({
-  product,
-  onConfirm,
-  onCancel,
-  isDeleting = false,
-}) => {
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-gray-800 border border-gray-600 rounded-lg p-6 max-w-md w-full mx-4">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-white">Confirm Delete</h2>
-          <button
-            onClick={onCancel}
-            className="text-gray-400 hover:text-white transition-colors"
-          >
-            <FaTimes />
-          </button>
-        </div>
-
-        <div className="mb-6">
-          <p className="text-gray-300 mb-2">
-            Are you sure you want to delete this product?
-          </p>
-          {product && (
-            <div className="bg-gray-900 p-3 rounded border border-gray-700">
-              <p className="font-semibold text-white">{product.name}</p>
-              <p className="text-sm text-gray-400">{product.description}</p>
-              <p className="text-yellow-400 font-bold">
-                ₦{product.price.toLocaleString()}
-              </p>
-            </div>
-          )}
-          <p className="text-red-400 text-sm mt-3">
-            This action cannot be undone.
-          </p>
-        </div>
-
-        <div className="flex gap-3">
-          <button
-            onClick={onCancel}
-            className="flex-1 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-500 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onConfirm}
-            disabled={isDeleting}
-            className="flex-1 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-500 transition-colors disabled:opacity-70"
-          >
-            {isDeleting ? "Deleting..." : "Delete"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 export default function VendorDashboard() {
   const router = useRouter();
@@ -93,12 +37,6 @@ export default function VendorDashboard() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard");
-
-  // State for bank details in Withdraw tab
-  const [bankName, setBankName] = useState("");
-  const [accountNumber, setAccountNumber] = useState("");
-  const [accountName, setAccountName] = useState("");
-  const [withdrawAmount, setWithdrawAmount] = useState("");
 
   // Data states
   const [products, setProducts] = useState([]);
@@ -241,18 +179,6 @@ export default function VendorDashboard() {
 
     loadInitialData();
   }, [router]);
-
-  // const handleLogout = async () => {
-  //   try {
-  //     localStorage.removeItem("vendor_token");
-  //     localStorage.removeItem("vendor_data");
-  //     toast.success("Logged out successfully");
-  //     router.push("/Vendor/Login");
-  //   } catch (error) {
-  //     toast.error("Error signing out");
-  //     console.error("Logout error:", error);
-  //   }
-  // };
 
   const handleCreateProduct = async (productData) => {
     setIsSubmitting(true);
@@ -443,7 +369,6 @@ export default function VendorDashboard() {
         handleUpdateProduct={handleUpdateProduct}
         isSubmitting={isSubmitting}
         showDeleteModal={showDeleteModal}
-        DeleteConfirmationModal={DeleteConfirmationModal}
         productToDelete={productToDelete}
         handleConfirmDelete={handleConfirmDelete}
         handleCancelDelete={handleCancelDelete}
@@ -458,9 +383,7 @@ export default function VendorDashboard() {
         loading={loading}
       />
     ),
-    withdraw: (
-      <Withdraw vendorData={vendorData} summary={summary} />
-    ),
+    withdraw: <Withdraw vendorData={vendorData} summary={summary} />,
     // payout: <Payout payouts={payouts} />,
   };
   return (

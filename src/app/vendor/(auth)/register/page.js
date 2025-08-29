@@ -358,7 +358,7 @@ export default function VendorRegister() {
                   />
                   <button
                     type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    // onClick={() /=> setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-600 hover:text-black"
                   >
                     {showConfirmPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}

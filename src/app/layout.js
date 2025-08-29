@@ -1,0 +1,26 @@
+import "./globals.css";
+import "react-toastify/dist/ReactToastify.css";
+import ReduxProvider from "./utils/Redux/Provider";
+import { AuthProvider } from "./context/useAuth";
+import { ToastContainer } from "react-toastify";
+
+
+export const metadata = {
+  title: '59Minutes Prints',
+  description: 'Your one-stop shop for all printing needs',
+}
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body className="min-h-screen flex flex-col w-full bg-black text-white">
+        <ReduxProvider>
+          <AuthProvider>
+            <ToastContainer position="top-right" autoClose={2000} />
+            {children}
+          </AuthProvider>
+        </ReduxProvider>
+      </body>
+    </html>
+  )
+}

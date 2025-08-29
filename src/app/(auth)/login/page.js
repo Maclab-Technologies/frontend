@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useContext } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import logo from "../../../../public/images/brandimage.jpeg";
+import logo from "/public/images/brandimage.jpeg";
 import {
   FaEye,
   FaEyeSlash,
@@ -21,7 +21,7 @@ import {
   onAuthStateChanged,
   sendPasswordResetEmail,
 } from "firebase/auth";
-import { auth } from "zzzz../../utils/firebaseconfig";
+import { auth } from "../../utils/firebaseconfig";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AuthContext } from "@/app/context/useAuth";

@@ -1,6 +1,5 @@
 import Image from "next/image";
-import logo59 from "../../../../public/images/brandimage.jpeg"; // Replace this with the correct path to your logo image
-
+import logo59 from "/public/images/brandimage.jpeg";
 const About = () => {
   return (
     <div className="bg-black min-h-screen">
