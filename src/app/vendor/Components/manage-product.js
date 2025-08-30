@@ -1,4 +1,4 @@
-import LoadingMiddleware from "@/app/components/loading";
+import LoadingMiddleware from "@/app/_components/loading";
 import { FaEdit, FaTrash, FaTimes } from "react-icons/fa";
 
 const DeleteConfirmationModal = ({

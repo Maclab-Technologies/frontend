@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { clearCart } from "../../../utils/Redux/CartSlice";
-import { get, post } from "@/app/hooks/fetch-hook";
+import { get, post } from "@/app/_hooks/fetch-hook";
 import { toast } from "react-toastify";
 
 const Checkout = () => {

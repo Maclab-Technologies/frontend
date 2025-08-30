@@ -1,4 +1,4 @@
-import LoadingMiddleware from "@/app/components/loading";
+import LoadingMiddleware from "@/app/_components/loading";
 import { FaBoxOpen, FaClipboardList, FaMoneyBillWave } from "react-icons/fa";
 
 export const metadata = {

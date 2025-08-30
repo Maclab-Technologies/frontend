@@ -18,7 +18,7 @@ import {
   Heart,
   Share2,
 } from "lucide-react";
-import { AuthContext } from "../../../context/useAuth";
+import { AuthContext } from "../../_provider/useClientProvider";
 
 // Helper function to normalize MongoDB documents
 const normalizeMongoId = (item) => {

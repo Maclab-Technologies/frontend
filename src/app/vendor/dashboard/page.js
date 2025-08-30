@@ -19,7 +19,7 @@ import {
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ProductForm from "../Components/productform";
-import { batchRequests, post } from "@/app/hooks/fetch-hook";
+import { batchRequests, post } from "@/app/_hooks/fetch-hook";
 import Dashboard from "../Components/dashboard";
 import AddProduct from "../Components/create-product";
 import ManageProducts from "../Components/manage-product";
@@ -27,7 +27,7 @@ import Earnings from "../Components/earning";
 import Withdraw from "../Components/withdraw";
 import Payout from "../Components/payout";
 import Orders from "../Components/order";
-import LoadingMiddleware from "@/app/components/loading";
+import LoadingMiddleware from "@/app/_components/loading";
 
 // Delete Confirmation Modal
 

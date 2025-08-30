@@ -12,7 +12,7 @@ import {
 import { useRouter } from "next/navigation";
 import { FiTrash, FiShoppingCart } from "react-icons/fi";
 import { toast } from "react-toastify";
-import { AuthContext } from "@/app/context/useAuth";
+import { AuthContext } from "@/app/(clients)/_provider/useClientProvider";
 
 export default function Cart() {
   const cartItems = useSelector((state) => state.cart.cartItems || []);

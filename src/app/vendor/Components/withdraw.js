@@ -1,6 +1,6 @@
 "use client";
-import { batchRequests, post } from "@/app/hooks/fetch-hook";
-import LoadingMiddleware from "@/app/components/loading";
+import { batchRequests, post } from "@/app/_hooks/fetch-hook";
+import LoadingMiddleware from "@/app/_components/loading";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
