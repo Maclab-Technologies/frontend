@@ -77,7 +77,7 @@ export default function Cart() {
 
     if (!isLoggedIn) {
       toast.warning("Please sign in to proceed to checkout");
-      safeNavigate("/Auth/Login");
+      safeNavigate("/login");
       return;
     }
 
@@ -135,7 +135,7 @@ export default function Cart() {
       // localStorage.removeItem("cart");
 
       // Use window.location for more reliable redirect
-      window.location.href = `/Clients/Checkout/${order.data.id}`;
+      window.location.href = `/checkout/${order.data.id}`;
     } catch (error) {
       console.error("Checkout error:", error);
       toast.error("Something went wrong while placing your order");

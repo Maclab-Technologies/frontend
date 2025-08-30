@@ -9,7 +9,8 @@ import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { VendorAuthContext } from "@/app/vendor/_provider/useVendorProvider";
 
 export default function VendorLogin() {
-  const { setIsLoggedIn, setAuthVendor } = useContext(VendorAuthContext)
+  const { setIsLoggedIn, setAuthVendor, setVendorToken } =
+    useContext(VendorAuthContext);
   const router = useRouter();
   const [formData, setFormData] = useState({
     businessEmail: "",
@@ -25,12 +26,12 @@ export default function VendorLogin() {
   }, [formData]);
 
   const calculateFormProgress = () => {
-    const requiredFields = ['businessEmail', 'businessPassword'];
-    
-    const filledFields = requiredFields.filter(field => 
-      formData[field] && formData[field].trim() !== ''
+    const requiredFields = ["businessEmail", "businessPassword"];
+
+    const filledFields = requiredFields.filter(
+      (field) => formData[field] && formData[field].trim() !== ""
     ).length;
-    
+
     const progress = Math.floor((filledFields / requiredFields.length) * 100);
     setFormProgress(progress);
   };
@@ -54,65 +55,61 @@ export default function VendorLogin() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
-    
+
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: "" }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-  
     setLoading(true);
-  
-    try {
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/vendors/login`, {
-        method: 'POST',
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(formData)
-      });
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/vendors/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
         const message = errorData?.message || "Login failed. Please try again.";
         throw new Error(message);
       }
-  
+
       const data = await response.json();
-  
+
       // Ensure token is present
       const token = data.token;
       if (!token) {
         throw new Error("Authentication token missing from response.");
       }
-  
-      setAuthVendor(data.data)
-      setIsLoggedIn(true)
-      // Store in localStorage
-      localStorage.setItem("vendor_token", token);
-      localStorage.setItem("vendor_data", JSON.stringify(data.data));
-  
-      toast.success("Login successful! Redirecting to dashboard...", {
-        autoClose: 1000,
-        onClose: () => router.push("/vendor/dashboard")
-      });
-  
+
+      setAuthVendor(data.data);
+      setVendorToken(token);
+      setIsLoggedIn(true);
+      localStorage.setItem("vendorToken", token);
+      localStorage.setItem("vendorData", JSON.stringify(data.data));
+      toast.success("Login successful! Redirecting to dashboard...");
+      router.push("/vendor/dashboard");
     } catch (error) {
       console.error("Login error:", error);
-      toast.error(error.message || "Faile to login, try again");
+      toast.error(error.message || "Failed to login, try again");
     } finally {
       setLoading(false);
     }
   };
-  
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-yellow-50 to-yellow-100 flex items-center justify-center p-4">
@@ -121,16 +118,20 @@ export default function VendorLogin() {
       <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden border-t-4 border-t-yellow-400">
         <div className="bg-yellow-400 p-8 text-center">
           <h1 className="text-3xl font-bold text-black">Vendor Login</h1>
-          <p className="text-black mt-2">Access your 59Minutes vendor dashboard</p>
-          
+          <p className="text-black mt-2">
+            Access your 59Minutes vendor dashboard
+          </p>
+
           {/* Progress bar */}
           <div className="mt-6 w-full bg-yellow-200 rounded-full h-2">
-            <div 
-              className="bg-black h-2 rounded-full transition-all duration-300 ease-in-out" 
+            <div
+              className="bg-black h-2 rounded-full transition-all duration-300 ease-in-out"
               style={{ width: `${formProgress}%` }}
             ></div>
           </div>
-          <p className="text-xs text-black mt-1">Form completion: {formProgress}%</p>
+          <p className="text-xs text-black mt-1">
+            Form completion: {formProgress}%
+          </p>
         </div>
 
         <div className="px-8 pb-8">
@@ -149,7 +150,9 @@ export default function VendorLogin() {
                 onChange={handleInputChange}
               />
               {errors.businessEmail && (
-                <p className="mt-1 text-sm text-red-600">{errors.businessEmail}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.businessEmail}
+                </p>
               )}
             </div>
 
@@ -172,11 +175,17 @@ export default function VendorLogin() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-600 hover:text-black"
                 >
-                  {showPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
+                  {showPassword ? (
+                    <EyeOffIcon size={18} />
+                  ) : (
+                    <EyeIcon size={18} />
+                  )}
                 </button>
               </div>
               {errors.businessPassword && (
-                <p className="mt-1 text-sm text-red-600">{errors.businessPassword}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.businessPassword}
+                </p>
               )}
               <div className="text-right mt-2">
                 <Link
@@ -192,13 +201,25 @@ export default function VendorLogin() {
             <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mt-4">
               <div className="flex items-start">
                 <div className="flex-shrink-0">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-600">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-yellow-600"
+                  >
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                   </svg>
                 </div>
                 <div className="ml-3">
                   <p className="text-sm text-gray-700">
-                    Your connection is secure. We never store your password in plain text.
+                    Your connection is secure. We never store your password in
+                    plain text.
                   </p>
                 </div>
               </div>
@@ -212,9 +233,25 @@ export default function VendorLogin() {
             >
               {loading ? (
                 <span className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   Signing in...
                 </span>

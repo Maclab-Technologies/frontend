@@ -84,32 +84,6 @@ const Login = () => {
     return true;
   };
 
-  // Redirect user based on their role
-  // const redirectUserBasedOnRole = async (uid) => {
-  //   try {
-  //     // In production, fetch user role from your database
-  //     // This is a mock implementation - replace with actual role lookup
-  //     const role = "Customer"; // Default role
-
-  //     switch (role) {
-  //       case "Customer":
-  //         router.push("/Clients/Dashboard");
-  //         break;
-  //       case "Vendor":
-  //         router.push("/Vendor");
-  //         break;
-  //       case "Graphics Designer":
-  //         router.push("/Designer");
-  //         break;
-  //       default:
-  //         router.push("/");
-  //     }
-  //   } catch (error) {
-  //     console.error("Role redirection error:", error);
-  //     router.push("/");
-  //   }
-  // };
-
   // Handle email/password login
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -531,7 +505,7 @@ const Login = () => {
               <div className="mt-6 text-center text-sm text-gray-600">
                 Don't have an account?{" "}
                 <a
-                  href="/Auth/Register"
+                  href="/register"
                   className="font-medium text-yellow-600 hover:text-yellow-500"
                 >
                   Sign up

@@ -60,6 +60,7 @@ export function VendorAuthMiddleware({ children }) {
 
   if (isPublicRoute(pathname)) return <>{children}</>;
 
+
   if (isLoading) {
     return (
       <div className="w-screen h-screen bg-gray-800 flex justify-center p-4">

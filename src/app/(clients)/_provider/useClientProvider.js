@@ -37,7 +37,7 @@ export function ClientAuthProvider({ children }) {
     setToken(null);
     const user = localStorage.removeItem("userToken");
 
-      router.push("/Login");
+      router.push("/login");
   }, [router]);
 
   const verifyUser = useCallback(async () => {
@@ -62,6 +62,7 @@ export function ClientAuthProvider({ children }) {
       setVerifiedUser(response.data.data);
       setToken(token);
       localStorage.setItem("userToken", token);
+      setIsLoading(false)
     } catch (error) {
       console.error("Verification error:", error);
       logoutUser();
@@ -71,21 +72,6 @@ export function ClientAuthProvider({ children }) {
   }, [logoutUser, setVerifiedUser]);
 
   useEffect(() => {
-    // const storedUserData = localStorage.getItem("userData");
-    // const token = localStorage.getItem("userToken");
-
-    // if (storedUserData && token) {
-    //   try {
-    //     const parsedData = JSON.parse(storedUserData);
-    //     setAuthUser(parsedData);
-    //     setRole(parsedData?.role || null);
-    //     setIsLoggedIn(true);
-    //     setToken(token);
-    //   } catch (e) {
-    //     console.error("Failed to parse stored user data", e);
-    //     localStorage.removeItem("userData");
-    //   }
-    // }
     verifyUser();
   }, [verifyUser]);
 

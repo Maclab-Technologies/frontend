@@ -4,7 +4,7 @@ import LoadingMiddleware from "@/app/_components/loading";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
-export default function Withdraw({ vendorData, summary }) {
+export default function Withdraw({ vendorData, summary, vendorToken }) {
   const [formData, setFormData] = useState({
     vendorId: vendorData?.id || "",
     amount: "",
@@ -16,12 +16,13 @@ export default function Withdraw({ vendorData, summary }) {
   const [history, setHistory] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const token = vendorToken
 
   // Fetch bank details only once when component mounts
   useEffect(() => {
     const fetchBankDetails = async () => {
+      setLoading(true)
       try {
-        const token = localStorage.getItem("vendor_token");
         if (!token) {
           toast.error("Unable to authenticate user, try again.");
           setLoading(false);

@@ -1,7 +1,7 @@
 // Updated Vendor Dashboard with reusable product form and fixed delete modal
 "use client";
 
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   FaHome,
@@ -28,10 +28,12 @@ import Withdraw from "../Components/withdraw";
 import Payout from "../Components/payout";
 import Orders from "../Components/order";
 import LoadingMiddleware from "@/app/_components/loading";
+import { VendorAuthContext } from "../_provider/useVendorProvider";
 
 // Delete Confirmation Modal
 
 export default function VendorDashboard() {
+  const { vendorToken, authVendor } = useContext(VendorAuthContext)
   const router = useRouter();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [user, setUser] = useState(null);
@@ -41,11 +43,9 @@ export default function VendorDashboard() {
   // Data states
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [earnings, setEarnings] = useState({});
+  const [earnings, setEarnings] = useState([]);
   const [earningsStats, setEarningsStats] = useState({});
-  const [vendorData, setVendorData] = useState(null);
   const [summary, setSummary] = useState({});
-  const [vendorToken, setVendorToken] = useState(null);
 
   // Modal states
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -58,22 +58,18 @@ export default function VendorDashboard() {
   // Load user data and initial content
   useEffect(() => {
     const loadInitialData = async () => {
+      setLoading(true)
       try {
-        const token = localStorage.getItem("vendor_token");
-        const data = JSON.parse(localStorage.getItem("vendor_data"));
-        setVendorToken(token);
-        setVendorData(data);
-
-        if (!token || !data) {
-          router.push("/Vendor/Login");
-          return;
+        if (!vendorToken) {
+          throw new Error('No token found')
         }
+        let token = vendorToken
 
         // Using batchRequests for parallel API calls
         const result = await batchRequests([
           {
             // Vendor Products
-            url: `/products/vendor/${data.id}`,
+            url: `/products/vendor/${authVendor.id}`,
             options: {
               method: "GET",
               token,
@@ -91,7 +87,7 @@ export default function VendorDashboard() {
           },
           {
             // vendor earnings
-            url: `/payments/vendor/${data.id}`,
+            url: `/payments/vendor/${authVendor.id}`,
             options: {
               method: "GET",
               token,
@@ -333,7 +329,7 @@ export default function VendorDashboard() {
   const tabs = {
     dashboard: (
       <Dashboard
-        vendorData={vendorData}
+        vendorData={authVendor}
         orders={orders}
         products={products}
         summary={summary}
@@ -383,7 +379,7 @@ export default function VendorDashboard() {
         loading={loading}
       />
     ),
-    withdraw: <Withdraw vendorData={vendorData} summary={summary} />,
+    withdraw: <Withdraw vendorData={authVendor} summary={summary} vendorToken={vendorToken}/>,
     // payout: <Payout payouts={payouts} />,
   };
   return (
@@ -421,10 +417,10 @@ export default function VendorDashboard() {
                 </div>
                 <div className="overflow-hidden">
                   <p className="font-medium text-white truncate">
-                    {vendorData?.businessName || "Guest"}
+                    {authVendor?.businessName || "Guest"}
                   </p>
                   <p className="text-xs text-gray-400 truncate">
-                    {vendorData?.businessEmail || "Guest@59minutesprints.com"}
+                    {authVendor?.businessEmail || "Guest@59minutesprints.com"}
                   </p>
                 </div>
               </div>

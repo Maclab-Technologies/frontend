@@ -115,13 +115,13 @@ const ClientNavLayout = ({
                 {!isLoggedIn ? (
                   <>
                     <Link
-                      href="/Auth/Login"
+                      href="/login"
                       className="text-white hover:text-yellow-400 px-4 py-2 text-sm font-medium transition-colors duration-200"
                     >
                       Login
                     </Link>
                     <Link
-                      href="/Auth/Register"
+                      href="/register"
                       className="bg-yellow-400 text-black px-6 py-2 rounded-lg text-sm font-medium hover:bg-yellow-500 transition-colors duration-200 shadow-sm"
                     >
                       Sign Up
@@ -137,7 +137,7 @@ const ClientNavLayout = ({
 
                     {/* Cart */}
                     <Link
-                      href="/Clients/Cart"
+                      href="/cart"
                       className="p-2 text-white hover:text-yellow-400 hover:bg-yellow-400/10 rounded-lg transition-colors duration-200 relative"
                     >
                       <FaShoppingCart className="w-5 h-5" />
@@ -175,12 +175,12 @@ const ClientNavLayout = ({
                               label: "Profile",
                             },
                             {
-                              href: "/Clients/Dashboard",
+                              href: "/dashboard",
                               icon: FaBox,
                               label: "Dashboard",
                             },
-                            { href: "/Inbox", icon: FaList, label: "Inbox" },
-                            { href: "/Help", icon: FaInfo, label: "Help" },
+                            { href: "/inbox", icon: FaList, label: "Inbox" },
+                            { href: "/help", icon: FaInfo, label: "Help" },
                           ].map(({ href, icon: Icon, label }) => (
                             <Link
                               key={href}
@@ -209,7 +209,7 @@ const ClientNavLayout = ({
               <div className="md:hidden flex items-center space-x-3">
                 {authUser && (
                   <Link
-                    href="/Clients/Cart"
+                    href="/cart"
                     className="p-2 text-white hover:text-yellow-400 rounded-lg relative"
                   >
                     <FaShoppingCart className="w-5 h-5" />
@@ -311,7 +311,7 @@ const ClientNavLayout = ({
                     Login
                   </Link>
                   <Link
-                    href="/Auth/Register"
+                    href="/register"
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="w-full py-3 text-center bg-yellow-400 text-black rounded-lg font-medium hover:bg-yellow-500 transition-colors duration-200"
                   >
@@ -323,12 +323,12 @@ const ClientNavLayout = ({
                   {[
                     { href: "/profile", icon: FaUser, label: "Profile" },
                     {
-                      href: "/Clients/Dashboard",
+                      href: "/dashboard",
                       icon: FaBox,
                       label: "Dashboard",
                     },
                     {
-                      href: "/Clients/Cart",
+                      href: "/cart",
                       icon: FaShoppingCart,
                       label: "Cart",
                       badge: cartCount,

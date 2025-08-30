@@ -22,7 +22,7 @@ const ForgotPassword = () => {
     try {
       await sendPasswordResetEmail(auth, email);
       toast.success("Password reset email sent! Check your inbox.");
-      setTimeout(() => router.push("/auth/login"), 5000); 
+      setTimeout(() => router.push("/login"), 5000); 
     } catch (error) {
       toast.error(error.message || "Error sending reset email. Try again.");
     }
@@ -57,7 +57,7 @@ const ForgotPassword = () => {
 
         <p className="text-gray-600 text-sm text-center mt-4">
           Remember your password?{" "}
-          <a href="/Auth/Login" className="text-yellow-500 hover:text-yellow-400">
+          <a href="/login" className="text-yellow-500 hover:text-yellow-400">
             Log in
           </a>
         </p>
