@@ -1,5 +1,5 @@
 "use client";
-import LoadingMiddleware from "@/app/components/loading";
+import LoadingMiddleware from "@/app/_components/loading";
 import { FaMoneyBillWave, FaDollarSign, FaClock } from "react-icons/fa";
 
 export default function Earnings({ earnings, earningsStats, loading }) {

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
-import { get } from "@/app/hooks/fetch-hook";
+import { get } from "@/app/_hooks/fetch-hook";
 
 export default function PaymentSuccess() {
   const [orderDetails, setOrderDetails] = useState(null);

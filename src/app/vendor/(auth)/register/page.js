@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { auth } from "../../../utils/firebaseconfig";
-import { createUserWithEmailAndPassword } from "firebase/auth";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
@@ -29,13 +27,6 @@ export default function VendorRegister() {
   const [formProgress, setFormProgress] = useState(0);
 
   useEffect(() => {
-    if (!auth) {
-      console.error("Firebase auth is not initialized");
-      toast.error("Authentication service is not available. Please refresh the page.");
-      return;
-    }
-    
-    // Calculate form progress
     calculateFormProgress();
   }, [formData]);
 
@@ -158,7 +149,7 @@ export default function VendorRegister() {
   
       toast.success("Registration successful! Redirecting to dashboard...", {
         autoClose: 1000,
-        onClose: () => router.push("/Vendor/Dashboard"),
+        onClose: () => router.push("/vendor/dashboard"),
       });
   
     } catch (error) {
@@ -403,7 +394,7 @@ export default function VendorRegister() {
                 <label htmlFor="agreeToTerms" className="font-medium text-black">
                   I agree to the{" "}
                   <Link
-                    href="/Vendor/Terms"
+                    href="/vendor/terms"
                     className="text-yellow-600 hover:text-yellow-800 underline"
                     target="_blank"
                   >
@@ -442,7 +433,7 @@ export default function VendorRegister() {
             <p className="text-black">
               Already have an account?{" "}
               <Link
-                href="/Vendor/Login"
+                href="/vendor/login"
                 className="font-medium text-yellow-600 hover:text-yellow-800"
               >
                 Sign in here

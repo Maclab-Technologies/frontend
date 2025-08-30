@@ -2,15 +2,14 @@
 
 import { useState, useEffect, useContext } from "react";
 import { useRouter } from "next/navigation";
-import { auth } from "../../../utils/firebaseconfig";
-// import { signInWithEmailAndPassword } from "firebase/auth";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
-import { AuthContext } from "@/app/context/useAuth";
+import { VendorAuthContext } from "@/app/vendor/_provider/useVendorProvider";
 
 export default function VendorLogin() {
+  const { setIsLoggedIn, setAuthVendor } = useContext(VendorAuthContext)
   const router = useRouter();
   const [formData, setFormData] = useState({
     businessEmail: "",
@@ -20,16 +19,8 @@ export default function VendorLogin() {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [formProgress, setFormProgress] = useState(0);
-  const { setIsLoggedIn, setAuthUser } = useContext(AuthContext)
 
   useEffect(() => {
-    if (!auth) {
-      console.error("Firebase auth is not initialized");
-      toast.error("Authentication service is not available. Please refresh the page.");
-      return;
-    }
-    
-    // Calculate form progress
     calculateFormProgress();
   }, [formData]);
 
@@ -103,7 +94,7 @@ export default function VendorLogin() {
         throw new Error("Authentication token missing from response.");
       }
   
-      setAuthUser(data.data)
+      setAuthVendor(data.data)
       setIsLoggedIn(true)
       // Store in localStorage
       localStorage.setItem("vendor_token", token);
@@ -111,7 +102,7 @@ export default function VendorLogin() {
   
       toast.success("Login successful! Redirecting to dashboard...", {
         autoClose: 1000,
-        onClose: () => router.push("/Vendor/Dashboard")
+        onClose: () => router.push("/vendor/dashboard")
       });
   
     } catch (error) {
@@ -125,7 +116,7 @@ export default function VendorLogin() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-yellow-50 to-yellow-100 flex items-center justify-center p-4">
-      <ToastContainer position="top-center" />
+      {/* <ToastContainer position="top-center" /> */}
 
       <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden border-t-4 border-t-yellow-400">
         <div className="bg-yellow-400 p-8 text-center">
@@ -189,7 +180,7 @@ export default function VendorLogin() {
               )}
               <div className="text-right mt-2">
                 <Link
-                  href="/Vendor/Forget"
+                  href="/vendor/forgot-password"
                   className="text-sm text-yellow-600 hover:text-yellow-800 hover:underline font-medium"
                 >
                   Forgot password?
@@ -237,7 +228,7 @@ export default function VendorLogin() {
             <p className="text-black">
               Don't have an account?{" "}
               <Link
-                href="/Vendor/Register"
+                href="/vendor/register"
                 className="font-medium text-yellow-600 hover:text-yellow-800"
               >
                 Register here

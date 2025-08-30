@@ -1,5 +1,5 @@
 "use client"
-import LoadingMiddleware from '@/app/components/loading';
+import LoadingMiddleware from '@/app/_components/loading';
 import { FaFileDownload, FaCheck } from 'react-icons/fa';
 
 export default function Orders({ orders, handleDesignLinkSubmit, loading }) {
