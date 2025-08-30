@@ -6,6 +6,7 @@ import { sendPasswordResetEmail } from "firebase/auth";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
+import { post } from "@/app/_hooks/fetch-hook";
 
 export default function Forgot() {
   const [email, setEmail] = useState("");
@@ -21,25 +22,12 @@ export default function Forgot() {
     setLoading(true);
 
     try {
-      await sendPasswordResetEmail(auth, email);
-      toast.success("Check your email for the password reset link.", {
-        autoClose: 5000,
-      });
+      // const res = await post('')
 
       setTimeout(() => router.push("/vendor/login"), 2000); // Redirect after delay
     } catch (error) {
       console.error("Error sending password reset email", error);
-
-      const errorMessages = {
-        "auth/invalid-email": "Invalid email address.",
-        "auth/user-not-found": "No user found with this email.",
-        "auth/network-request-failed": "Network error. Please try again.",
-        default: "Error sending password reset email. Please try again.",
-      };
-
-      toast.error(errorMessages[error.code] || errorMessages.default, {
-        autoClose: 5000,
-      });
+      toast.error("Failed to ")
     } finally {
       setLoading(false);
     }
@@ -47,7 +35,6 @@ export default function Forgot() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
-      <ToastContainer position="top-center" />
 
       <div className="w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden p-6">
         <h1 className="text-2xl font-bold text-gray-800 text-center">

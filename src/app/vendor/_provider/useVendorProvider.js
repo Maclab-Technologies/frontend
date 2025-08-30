@@ -19,7 +19,7 @@ export function VendorAuthProvider({ children }) {
   const [role, setRole] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [vendortoken, setVendorToken] = useState(null);
+  const [vendorToken, setVendorToken] = useState(null);
 
   const setVerifiedUser = useCallback((vendorData) => {
     setAuthVendor(vendorData);
@@ -38,31 +38,31 @@ export function VendorAuthProvider({ children }) {
     localStorage.removeItem("vendorToken");
     localStorage.removeItem("vendorData");
 
-      router.push("/Vendor/Login");
+      router.push("/vendor/login");
   }, [router]);
 
   const verifyVendor = useCallback(async () => {
-    const vendortoken = localStorage.getItem("vendorToken");
+    const token = localStorage.getItem("vendorToken");
     const storedVendorData = localStorage.getItem("vendorData");
 
-    if (!vendortoken && storedVendorData) {
+    if (!token && storedVendorData) {
       localStorage.removeItem("vendorData");
     }
 
-    if (!vendortoken) {
+    if (!token) {
       setIsLoading(false);
       return;
     }
 
     setIsLoading(true);
     try {
-      const response = await get("/auth/verify", { token: vendortoken });
+      const response = await get("/auth/verify", { token: token });
       if (!response.success) {
         throw new Error(response.error || "Verification failed");
       }
       setVerifiedUser(response.data.data);
-      setVendorToken(vendortoken);
-      localStorage.setItem("vendorToken", vendortoken);
+      setVendorToken(token);
+      localStorage.setItem("vendorToken", token);
     } catch (error) {
       console.error("Verification error:", error);
       logoutVendor();
@@ -87,7 +87,7 @@ export function VendorAuthProvider({ children }) {
         isLoggedIn,
         role,
         isLoading,
-        vendortoken,
+        vendorToken,
         setVendorToken,
         setIsLoggedIn,
         setAuthVendor: setVerifiedUser,

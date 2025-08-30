@@ -1,7 +1,6 @@
 "use client";
 
 import { useContext, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { 
   FaHome, FaUpload, FaShoppingCart, FaFileAlt, 
   FaComments, FaMoneyBillWave, FaCog, FaSignOutAlt, 
@@ -16,10 +15,8 @@ import "react-toastify/dist/ReactToastify.css";
 import { AuthContext } from "@/app/(clients)/_provider/useClientProvider";
 
 export default function ClientDashboard() {
-  const router = useRouter();
-  const { setAuthUser, setIsLoggedIn, setRole, authUser, isLoggedIn, role } = useContext(AuthContext)
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const { authUser, logoutUser } = useContext(AuthContext)
+  const [mobileNavOpen, setMobileNavOpen] = useState(null);
   const [activeTab, setActiveTab] = useState("Dashboard");
   
   // Data states - now empty, to be populated from API
@@ -173,22 +170,6 @@ export default function ClientDashboard() {
       fetchOrders(); // Refresh orders list
     } catch (error) {
       toast.error(error.message);
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      setAuthUser(null)
-      setIsLoggedIn(false)
-      setRole(null)
-      localStorage.removeItem('userToken');
-      localStorage.removeItem('userData');
-      toast.success("Logged out successfully");
-      router.push("/Auth/Login");
-    } catch (error) {
-      toast.error("Error signing out");
-      console.error("Logout error:", error);
     }
   };
 
@@ -422,36 +403,9 @@ export default function ClientDashboard() {
     )
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-900 ">
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="dark"
-      />
+    <div className="bg-gray-900 ">
       
-      {/* Top Navigation Bar */}
-      <NavBar 
-        mobileNavOpen={mobileNavOpen}
-        setMobileNavOpen={setMobileNavOpen}
-        user={authUser}
-        handleLogout={handleLogout}
-      />
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Side Navigation */}
@@ -462,7 +416,7 @@ export default function ClientDashboard() {
             setActiveTab={setActiveTab}
             navItems={navItems}
             user={authUser}
-            handleLogout={handleLogout}
+            logoutUser={logoutUser}
           />
 
           {/* Main Content Area */}
@@ -810,7 +764,7 @@ const UserSettings = ({ authUser }) => (
   </div>
 );
 
-const NavBar = ({ mobileNavOpen, setMobileNavOpen, authUser, handleLogout }) => (
+const NavBar = ({ mobileNavOpen, setMobileNavOpen, authUser, logoutUser }) => (
   <nav className="bg-black text-white shadow-lg sticky top-0 z-50">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="flex justify-between h-16 items-center">
@@ -833,7 +787,7 @@ const NavBar = ({ mobileNavOpen, setMobileNavOpen, authUser, handleLogout }) => 
             <span className="text-sm text-gray-300">{authUser?.displayName || 'Client'}</span>
           </div>
           <button
-            onClick={handleLogout}
+            onClick={logoutUser}
             className="flex items-center text-sm hover:text-yellow-400 transition"
           >
             <FaSignOutAlt className="mr-1" /> Sign Out
@@ -851,7 +805,7 @@ const SideNav = ({
   setActiveTab,
   navItems,
   authUser,
-  handleLogout
+  logoutUser
 }) => (
   <aside className={`
     fixed inset-y-0 left-0 z-40 
@@ -907,7 +861,7 @@ const SideNav = ({
       ))}
       
       <button
-        onClick={handleLogout}
+        onClick={logoutUser}
         className="lg:hidden w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
         text-gray-300 hover:bg-gray-700 hover:text-white transition-all duration-200 mt-4"
       >

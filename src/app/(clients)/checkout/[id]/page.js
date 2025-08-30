@@ -133,7 +133,7 @@ const Checkout = () => {
       if (data.success) {
         toast.success('Payment successful')
         dispatch(clearCart());
-        window.location.href = `/Clients/Payment-success/${orderId}?reference=${reference}`;
+        window.location.href = `/payment-success/${orderId}?reference=${reference}`;
       }
     } catch (error) {
       console.error("Error verifying payment:", error);

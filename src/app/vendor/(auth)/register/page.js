@@ -1,13 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useRouter } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { VendorAuthContext } from "../../_provider/useVendorProvider";
 
 export default function VendorRegister() {
+  const { setAuthVendor, setVendorToken, setIsLoggedIn } =
+    useContext(VendorAuthContext);
   const router = useRouter();
   const [formData, setFormData] = useState({
     businessName: "",
@@ -32,19 +35,19 @@ export default function VendorRegister() {
 
   const calculateFormProgress = () => {
     const requiredFields = [
-      'businessName', 
-      'businessEmail', 
-      'businessPhoneNumber', 
-      'businessAddress', 
-      'businessDescription', 
-      'businessPassword', 
-      'confirmPassword'
+      "businessName",
+      "businessEmail",
+      "businessPhoneNumber",
+      "businessAddress",
+      "businessDescription",
+      "businessPassword",
+      "confirmPassword",
     ];
-    
-    const filledFields = requiredFields.filter(field => 
-      formData[field] && formData[field].trim() !== ''
+
+    const filledFields = requiredFields.filter(
+      (field) => formData[field] && formData[field].trim() !== ""
     ).length;
-    
+
     const progress = Math.floor((filledFields / requiredFields.length) * 100);
     setFormProgress(progress);
   };
@@ -77,7 +80,8 @@ export default function VendorRegister() {
     if (!formData.businessDescription) {
       newErrors.businessDescription = "Business description is required";
     } else if (formData.businessDescription.length < 20) {
-      newErrors.businessDescription = "Description must be at least 20 characters";
+      newErrors.businessDescription =
+        "Description must be at least 20 characters";
     }
 
     if (!formData.businessPassword) {
@@ -85,7 +89,8 @@ export default function VendorRegister() {
     } else if (formData.businessPassword.length < 6) {
       newErrors.businessPassword = "Password must be at least 6 characters";
     } else if (!/[A-Z]/.test(formData.businessPassword)) {
-      newErrors.businessPassword = "Password must contain at least one uppercase letter";
+      newErrors.businessPassword =
+        "Password must contain at least one uppercase letter";
     } else if (!/[0-9]/.test(formData.businessPassword)) {
       newErrors.businessPassword = "Password must contain at least one number";
     }
@@ -106,71 +111,63 @@ export default function VendorRegister() {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value
+      [name]: type === "checkbox" ? checked : value,
     }));
 
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: "" }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
   const handleEmailSignUp = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-  
+
     setLoading(true);
-  
+
     try {
-  
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/vendors/signup`, {
-        method: 'POST',
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(formData)
-      });
-  
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/vendors/signup`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        }
+      );
+
       const data = await response.json();
-  
+
       if (!response.ok) {
-        const message = data?.message || "Registration failed. Please try again.";
+        const message =
+          data?.message || "Registration failed. Please try again.";
         throw new Error(message);
       }
-  
-      if (data?.token) {
-        localStorage.setItem("vendor_token", data.token);
+
+      if (data?.data && data?.token) {
+        setAuthVendor(data.data);
+        setVendorToken(data.token);
+        setIsLoggedIn(true);
+        localStorage.setItem("vendorData", JSON.stringify(data.data));
+        localStorage.setItem("vendorToken", data.token);
+        setLoading(false)
       }
-  
-      if (data?.vendor) {
-        localStorage.setItem("vendor_data", JSON.stringify(data.data));
-      }
-  
+
       toast.success("Registration successful! Redirecting to dashboard...", {
         autoClose: 1000,
         onClose: () => router.push("/vendor/dashboard"),
       });
-  
     } catch (error) {
       console.error("Registration error:", error);
-  
-      const errorCode = error.code || "";
-      const errorMessageMap = {
-        "auth/email-already-in-use": "Email already registered. Try logging in.",
-        "auth/invalid-email": "Please enter a valid email address",
-        "auth/weak-password": "Password must be at least 6 characters with uppercase and numbers",
-        "auth/network-request-failed": "Network error. Please check your connection.",
-      };
-  
-      const fallback = error.message || "Registration failed. Please try again.";
-      toast.error(errorMessageMap[errorCode] || fallback);
-  
+      const fallback = "Registration failed. Please try again.";
+      toast.error(fallback);
     } finally {
       setLoading(false);
     }
   };
-  
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-yellow-50 to-yellow-100 flex items-center justify-center p-4">
@@ -179,16 +176,20 @@ export default function VendorRegister() {
       <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden border-t-4 border-t-yellow-400">
         <div className="bg-yellow-400 p-8 text-center">
           <h1 className="text-3xl font-bold text-black">Join 59Minutes</h1>
-          <p className="text-black mt-2">Start selling your prints in minutes</p>
-          
+          <p className="text-black mt-2">
+            Start selling your prints in minutes
+          </p>
+
           {/* Progress bar */}
           <div className="mt-6 w-full bg-yellow-200 rounded-full h-2">
-            <div 
-              className="bg-black h-2 rounded-full transition-all duration-300 ease-in-out" 
+            <div
+              className="bg-black h-2 rounded-full transition-all duration-300 ease-in-out"
               style={{ width: `${formProgress}%` }}
             ></div>
           </div>
-          <p className="text-xs text-black mt-1">Profile completion: {formProgress}%</p>
+          <p className="text-xs text-black mt-1">
+            Profile completion: {formProgress}%
+          </p>
         </div>
 
         <div className="px-8 pb-8">
@@ -207,7 +208,9 @@ export default function VendorRegister() {
                 onChange={handleInputChange}
               />
               {errors.businessName && (
-                <p className="mt-1 text-sm text-red-600">{errors.businessName}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.businessName}
+                </p>
               )}
             </div>
 
@@ -225,7 +228,9 @@ export default function VendorRegister() {
                 onChange={handleInputChange}
               />
               {errors.businessEmail && (
-                <p className="mt-1 text-sm text-red-600">{errors.businessEmail}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.businessEmail}
+                </p>
               )}
             </div>
 
@@ -243,7 +248,9 @@ export default function VendorRegister() {
                 onChange={handleInputChange}
               />
               {errors.businessPhoneNumber && (
-                <p className="mt-1 text-sm text-red-600">{errors.businessPhoneNumber}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.businessPhoneNumber}
+                </p>
               )}
             </div>
 
@@ -263,14 +270,17 @@ export default function VendorRegister() {
                   onChange={handleInputChange}
                 />
                 {errors.businessAddress && (
-                  <p className="mt-1 text-sm text-red-600">{errors.businessAddress}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.businessAddress}
+                  </p>
                 )}
               </div>
 
               {/* Shop Address 2 (Optional) */}
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-black mb-1">
-                  Shop Address (Line 2) <span className="text-gray-500 text-xs">Optional</span>
+                  Shop Address (Line 2){" "}
+                  <span className="text-gray-500 text-xs">Optional</span>
                 </label>
                 <input
                   type="text"
@@ -297,7 +307,9 @@ export default function VendorRegister() {
                 onChange={handleInputChange}
               />
               {errors.businessDescription && (
-                <p className="mt-1 text-sm text-red-600">{errors.businessDescription}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.businessDescription}
+                </p>
               )}
               <p className="mt-1 text-xs text-gray-600">
                 {formData.businessDescription.length}/20 characters minimum
@@ -325,11 +337,17 @@ export default function VendorRegister() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-600 hover:text-black"
                   >
-                    {showPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
+                    {showPassword ? (
+                      <EyeOffIcon size={18} />
+                    ) : (
+                      <EyeIcon size={18} />
+                    )}
                   </button>
                 </div>
                 {errors.businessPassword && (
-                  <p className="mt-1 text-sm text-red-600">{errors.businessPassword}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.businessPassword}
+                  </p>
                 )}
               </div>
 
@@ -352,18 +370,25 @@ export default function VendorRegister() {
                     // onClick={() /=> setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-600 hover:text-black"
                   >
-                    {showConfirmPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
+                    {showConfirmPassword ? (
+                      <EyeOffIcon size={18} />
+                    ) : (
+                      <EyeIcon size={18} />
+                    )}
                   </button>
                 </div>
                 {errors.confirmPassword && (
-                  <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.confirmPassword}
+                  </p>
                 )}
               </div>
             </div>
-            
+
             <div className="md:col-span-2">
               <p className="text-xs text-gray-600 mb-4">
-                Password must contain at least 6 characters, one uppercase letter, and one number
+                Password must contain at least 6 characters, one uppercase
+                letter, and one number
               </p>
             </div>
 
@@ -371,9 +396,15 @@ export default function VendorRegister() {
             {formData.businessPassword && (
               <div className="password-strength">
                 <div className="flex gap-1">
-                  <div className={`h-1 flex-1 rounded-full ${formData.businessPassword.length >= 6 ? "bg-yellow-400" : "bg-gray-300"}`}></div>
-                  <div className={`h-1 flex-1 rounded-full ${/[A-Z]/.test(formData.businessPassword) ? "bg-yellow-400" : "bg-gray-300"}`}></div>
-                  <div className={`h-1 flex-1 rounded-full ${/[0-9]/.test(formData.businessPassword) ? "bg-yellow-400" : "bg-gray-300"}`}></div>
+                  <div
+                    className={`h-1 flex-1 rounded-full ${formData.businessPassword.length >= 6 ? "bg-yellow-400" : "bg-gray-300"}`}
+                  ></div>
+                  <div
+                    className={`h-1 flex-1 rounded-full ${/[A-Z]/.test(formData.businessPassword) ? "bg-yellow-400" : "bg-gray-300"}`}
+                  ></div>
+                  <div
+                    className={`h-1 flex-1 rounded-full ${/[0-9]/.test(formData.businessPassword) ? "bg-yellow-400" : "bg-gray-300"}`}
+                  ></div>
                 </div>
               </div>
             )}
@@ -391,7 +422,10 @@ export default function VendorRegister() {
                 />
               </div>
               <div className="ml-3 text-sm">
-                <label htmlFor="agreeToTerms" className="font-medium text-black">
+                <label
+                  htmlFor="agreeToTerms"
+                  className="font-medium text-black"
+                >
                   I agree to the{" "}
                   <Link
                     href="/vendor/terms"
@@ -402,9 +436,13 @@ export default function VendorRegister() {
                   </Link>{" "}
                   <span className="text-red-500">*</span>
                 </label>
-                <p className="text-gray-600 text-xs mt-1">20% platform fee applies to all sales</p>
+                <p className="text-gray-600 text-xs mt-1">
+                  20% platform fee applies to all sales
+                </p>
                 {errors.agreeToTerms && (
-                  <p className="mt-1 text-sm text-red-600">{errors.agreeToTerms}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.agreeToTerms}
+                  </p>
                 )}
               </div>
             </div>
@@ -417,9 +455,25 @@ export default function VendorRegister() {
             >
               {loading ? (
                 <span className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   Creating Account...
                 </span>

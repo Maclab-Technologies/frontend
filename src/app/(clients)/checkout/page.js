@@ -72,7 +72,7 @@ const Checkout = () => {
         const paymentReference = response.reference;
         localStorage.setItem('orderDetails', JSON.stringify(orderDetails));
         dispatch(clearCart());
-        window.location.href = '/Clients/Payment-success'; // Redirect after success
+        window.location.href = '/payment-success'; // Redirect after success
       },
       onClose: () => {
         alert('Payment was not completed');
