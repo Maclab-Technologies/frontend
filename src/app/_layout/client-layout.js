@@ -1,5 +1,10 @@
+'use client'
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useSelector } from "react-redux";
 import Image from "next/image";
 import { FiMenu, FiX, FiBell } from "react-icons/fi";
+import { useAuth } from "../(clients)/_provider/useClientProvider";
 import {
   FaShoppingCart,
   FaUser,
@@ -11,28 +16,47 @@ import {
   FaInfo,
 } from "react-icons/fa";
 import logo from "../../../public/images/brandimage.jpeg";
+import { usePathname } from "next/navigation";
 
 const NAV_LINKS = [
   { label: "Home", href: "/", icon: FaHome },
   { label: "Products", href: "/products", icon: FaBox },
-  { label: "Categories", href: "/pages/categories", icon: FaList },
-  { label: "Features", href: "/pages/features", icon: FaStar },
+  { label: "Categories", href: "/categories", icon: FaList },
+  { label: "Features", href: "/features", icon: FaStar },
   { label: "Become a Vendor", href: "/vendor", icon: FaStore },
-  { label: "About Us", href: "/pages/about", icon: FaInfo },
+  { label: "About Us", href: "/about", icon: FaInfo },
 ];
 
-const ClientNavLayout = ({
-  authUser,
-  isScrolled,
-  isMobileMenuOpen,
-  setIsMobileMenuOpen,
-  isLoggedIn,
-  handleLogout,
-  cartCount,
-  pathname,
-  Link,
-}) => {
+const ClientNavLayout = () => {
+
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const cartItems = useSelector((state) => state.cart.cartItems || []);
+  const pathname = usePathname()
+  
+  const { 
+    isLoggedIn, 
+    authUser, 
+    logoutUser 
+  } = useAuth();
+
+  const cartCount = cartItems.length;
+
+  useEffect(() => {
+    document.body.style.overflow = isMobileMenuOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMobileMenuOpen]);
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
+    
     <header className="w-full">
       <div className="h-full px-4 flex justify-between items-center">
         {/* Global Styles */}
