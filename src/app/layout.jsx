@@ -1,7 +1,6 @@
 import "./globals.css";
 import "react-toastify/dist/ReactToastify.css";
 import ReduxProvider from "./utils/Redux/Provider";
-import { AuthProvider } from "./(clients)/_provider/useClientProvider";
 import { ToastContainer } from "react-toastify";
 
 

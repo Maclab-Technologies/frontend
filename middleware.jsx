@@ -3,8 +3,8 @@
 import { useContext } from "react";
 import { usePathname, redirect } from "next/navigation";
 import { toast } from "react-toastify";
-import { AuthContext } from "./_provider/useClientProvider";
-import LoadingErrorHandler from "../_components/LoadingErrorHandler";
+import { AuthContext } from "./src/app/(clients)/_provider/useClientProvider";
+import LoadingErrorHandler from "./src/app/_components/LoadingErrorHandler";
 
 
 function isPublicRoute(pathname) {
