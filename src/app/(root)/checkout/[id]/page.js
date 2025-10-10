@@ -36,6 +36,7 @@ const Checkout = () => {
   }, []);
 
   useEffect(() => {
+    console.log("Order ID from params:", orderId);
     if (!hasMounted || !orderId) return;
 
     const fetchOrderDetails = async () => {

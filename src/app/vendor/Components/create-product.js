@@ -1,13 +1,62 @@
-import { FaPlus } from 'react-icons/fa';
+"use clinet";
 
-export default function CreateProduct({ 
-  products, 
-  showProductForm, 
-  setShowProductForm, 
-  ProductForm, 
-  handleCreateProduct, 
-  isSubmitting 
+import { useState, useContext } from "react";
+import { FaPlus } from "react-icons/fa";
+import ProductForm from "./productform";
+import { toast } from "react-toastify";
+import { VendorAuthContext } from "../_provider/useVendorProvider";
+
+
+export default function CreateProduct({
+  products, setProducts
 }) {
+    const { vendorToken, authVendor } = useContext(VendorAuthContext);
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showProductForm, setShowProductForm] = useState(false);
+
+  const handleCreateProduct = async (productData) => {
+    setIsSubmitting(true);
+    try {
+      const formData = new FormData();
+
+      // Append product data
+      Object.keys(productData).forEach((key) => {
+        if (key === "color") {
+          const colors = Array.isArray(productData[key])
+            ? productData[key]
+            : productData[key].split(",").map((c) => c.trim());
+          formData.append(key, JSON.stringify(colors));
+        } else if (key === "images") {
+          productData.images.forEach((image) => {
+            formData.append("images", image);
+          });
+        } else if (key !== "existingImages") {
+          formData.append(key, productData[key]);
+        }
+      });
+
+      const response = await post(
+        `/products/create/${authVendor.id}`,
+        formData,
+        {
+          token: vendorToken,
+        }
+      );
+
+      if (response.success) {
+        setProducts((prev) => [...prev, response.data]);
+        toast.success("Product created successfully!");
+        setShowProductForm(false);
+      }
+    } catch (error) {
+      console.error("Error creating product:", error);
+      toast.error("Failed to create product. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="bg-gray-800 rounded-lg p-6 text-white">
       <div className="flex justify-between items-center mb-6">
@@ -37,7 +86,9 @@ export default function CreateProduct({
       {showProductForm && (
         <ProductForm
           onSubmit={handleCreateProduct}
-          onCancel={() => setShowProductForm(false)}minimum quantity
+          onCancel={() => setShowProductForm(false)}
+          minimum
+          quantity
           isSubmitting={isSubmitting}
         />
       )}

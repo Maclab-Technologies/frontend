@@ -222,7 +222,7 @@ export default function Home() {
                 {categories.map((category, index) => (
                   <Link
                     key={category.name}
-                    href={`/Pages/Categories/${encodeURIComponent(category.name)}`}
+                    href={`/categories/${encodeURIComponent(category.name)}`}
                     className="group bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 flex flex-col relative"
                   >
                     {/* Popular Badge - showing for first 3 items (you can adjust logic as needed) */}

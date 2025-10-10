@@ -74,7 +74,7 @@ export default function PaymentSuccess() {
   };
 
   const handleReturnToShop = () => {
-    router.push("/Clients/Products/");
+    router.push("/products/");
   };
 
   const handlePrintingOptionSelect = (option) => {

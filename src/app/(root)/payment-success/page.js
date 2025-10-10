@@ -81,7 +81,7 @@ export default function PaymentSuccess() {
   };
 
   const handleReturnToShop = () => {
-    router.push("/Clients/Products/"); // Redirect to homepage or shop page
+    router.push("/products/"); // Redirect to homepage or shop page
   };
 
   const handlePrintingOptionSelect = (option) => {

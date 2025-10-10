@@ -1,4 +1,3 @@
-// Updated Vendor Dashboard with reusable product form and fixed delete modal
 "use client";
 
 import { useContext, useEffect, useState } from "react";
@@ -18,25 +17,21 @@ import {
 } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import ProductForm from "../Components/productform";
 import { batchRequests, post } from "@/app/_hooks/fetch-hook";
 import Dashboard from "../Components/dashboard";
 import AddProduct from "../Components/create-product";
 import ManageProducts from "../Components/manage-product";
 import Earnings from "../Components/earning";
 import Withdraw from "../Components/withdraw";
-import Payout from "../Components/payout";
 import Orders from "../Components/order";
-import LoadingMiddleware from "@/app/_components/loading";
 import { VendorAuthContext } from "../_provider/useVendorProvider";
 
 // Delete Confirmation Modal
 
 export default function VendorDashboard() {
-  const { vendorToken, authVendor } = useContext(VendorAuthContext)
+  const { vendorToken, authVendor } = useContext(VendorAuthContext);
   const router = useRouter();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard");
 
@@ -47,23 +42,16 @@ export default function VendorDashboard() {
   const [earningsStats, setEarningsStats] = useState({});
   const [summary, setSummary] = useState({});
 
-  // Modal states
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [productToDelete, setProductToDelete] = useState(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [showProductForm, setShowProductForm] = useState(false);
-  const [productToEdit, setProductToEdit] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Load user data and initial content
   useEffect(() => {
     const loadInitialData = async () => {
-      setLoading(true)
+      setLoading(true);
       try {
         if (!vendorToken) {
-          throw new Error('No token found')
+          throw new Error("No token found");
         }
-        let token = vendorToken
+        let token = vendorToken;
 
         // Using batchRequests for parallel API calls
         const result = await batchRequests([
@@ -96,7 +84,7 @@ export default function VendorDashboard() {
           },
           {
             // vendor earnings stats
-            url: `/payments/earnings/stats/${data.id}`,
+            url: `/payments/earnings/stats/${authVendor.id}`,
             options: {
               method: "GET",
               token,
@@ -105,7 +93,7 @@ export default function VendorDashboard() {
           },
           {
             // vendor stats summary
-            url: `/payments/vendor/${data.id}/summary`,
+            url: `/payments/vendor/${authVendor.id}/summary`,
             options: {
               method: "GET",
               token,
@@ -176,156 +164,6 @@ export default function VendorDashboard() {
     loadInitialData();
   }, [router]);
 
-  const handleCreateProduct = async (productData) => {
-    setIsSubmitting(true);
-    try {
-      const formData = new FormData();
-
-      // Append product data
-      Object.keys(productData).forEach((key) => {
-        if (key === "color") {
-          formData.append(key, JSON.stringify(productData[key]));
-        } else if (key === "images") {
-          productData.images.forEach((image) => {
-            formData.append("images", image);
-          });
-        } else if (key !== "existingImages") {
-          formData.append(key, productData[key]);
-        }
-      });
-
-      const response = await post(
-        `/products/create/${vendorData.id}`,
-        formData,
-        {
-          token: vendorToken,
-        }
-      );
-
-      if (response.success) {
-        setProducts((prev) => [...prev, response.data]);
-        toast.success("Product created successfully!");
-        setShowProductForm(false);
-      }
-    } catch (error) {
-      console.error("Error creating product:", error);
-      toast.error("Failed to create product. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleUpdateProduct = async (productData) => {
-    setIsSubmitting(true);
-    try {
-      const formData = new FormData();
-
-      // Append product data
-      Object.keys(productData).forEach((key) => {
-        if (key === "color") {
-          formData.append(key, JSON.stringify(productData[key]));
-        } else if (key === "images") {
-          productData.images.forEach((image) => {
-            formData.append("images", image);
-          });
-        } else if (key === "existingImages") {
-          formData.append("existingImages", JSON.stringify(productData[key]));
-        } else {
-          formData.append(key, productData[key]);
-        }
-      });
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/products/edit/${productToEdit.id}`,
-        {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${vendorToken}`,
-          },
-          body: formData,
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to update product");
-      }
-
-      const responseData = await response.json();
-      setProducts((prev) =>
-        prev.map((p) => (p.id === productToEdit.id ? responseData.data : p))
-      );
-      toast.success("Product updated successfully!");
-      setShowProductForm(false);
-      setProductToEdit(null);
-    } catch (error) {
-      console.error("Error updating product:", error);
-      toast.error("Failed to update product. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleDeleteClick = (product) => {
-    setProductToDelete(product);
-    setShowDeleteModal(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    setIsDeleting(true);
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/products/${productToDelete.id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${vendorToken}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to delete product");
-      }
-
-      setProducts((prev) => prev.filter((p) => p.id !== productToDelete.id));
-      toast.success("Product deleted successfully");
-      setShowDeleteModal(false);
-      setProductToDelete(null);
-    } catch (error) {
-      console.error("Error deleting product:", error);
-      toast.error("Failed to delete product");
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const handleCancelDelete = () => {
-    setShowDeleteModal(false);
-    setProductToDelete(null);
-  };
-
-  const handleEditProduct = (product) => {
-    setProductToEdit(product);
-    setShowProductForm(true);
-  };
-
-  const handleCancelEdit = () => {
-    setShowProductForm(false);
-    setProductToEdit(null);
-  };
-
-  const handleDesignLinkSubmit = (orderId, link) => {
-    setOrders(
-      orders.map((order) =>
-        order.id === orderId
-          ? { ...order, designLink: link, status: "In Review" }
-          : order
-      )
-    );
-    toast.success("Design link submitted for review");
-  };
-
   const tabs = {
     dashboard: (
       <Dashboard
@@ -346,30 +184,13 @@ export default function VendorDashboard() {
     addProduct: (
       <AddProduct
         products={products}
-        showProductForm={showProductForm}
-        setShowProductForm={setShowProductForm}
-        ProductForm={ProductForm}
-        handleCreateProduct={handleCreateProduct}
-        isSubmitting={isSubmitting}
+        setProducts={setProducts}
       />
     ),
     manageProduct: (
-      <ManageProducts
+      <ManageProducts 
         products={products}
-        handleEditProduct={handleEditProduct}
-        handleDeleteClick={handleDeleteClick}
-        showProductForm={showProductForm}
-        productToEdit={productToEdit}
-        handleCancelEdit={handleCancelEdit}
-        ProductForm={ProductForm}
-        handleUpdateProduct={handleUpdateProduct}
-        isSubmitting={isSubmitting}
-        showDeleteModal={showDeleteModal}
-        productToDelete={productToDelete}
-        handleConfirmDelete={handleConfirmDelete}
-        handleCancelDelete={handleCancelDelete}
-        isDeleting={isDeleting}
-        loading={loading}
+        setProducts={setProducts}
       />
     ),
     earnings: (
@@ -379,7 +200,13 @@ export default function VendorDashboard() {
         loading={loading}
       />
     ),
-    withdraw: <Withdraw vendorData={authVendor} summary={summary} vendorToken={vendorToken}/>,
+    withdraw: (
+      <Withdraw
+        vendorData={authVendor}
+        summary={summary}
+        vendorToken={vendorToken}
+      />
+    ),
     // payout: <Payout payouts={payouts} />,
   };
   return (

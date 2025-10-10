@@ -300,10 +300,10 @@ export default function ProductsPage() {
     debouncedSearch(e.target.value);
   };
 
-  // Client-side error handling for images
-  const handleImageError = (e) => {
-    e.currentTarget.src = "/fallback-image.png";
-  };
+  // // Client-side error handling for images
+  // const handleImageError = (e) => {
+  //   e.currentTarget.src = "/fallback-image.png";
+  // };
 
   if (loading && !isRefreshing)
     return (
@@ -593,7 +593,7 @@ export default function ProductsPage() {
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
                       placeholder="blur"
                       blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
-                      onError={handleImageError}
+                      // onError={handleImageError}
                     />
                       <div className="absolute top-0 right-0 bg-orange-500 text-white text-xs font-bold px-2 py-1">
                         -{productDiscountPercent}%
@@ -630,7 +630,7 @@ export default function ProductsPage() {
 
                     <div className="flex space-x-2">
                       <Link
-                        href={`/Products/${productId}`}
+                        href={`/products/${productId}`}
                         className="flex-1 transition hover:opacity-90"
                         passHref
                       >

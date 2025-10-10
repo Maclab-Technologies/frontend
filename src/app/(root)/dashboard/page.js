@@ -12,7 +12,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "../../utils/firebaseconfig";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { AuthContext } from "@/app/(clients)/_provider/useClientProvider";
+import { AuthContext } from "@/app/(root)/_provider/useClientProvider";
 
 export default function ClientDashboard() {
   const { authUser, logoutUser } = useContext(AuthContext)

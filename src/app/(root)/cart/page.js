@@ -12,7 +12,7 @@ import {
 import { useRouter } from "next/navigation";
 import { FiTrash, FiShoppingCart } from "react-icons/fi";
 import { toast } from "react-toastify";
-import { AuthContext } from "@/app/(clients)/_provider/useClientProvider";
+import { AuthContext } from "@/app/(root)/_provider/useClientProvider";
 
 export default function Cart() {
   const cartItems = useSelector((state) => state.cart.cartItems || []);
@@ -133,6 +133,8 @@ export default function Cart() {
       // Clear cart only after successful order creation
       // dispatch(clearCart());
       // localStorage.removeItem("cart");
+
+      console.log(order)
 
       // Use window.location for more reliable redirect
       window.location.href = `/checkout/${order.data.id}`;

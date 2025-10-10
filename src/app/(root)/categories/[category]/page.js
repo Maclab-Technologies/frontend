@@ -79,7 +79,7 @@ export default async function CategoryPage({ params }) {
                 : '0';
 
               return (
-                <Link key={product.id} href={`/Products/${product.id}`} passHref>
+                <Link key={product.id} href={`/products/${product.id}`} passHref>
                   <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden group relative">
                     <div className="w-full h-64 relative overflow-hidden">
                       <Image
@@ -119,7 +119,7 @@ export default async function CategoryPage({ params }) {
           {fetchedProducts.length === 0 && (
             <div className="text-center py-16">
               <p className="text-gray-500 text-lg mb-4">No products found in this category.</p>
-              <Link href="/Products" className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700">
+              <Link href="/products" className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700">
                 Browse All Products
               </Link>
             </div>
@@ -140,7 +140,7 @@ export default async function CategoryPage({ params }) {
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Oops!</h2>
           <p className="text-gray-600 mb-6">We couldn't load the products for this category. Please try again later.</p>
           <div className="flex justify-center">
-            <Link href="/Pages/Categories" className="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+            <Link href="/categories" className="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
               Back to Categories
             </Link>
           </div>

@@ -3,10 +3,9 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { redirect } from 'next/navigation';
 
 export default function CategoriesPage() {
-  const router = useRouter();
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -95,7 +94,7 @@ export default function CategoriesPage() {
             {categories.map((category) => (
               <Link
                 key={category._id}
-                href={`/Pages/Categories/${encodeURIComponent(category.name)}`}
+                href={`/categories/${encodeURIComponent(category.name)}`}
                 className="group relative rounded-xl overflow-hidden shadow-xl transition-all duration-300 hover:shadow-2xl hover:translate-y-1 bg-white flex flex-col"
               >
                 <div className="h-56 w-full relative">
@@ -135,7 +134,7 @@ export default function CategoriesPage() {
 
         <div className="text-center mt-10">
           <Link
-            href="/Products"
+            href="/products"
             className="inline-flex items-center px-6 py-3 bg-yellow-500 hover:bg-yellow-600 transition-colors text-black font-medium rounded-full"
           >
             View All Categories
@@ -153,7 +152,7 @@ export default function CategoriesPage() {
             Don't miss out on exclusive offers and exciting discounts. Grab them while they last!
           </p>
           <button
-            onClick={() => router.push('/Products')}
+            onClick={() => redirect('/products')}
             className="px-8 py-3 bg-yellow-500 text-black font-semibold rounded-full hover:bg-yellow-600 transition duration-300 shadow-lg"
           >
             Shop Now

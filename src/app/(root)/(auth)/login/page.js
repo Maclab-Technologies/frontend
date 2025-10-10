@@ -24,7 +24,7 @@ import {
 import { auth } from "../../../utils/firebaseconfig";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { AuthContext } from "@/app/(clients)/_provider/useClientProvider";
+import { AuthContext } from "@/app/(root)/_provider/useClientProvider";
 import { post } from "@/app/_hooks/fetch-hook";
 
 const Login = () => {

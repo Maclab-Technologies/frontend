@@ -2,12 +2,10 @@
 
 import { useState, useEffect, useContext } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
-import { useAuth } from "../(clients)/_provider/useClientProvider"; // Changed import
-import VendorNavLayout from "../_layout/vendor-layout";
 import ClientNavLayout from "../_layout/client-layout";
-import AdminNavLayout from "../_layout/admin-layout";
+import { useAuth } from "../(root)/_provider/useClientProvider";
 
 const Navbar = () => {
   const router = useRouter();

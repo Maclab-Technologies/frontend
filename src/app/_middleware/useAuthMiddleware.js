@@ -3,7 +3,7 @@
 import { useContext } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { toast } from "react-toastify";
-import { AuthContext } from "../(clients)/_provider/useClientProvider";
+import { AuthContext } from "../(root)/_provider/useClientProvider";
 import Loading from "../_components/loading";
 import { VendorAuthContext } from "../vendor/_provider/useVendorProvider";
 import { AdminAuthContext } from "../admin/(main)/_provider/useAdminProvider";

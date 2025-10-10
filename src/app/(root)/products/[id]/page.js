@@ -18,25 +18,10 @@ import {
   Heart,
   Share2,
 } from "lucide-react";
-import { AuthContext } from "../../_provider/useClientProvider";
+import LoadingErrorHandler from "@/app/_components/LoadingErrorHandler";
+import { get } from "@/app/_hooks/fetch-hook";
 
 // Helper function to normalize MongoDB documents
-const normalizeMongoId = (item) => {
-  if (!item) return null;
-  const normalized = { ...item };
-
-  // Ensure _id is converted to string if it exists
-  if (normalized._id && typeof normalized._id === "object") {
-    normalized._id = normalized._id.toString();
-  }
-
-  // Add id property if it doesn't exist
-  if (normalized._id && !normalized.id) {
-    normalized.id = normalized._id.toString();
-  }
-
-  return normalized;
-};
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -49,47 +34,31 @@ export default function ProductDetail() {
   const [processingAction, setProcessingAction] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
 
-  useEffect(() => {
-    if (!id) {
-      router.push("/Products");
-      return;
-    }
+  if (!id) {
+    router.push("/products");
+    return;
+  }
 
+  useEffect(() => {
     const fetchProduct = async () => {
       setLoading(true);
       try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/products/${id}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        const response = await get(`/products/${id}`);
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch product details.");
-        }
+        const result = await response.data.data;
 
-        const result = await response.json();
-        console.log("Full response:", result);
-
-        const productData = result.data;
+        const productData = result;
         if (!productData) {
           toast.error("Product not found!");
-          return router.push("/Products");
         }
-
-        const normalizedProduct = normalizeMongoId(productData);
-        const minOrder = normalizedProduct.minOrder || 1;
+        const minOrder = productData.minOrder || 1;
+        setProduct(productData);
         setQuantity(minOrder);
-        setProduct(normalizedProduct);
-        setSelectedImage(normalizedProduct.images?.[0] || null);
+        setSelectedImage(productData.images?.[0] || null);
       } catch (error) {
         console.error("Product fetch error:", error);
         toast.error(error.message || "Failed to fetch product details.");
-        router.push("/Products");
+
       } finally {
         setLoading(false);
       }
@@ -98,11 +67,11 @@ export default function ProductDetail() {
     fetchProduct();
   }, [id, router]);
 
-  useEffect(() => {
-    if (selectedImage) {
-      setImageLoading(true);
-    }
-  }, [selectedImage]);
+  // useEffect(() => {
+  //   if (selectedImage) {
+  //     setImageLoading(true);
+  //   }
+  // }, [selectedImage]);
 
   const handleQuantityChange = (action) => {
     const minOrder = product?.minOrder || 1;
@@ -206,18 +175,7 @@ export default function ProductDetail() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gradient-to-br from-black via-gray-900 to-black">
-        <div className="flex flex-col items-center space-y-6">
-          <div className="relative">
-            <div className="w-20 h-20 border-4 border-yellow-400/30 rounded-full animate-spin"></div>
-            <div className="absolute top-2 left-2 w-16 h-16 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
-          </div>
-          <div className="text-center">
-            <p className="text-white text-xl font-medium">Loading product...</p>
-            <p className="text-gray-400 text-sm mt-1">Please wait a moment</p>
-          </div>
-        </div>
-      </div>
+      <LoadingErrorHandler loading={loading} />
     );
   }
 
@@ -228,14 +186,18 @@ export default function ProductDetail() {
           <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <Box size={32} className="text-red-400" />
           </div>
-          <p className="text-white text-xl font-medium mb-2">Product not found</p>
-          <p className="text-gray-400 mb-6">The product you're looking for doesn't exist or has been removed.</p>
-          <button
-            onClick={() => router.push("/Products")}
+          <p className="text-white text-xl font-medium mb-2">
+            Product not found
+          </p>
+          <p className="text-gray-400 mb-6">
+            The product you're looking for doesn't exist or has been removed.
+          </p>
+          <buttonnot
+            onClick={() => router.push("/products")}
             className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-black px-8 py-3 rounded-xl font-semibold hover:from-yellow-500 hover:to-yellow-400 transition-all duration-300 transform hover:scale-105"
           >
             Browse Products
-          </button>
+          </buttonnot>
         </div>
       </div>
     );
@@ -243,7 +205,7 @@ export default function ProductDetail() {
 
   const currentPrice = product.discountPrice || product.price;
   const originalPrice = product.discountPrice ? product.price : null;
-  const discountPercentage = originalPrice 
+  const discountPercentage = originalPrice
     ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100)
     : 0;
 
@@ -254,11 +216,14 @@ export default function ProductDetail() {
       {/* Navigation */}
       <div className="container mx-auto pt-8 px-4">
         <button
-          onClick={() => router.push("/Products")}
+          onClick={() => router.push("/products")}
           className="group flex items-center text-gray-400 hover:text-yellow-400 transition-all duration-300 mb-6"
         >
           <div className="bg-gray-800/50 backdrop-blur-sm rounded-full p-2 mr-3 group-hover:bg-yellow-400/20 transition-all duration-300">
-            <ArrowLeft size={18} className="group-hover:transform group-hover:-translate-x-1 transition-transform duration-300" />
+            <ArrowLeft
+              size={18}
+              className="group-hover:transform group-hover:-translate-x-1 transition-transform duration-300"
+            />
           </div>
           <span className="font-medium">Back to Products</span>
         </button>
@@ -299,7 +264,7 @@ export default function ProductDetail() {
                     </div>
                   </div>
                 )}
-                
+
                 {/* Discount Badge */}
                 {discountPercentage > 0 && (
                   <div className="absolute top-6 left-6 bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
@@ -352,7 +317,10 @@ export default function ProductDetail() {
                         : "bg-gray-700/50 text-gray-400 hover:bg-gray-600/50 hover:text-red-400"
                     }`}
                   >
-                    <Heart size={20} fill={isWishlisted ? "currentColor" : "none"} />
+                    <Heart
+                      size={20}
+                      fill={isWishlisted ? "currentColor" : "none"}
+                    />
                   </button>
                   <button
                     onClick={handleShare}
@@ -381,7 +349,9 @@ export default function ProductDetail() {
                     />
                   ))}
                 </div>
-                <span className="text-gray-400 text-sm">(4.2) • 127 reviews</span>
+                <span className="text-gray-400 text-sm">
+                  (4.2) • 127 reviews
+                </span>
               </div>
 
               {/* Price */}
@@ -405,7 +375,9 @@ export default function ProductDetail() {
 
               {/* Description */}
               <div className="mb-8">
-                <h3 className="text-white text-lg font-semibold mb-3">Description</h3>
+                <h3 className="text-white text-lg font-semibold mb-3">
+                  Description
+                </h3>
                 <p className="text-gray-300 leading-relaxed">
                   {product?.description || "No description available."}
                 </p>
@@ -413,7 +385,9 @@ export default function ProductDetail() {
 
               {/* Product Specifications */}
               <div className="mb-8">
-                <h3 className="text-white text-lg font-semibold mb-4">Specifications</h3>
+                <h3 className="text-white text-lg font-semibold mb-4">
+                  Specifications
+                </h3>
                 <div className="grid grid-cols-1 gap-4">
                   {product?.material && (
                     <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-xl">
@@ -421,16 +395,23 @@ export default function ProductDetail() {
                         <Box size={18} className="text-yellow-400 mr-3" />
                         <span className="text-gray-300">Material</span>
                       </div>
-                      <span className="text-white font-medium">{product.material}</span>
+                      <span className="text-white font-medium">
+                        {product.material}
+                      </span>
                     </div>
                   )}
                   {product?.color && (
                     <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-xl">
                       <div className="flex items-center">
-                        <Paintbrush size={18} className="text-yellow-400 mr-3" />
+                        <Paintbrush
+                          size={18}
+                          className="text-yellow-400 mr-3"
+                        />
                         <span className="text-gray-300">Color</span>
                       </div>
-                      <span className="text-white font-medium">{product.color}</span>
+                      <span className="text-white font-medium">
+                        {product.color}
+                      </span>
                     </div>
                   )}
                   {product.vendor?.businessName && (
@@ -439,7 +420,9 @@ export default function ProductDetail() {
                         <Building size={18} className="text-yellow-400 mr-3" />
                         <span className="text-gray-300">Vendor</span>
                       </div>
-                      <span className="text-white font-medium">{product.vendor.businessName}</span>
+                      <span className="text-white font-medium">
+                        {product.vendor.businessName}
+                      </span>
                     </div>
                   )}
                   <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-xl">
@@ -447,10 +430,14 @@ export default function ProductDetail() {
                       <Box size={18} className="text-yellow-400 mr-3" />
                       <span className="text-gray-300">Min Order</span>
                     </div>
-                    <span className={`font-medium ${
-                      product.minOrder > 0 ? "text-green-400" : "text-red-400"
-                    }`}>
-                      {product.minOrder > 0 ? `${product.minOrder} units` : "1 unit"}
+                    <span
+                      className={`font-medium ${
+                        product.minOrder > 0 ? "text-green-400" : "text-red-400"
+                      }`}
+                    >
+                      {product.minOrder > 0
+                        ? `${product.minOrder} units`
+                        : "1 unit"}
                     </span>
                   </div>
                 </div>
@@ -480,9 +467,9 @@ export default function ProductDetail() {
                       const minOrder = product?.minOrder || 1;
                       if (!isNaN(newValue) && newValue >= minOrder) {
                         setQuantity(newValue);
-                      } else if (e.target.value === '') {
+                      } else if (e.target.value === "") {
                         // Allow empty input temporarily
-                        setQuantity('');
+                        setQuantity("");
                       }
                     }}
                     onBlur={(e) => {
@@ -534,16 +521,28 @@ export default function ProductDetail() {
               {/* Additional Info */}
               <div className="mt-6 grid grid-cols-3 gap-4 text-center">
                 <div className="p-4 bg-gray-700/30 rounded-xl">
-                  <div className="text-yellow-400 text-sm font-semibold">Free Shipping</div>
-                  <div className="text-gray-400 text-xs mt-1">On orders over ₦50,000</div>
+                  <div className="text-yellow-400 text-sm font-semibold">
+                    Free Shipping
+                  </div>
+                  <div className="text-gray-400 text-xs mt-1">
+                    On orders over ₦50,000
+                  </div>
                 </div>
                 <div className="p-4 bg-gray-700/30 rounded-xl">
-                  <div className="text-yellow-400 text-sm font-semibold">Fast Delivery</div>
-                  <div className="text-gray-400 text-xs mt-1">2-5 business days</div>
+                  <div className="text-yellow-400 text-sm font-semibold">
+                    Fast Delivery
+                  </div>
+                  <div className="text-gray-400 text-xs mt-1">
+                    2-5 business days
+                  </div>
                 </div>
                 <div className="p-4 bg-gray-700/30 rounded-xl">
-                  <div className="text-yellow-400 text-sm font-semibold">Secure Payment</div>
-                  <div className="text-gray-400 text-xs mt-1">100% protected</div>
+                  <div className="text-yellow-400 text-sm font-semibold">
+                    Secure Payment
+                  </div>
+                  <div className="text-gray-400 text-xs mt-1">
+                    100% protected
+                  </div>
                 </div>
               </div>
             </div>

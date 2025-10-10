@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { clearCart } from '../../utils/Redux/CartSlice';
+import { redirect } from 'next/navigation';
 
 const Checkout = () => {
   const cart = useSelector((state) => state.cart.cartItems || []);
@@ -72,7 +73,7 @@ const Checkout = () => {
         const paymentReference = response.reference;
         localStorage.setItem('orderDetails', JSON.stringify(orderDetails));
         dispatch(clearCart());
-        window.location.href = '/payment-success'; // Redirect after success
+        redirect('/payment-success'); // Redirect after success
       },
       onClose: () => {
         alert('Payment was not completed');
