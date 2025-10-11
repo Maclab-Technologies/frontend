@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { get } from '@/app/_hooks/fetch-hook';
+import LoadingErrorHandler from '@/app/_components/LoadingErrorHandler';
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState([]);
@@ -48,22 +49,6 @@ export default function CategoriesPage() {
     fetchCategories();
   };
 
-  if (error) {
-    return (
-      <div className="bg-black min-h-screen flex items-center justify-center">
-        <div className="bg-gray-800 p-6 rounded-lg max-w-md mx-auto text-center">
-          <p className="text-red-400 mb-4">{error}</p>
-          <button
-            onClick={retry}
-            className="px-4 py-2 bg-yellow-500 text-black rounded-md hover:bg-yellow-600 transition-colors"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="bg-black min-h-screen p-6">
       <div className="w-[90%] h-60 bg-yellow-500 text-black text-center mx-auto flex items-center justify-center shadow-md rounded-lg mb-8">
@@ -80,9 +65,7 @@ export default function CategoriesPage() {
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
-          </div>
+          <LoadingErrorHandler loading={isLoading} error={error} />
         ) : categories.length === 0 ? (
           <div className="text-center p-8">
             <p className="text-gray-400">No categories available at the moment.</p>

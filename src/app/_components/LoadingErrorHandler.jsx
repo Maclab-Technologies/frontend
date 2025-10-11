@@ -11,7 +11,7 @@ const LoadingErrorHandler = ({ error, errorMsg, reload, loading, children }) => 
             <div className="absolute top-2 left-2 w-16 h-16 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
           </div>
           <div className="text-center">
-            <p className="text-white text-xl font-medium">Loading product...</p>
+            <p className="text-white text-xl font-medium">Loading...</p>
             <p className="text-gray-400 text-sm mt-1">Please wait a moment</p>
           </div>
         </div>

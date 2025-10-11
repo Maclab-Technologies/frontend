@@ -184,27 +184,27 @@ export default async function fetchHook(url, options = {}) {
 // Utility functions for common operations
 
 // GET request wrapper
-export const get = (url, options = {}) =>
+export const get = async (url, options = {}) =>
   fetchHook(url, { ...options, method: "GET" });
 
 //  POST request wrapper
-export const post = (url, data, options = {}) =>
+export const post = async (url, data, options = {}) =>
   fetchHook(url, { ...options, method: "POST", data });
 
 // PUT request wrapper
-export const put = (url, data, options = {}) =>
+export const put = async (url, data, options = {}) =>
   fetchHook(url, { ...options, method: "PUT", data });
 
 // DELETE request wrapper
-export const del = (url, options = {}) =>
+export const del = async (url, options = {}) =>
   fetchHook(url, { ...options, method: "DELETE" });
 
 // PATCH request wrapper
-export const patch = (url, data, options = {}) =>
+export const patch = async (url, data, options = {}) =>
   fetchHook(url, { ...options, method: "PATCH", data });
 
 // Clear cache
-export const clearCache = (pattern) => {
+export const clearCache = async (pattern) => {
   if (pattern) {
     const regex = new RegExp(pattern);
     for (const key of cache.keys()) {
