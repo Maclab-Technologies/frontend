@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { redirect } from 'next/navigation';
+import { get } from '@/app/_hooks/fetch-hook';
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState([]);
@@ -18,13 +19,10 @@ export default function CategoriesPage() {
     try {
 
       const controller = new AbortController();
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/categories`,
-        { signal: controller.signal }
-      );
+      const response = await get("/categories");
 
-      if (!response.ok) {
-        const errorText = await response.text();
+      if (!response.success) {
+        const errorText = await response.data?.message || 'Unknown error';
         throw new Error(`Server responded with ${response.status}: ${errorText}`);
       }
 

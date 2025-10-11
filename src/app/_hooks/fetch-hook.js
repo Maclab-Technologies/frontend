@@ -40,7 +40,6 @@ export default async function fetchHook(url, options = {}) {
     retryDelay,
     cache: useCache,
     cacheTime,
-    showToast,
     validateStatus,
   } = finalConfig;
 
@@ -63,7 +62,8 @@ export default async function fetchHook(url, options = {}) {
   };
 
   if (token) {
-    requestHeaders.Authorization = `Bearer ${token}`;
+    const key = localStorage.getItem("userToken");
+    requestHeaders.Authorization = `Bearer ${key}`;
   }
 
   // Handle different data types

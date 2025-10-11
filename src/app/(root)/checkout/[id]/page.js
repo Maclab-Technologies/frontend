@@ -29,7 +29,7 @@ const Checkout = () => {
   const [hasMounted, setHasMounted] = useState(false);
   // const [vendor, setVendor] = useState([]);
 
-  const token = localStorage.getItem("userToken");
+  // const token = localStorage.getItem("userToken");
 
   useEffect(() => {
     setHasMounted(true);
@@ -43,7 +43,7 @@ const Checkout = () => {
       try {
         setIsLoadingOrder(true);
         const response = await get(`/orders/order/${orderId}`, {
-          token,
+          token:true,
         });
 
         if (!response.success) {
@@ -124,12 +124,13 @@ const Checkout = () => {
           },
         }),
         {
-          token,
+          token:true,
         }
       );
 
+      console.log(response)
+
       const data = response.data;
-      console.log(data)
 
       if (data.success) {
         toast.success('Payment successful')
@@ -157,6 +158,7 @@ const Checkout = () => {
       currency: "NGN",
       reference: `ORDER_${orderId}_${Date.now()}`,
       callback: (response) => {
+        console.log(response)
         verifyPayment(response.reference);
       },
       onClose: () => {

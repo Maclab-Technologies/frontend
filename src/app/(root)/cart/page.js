@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { FiTrash, FiShoppingCart } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { AuthContext } from "@/app/(root)/_provider/useClientProvider";
+import { post } from "@/app/_hooks/fetch-hook";
 
 export default function Cart() {
   const cartItems = useSelector((state) => state.cart.cartItems || []);
@@ -20,7 +21,7 @@ export default function Cart() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
-  const { isLoggedIn, authUser } = useContext(AuthContext);
+  const { isLoggedIn } = useContext(AuthContext);
   const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
@@ -111,33 +112,15 @@ export default function Cart() {
         ),
       };
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/orders/place-order`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("userToken")}`,
-          },
-          body: JSON.stringify(orderData),
-        }
-      );
+      const response = await post(`/orders/place-order`, JSON.stringify(orderData), {token: true});
 
-      if (!response.ok) {
+      if (response.success) {
+        const order = await response.data.data;
+        toast.success("Order placed successfully!");
+        window.location.href = `/checkout/${order._id || order.id}`;
+      } else {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
-      const order = await response.json();
-      toast.success("Order placed successfully!");
-
-      // Clear cart only after successful order creation
-      // dispatch(clearCart());
-      // localStorage.removeItem("cart");
-
-      console.log(order)
-
-      // Use window.location for more reliable redirect
-      window.location.href = `/checkout/${order.data.id}`;
     } catch (error) {
       console.error("Checkout error:", error);
       toast.error("Something went wrong while placing your order");
@@ -183,7 +166,8 @@ export default function Cart() {
   return (
     <div className="container mx-auto p-6 bg-black text-white min-h-screen">
       <h1 className="text-4xl font-bold mb-8 flex items-center gap-2">
-        <FiShoppingCart className="text-yellow-400" /> Cart ({cartItems.length} item{cartItems.length > 0 && 's'})
+        <FiShoppingCart className="text-yellow-400" /> Cart ({cartItems.length}{" "}
+        item{cartItems.length > 0 && "s"})
       </h1>
 
       {cartItems.length === 0 ? (

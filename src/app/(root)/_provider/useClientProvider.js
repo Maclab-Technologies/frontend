@@ -35,7 +35,7 @@ export function ClientAuthProvider({ children }) {
     setAuthUser(null);
     setRole(null);
     setToken(null);
-    const user = localStorage.removeItem("userToken");
+    localStorage.removeItem("userToken");
 
       router.push("/login");
   }, [router]);
@@ -55,7 +55,7 @@ export function ClientAuthProvider({ children }) {
 
     setIsLoading(true);
     try {
-      const response = await get("/auth/verify", { token });
+      const response = await get("/auth/verify", { token: true });
       if (!response.success) {
         throw new Error(response.error || "Verification failed");
       }
