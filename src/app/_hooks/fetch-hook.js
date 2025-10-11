@@ -1,3 +1,4 @@
+"use server";
 const cache = new Map();
 
 // Default configuration
