@@ -1,4 +1,3 @@
-import { AdminAuth } from "@/app/_middleware/useAuthMiddleware";
 import OrdersTable from "../_components/OrdersTable";
 import OrderFilters from "../_components/OrderFilters";
 

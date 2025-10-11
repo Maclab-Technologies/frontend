@@ -1,8 +1,5 @@
 "use client";
-import { get } from "@/app/_hooks/fetch-hook";
-import { useEffect, useState } from "react";
 import { FiSearch, FiFilter, FiCalendar, FiDollarSign } from "react-icons/fi";
-import { toast } from "react-toastify";
 
 export default function OrderFilters({ onFilterChange }) {
   const [filters, setFilters] = useState({

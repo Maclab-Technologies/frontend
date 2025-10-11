@@ -1,5 +1,12 @@
+
+"use client";
+
+import { useState, useEffect, useContext } from "react";
 import LoadingMiddleware from "@/app/_components/loading";
 import { FaEdit, FaTrash, FaTimes } from "react-icons/fa";
+import ProductForm from "./productform";
+import { VendorAuthContext } from "../_provider/useVendorProvider";
+import { toast } from "react-toastify";
 
 const DeleteConfirmationModal = ({
   product,
@@ -58,22 +65,127 @@ const DeleteConfirmationModal = ({
   );
 };
 export default function ManageProducts({
-  products,
-  handleEditProduct,
-  handleDeleteClick,
-  showProductForm,
-  productToEdit,
-  handleCancelEdit,
-  ProductForm,
-  handleUpdateProduct,
-  isSubmitting,
-  showDeleteModal,
-  productToDelete,
-  handleConfirmDelete,
-  handleCancelDelete,
-  isDeleting,
-  loading,
+  products, setProducts
 }) {
+    const { vendorToken } = useContext(VendorAuthContext);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [productToEdit, setProductToEdit] = useState(null);
+  const [showProductForm, setShowProductForm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [productToDelete, setProductToDelete] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate loading delay
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1000); // Adjust the delay as needed
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleUpdateProduct = async ( productData) => {
+    setIsSubmitting(true);
+    try {
+      const formData = new FormData();
+
+      // Append product data
+      Object.keys(productData).forEach((key) => {
+        if (key === "color") {
+          formData.append(key, JSON.stringify(productData[key]));
+        } else if (key === "images") {
+          productData.images.forEach((image) => {
+            formData.append("images", image);
+          });
+        } else if (key === "existingImages") {
+          formData.append("existingImages", JSON.stringify(productData[key]));
+        } else {
+          formData.append(key, productData[key]);
+        }
+      });
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/products/edit/${productToEdit.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${vendorToken}`,
+          },
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update product");
+      }
+
+      const responseData = await response.json();
+      setProducts((prev) =>
+        prev.map((p) => (p.id === productToEdit.id ? responseData.data : p))
+      );
+      toast.success("Product updated successfully!");
+      setShowProductForm(false);
+      setProductToEdit(null);
+    } catch (error) {
+      console.error("Error updating product:", error);
+      toast.error("Failed to update product. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteClick = (product) => {
+    setProductToDelete(product);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/products/${productToDelete.id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${vendorToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to delete product");
+      }
+
+      setProducts((prev) => prev.filter((p) => p.id !== productToDelete.id));
+      toast.success("Product deleted successfully");
+      setShowDeleteModal(false);
+      setProductToDelete(null);
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      toast.error("Failed to delete product");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setProductToDelete(null);
+  };
+
+  const handleEditProduct = (product) => {
+    setProductToEdit(product);
+    setShowProductForm(true);
+  };
+
+  const handleCancelEdit = () => {
+    setShowProductForm(false);
+    setProductToEdit(null);
+  };
+
   return (
     <div className="bg-gray-800 rounded-lg p-6 text-white relative">
       <h1 className="text-2xl font-bold mb-6">Manage Your Products</h1>

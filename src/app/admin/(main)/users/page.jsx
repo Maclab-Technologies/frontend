@@ -1,4 +1,3 @@
-import { AdminAuth } from "@/app/_middleware/useAuthMiddleware";
 import UsersTable from "../_components/UsersTable";
 
 export const metadata = {

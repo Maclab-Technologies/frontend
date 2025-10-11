@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useSelector } from "react-redux";
 import Image from "next/image";
 import { FiMenu, FiX, FiBell } from "react-icons/fi";
-import { useAuth } from "../(clients)/_provider/useClientProvider";
+import { useAuth } from "../(root)/_provider/useClientProvider";
 import {
   FaShoppingCart,
   FaUser,

@@ -1,6 +1,5 @@
 "use client";
 import { useContext, useEffect, useState } from "react";
-import { AuthContext } from "@/app/(clients)/_provider/useClientProvider";
 import { get } from "@/app/_hooks/fetch-hook";
 import { toast } from "react-toastify";
 import {

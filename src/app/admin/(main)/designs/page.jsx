@@ -1,4 +1,3 @@
-import { AuthContext } from "@/app/(clients)/_provider/useClientProvider";
 import DesignsTable from "../_components/DesignsTable";
 
 export const metadata = {

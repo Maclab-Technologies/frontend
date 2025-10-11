@@ -1,16 +1,11 @@
 "use client";
 import React, { useState, useEffect, useContext } from "react";
-import { AuthContext } from "@/app/(clients)/_provider/useClientProvider";
 import {
-  Search,
-  Filter,
-  Calendar,
   Eye,
   Edit,
   Truck,
   Printer,
   CheckCircle,
-  DollarSign,
   MoreVertical,
 } from "lucide-react";
 import { toast } from "react-toastify";
