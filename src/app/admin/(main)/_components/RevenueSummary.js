@@ -8,7 +8,6 @@ import {
 import { useEffect, useState, useContext } from "react";
 import { get } from "@/app/_hooks/fetch-hook";
 import { toast } from "react-toastify";
-import { AuthContext } from "@/app/(clients)/_provider/useClientProvider";
 import LoadingErrorHandler from "@/app/_components/LoadingErrorHandler";
 import { AdminAuthContext } from "../_provider/useAdminProvider";
 

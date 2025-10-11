@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useContext, useState } from "react";
 import { toast } from "react-toastify";
-import { AuthContext } from "@/app/(clients)/_provider/useClientProvider";
 import { get } from "@/app/_hooks/fetch-hook";
 import {
   FiTruck,

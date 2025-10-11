@@ -1,10 +1,7 @@
 "use client";
-import { AuthContext } from "@/app/(clients)/_provider/useClientProvider";
 import { get } from "@/app/_hooks/fetch-hook";
 import { useState, useEffect, useContext } from "react";
 import {
-  FiUser,
-  FiDollarSign,
   FiTrendingUp,
   FiAlertCircle,
 } from "react-icons/fi";

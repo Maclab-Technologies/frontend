@@ -1,4 +1,3 @@
-import { AdminAuth } from "@/app/_middleware/useAuthMiddleware";
 import PayoutsTable from "../_components/PayoutsTable";
 import PayoutSummary from "../_components/PayoutSummary";
 
