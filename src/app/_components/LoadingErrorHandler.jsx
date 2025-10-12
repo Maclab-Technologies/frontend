@@ -1,3 +1,5 @@
+import { Box } from "lucide-react";
+
 const LoadingErrorHandler = ({ error, errorMsg, reload, loading, children }) => {
   const refreshHandler = () => {
     window.location.reload()

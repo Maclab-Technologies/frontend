@@ -144,7 +144,7 @@ export default function UploadDesignPage() {
         toast.success(
           "Design(s) uploaded successfully! Awaiting admin review."
         );
-        setTimeout(() => router.push("/my-designs"), 2000);
+        setTimeout(() => router.push(`/upload-design/success?orderId=${orderId}`), 2000);
       } else {
         toast.error(result.error || "Upload failed");
       }

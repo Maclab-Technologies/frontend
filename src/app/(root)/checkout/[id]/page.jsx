@@ -54,6 +54,7 @@ const Checkout = () => {
         setFullName(data.user.fullName);
         setEmail(data.user.email);
         setPhone(data.user.phone);
+        localStorage.setItem("orderDetails", JSON.stringify(data))
         // setVendor(()=>(data.items.map(i=> i.vendorId)));
       } catch (error) {
         console.error("Error fetching order details:", error);

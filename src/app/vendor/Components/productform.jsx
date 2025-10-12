@@ -164,14 +164,14 @@ export default function ProductForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-1">
-            Price (₦)
+            Price (₦) <span className="text-xs text-yellow-400">(per unit)</span>
           </label>
           <input
             type="number"
             value={productPrice}
             onChange={(e) => setProductPrice(e.target.value)}
             className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
-            placeholder="Price in Naira"
+            placeholder="500.00"
             min="0"
             step="0.01"
             required
