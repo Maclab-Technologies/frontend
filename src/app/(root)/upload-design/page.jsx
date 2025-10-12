@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { UploadCloud, X, Loader2, FileText } from "lucide-react";
 import { toast } from "react-toastify";
@@ -8,18 +8,41 @@ import { uploadWithProgress } from "@/app/_hooks/uploadfile";
 
 const MAX_FILES = 5;
 
-export default function UploadDesignPage() {
+// Move the main component logic to a separate component that uses useSearchParams
+function UploadDesignContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [files, setFiles] = useState([]);
   const [instructions, setInstructions] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [designId, setDesignId] = useState("");
-  const searchParams = useSearchParams();
-  const [orderId, ref] = searchParams.getAll("orderid", "ref");
+  const [isValidParams, setIsValidParams] = useState(false);
 
+  const orderId = searchParams.get("orderid");
+  const ref = searchParams.get("ref");
+
+  // Check params in useEffect to avoid rendering issues
   useEffect(() => {
-    setDesignId(orderId);
-  }, [orderId]);
+    if (!orderId || !ref) {
+      router.push("/orders");
+      toast.error("Missing order information. Please try again.");
+    } else {
+      setIsValidParams(true);
+      setDesignId(orderId);
+    }
+  }, [orderId, ref, router]);
+
+  // Don't render anything until we've validated params
+  if (!isValidParams) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="animate-spin mx-auto h-8 w-8 text-yellow-600" />
+          <p className="mt-2 text-gray-600">Validating order information...</p>
+        </div>
+      </div>
+    );
+  }
 
   const validateFile = (file) => {
     const validTypes = [
@@ -122,16 +145,13 @@ export default function UploadDesignPage() {
       const formData = new FormData();
 
       files.forEach((item) => {
-        const file = item instanceof File ? item : item.file; // ✅ ensure real File
+        const file = item instanceof File ? item : item.file;
         formData.append("design", file);
       });
 
       formData.append("instructions", instructions);
       formData.append("orderId", designId || `DSG-${Date.now()}`);
       formData.append("payRef", ref || "Null");
-
-      // Debugging (optional)
-      for (let [k, v] of formData.entries()) console.log(k, v);
 
       const result = await uploadWithProgress(
         "/orders/upload",
@@ -144,7 +164,10 @@ export default function UploadDesignPage() {
         toast.success(
           "Design(s) uploaded successfully! Awaiting admin review."
         );
-        setTimeout(() => router.push(`/upload-design/success?orderId=${orderId}`), 2000);
+        setTimeout(
+          () => router.push(`/upload-design/success?orderId=${orderId}`),
+          2000
+        );
       } else {
         toast.error(result.error || "Upload failed");
       }
@@ -334,5 +357,21 @@ export default function UploadDesignPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+// Main component with Suspense boundary
+export default function UploadDesignPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="animate-spin mx-auto h-8 w-8 text-yellow-600" />
+          <p className="mt-2 text-gray-600">Loading upload form...</p>
+        </div>
+      </div>
+    }>
+      <UploadDesignContent />
+    </Suspense>
   );
 }
