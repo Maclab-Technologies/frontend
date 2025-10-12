@@ -81,7 +81,7 @@ export default function Cart() {
       safeNavigate("/login");
       return;
     }
-
+    const token = localStorage.getItem("userToken");
     try {
       if (cartItems.length === 0) {
         toast.error(
@@ -112,18 +112,23 @@ export default function Cart() {
         ),
       };
 
-      const response = await post(`/orders/place-order`, JSON.stringify(orderData), {token: true});
+      const response = await post(
+        `/orders/place-order`,
+        JSON.stringify(orderData),
+        { token }
+      );
 
       if (response.success) {
         const order = await response.data.data;
         toast.success("Order placed successfully!");
         window.location.href = `/checkout/${order._id || order.id}`;
       } else {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        toast.error("Something went wrong while placing your order");
+        // console.error(`HTTP error! status: ${response.status}`);
       }
     } catch (error) {
       console.error("Checkout error:", error);
-      toast.error("Something went wrong while placing your order");
+      toast.error("Failed to proceed to checkout. Please try again.");
     } finally {
       setIsProcessingCheckout(false);
     }

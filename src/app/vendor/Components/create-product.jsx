@@ -5,6 +5,7 @@ import { FaPlus } from "react-icons/fa";
 import ProductForm from "./productform";
 import { toast } from "react-toastify";
 import { VendorAuthContext } from "../_provider/useVendorProvider";
+import { post } from "../../_hooks/fetch-hook";
 
 
 export default function CreateProduct({

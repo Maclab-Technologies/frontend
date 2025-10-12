@@ -29,7 +29,7 @@ const Checkout = () => {
   const [hasMounted, setHasMounted] = useState(false);
   // const [vendor, setVendor] = useState([]);
 
-  // const token = localStorage.getItem("userToken");
+  const token = localStorage.getItem("userToken");
 
   useEffect(() => {
     setHasMounted(true);
@@ -43,7 +43,7 @@ const Checkout = () => {
       try {
         setIsLoadingOrder(true);
         const response = await get(`/orders/order/${orderId}`, {
-          token:true,
+          token,
         });
 
         if (!response.success) {
@@ -124,7 +124,7 @@ const Checkout = () => {
           },
         }),
         {
-          token:true,
+          token,
         }
       );
 
