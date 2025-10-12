@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { get } from "@/app/_hooks/fetch-hook";
+import { toast } from "react-toastify";
 
 export default function PaymentSuccess() {
   const [orderDetails, setOrderDetails] = useState(null);
@@ -82,10 +83,10 @@ export default function PaymentSuccess() {
 
     switch (option) {
       case "canvas":
-        alert("Edit with Canvas feature is coming soon!");
+        toast.warning("Edit with Canvas feature is coming soon!");
         break;
       case "upload":
-        router.push("/design-upload");
+        router.push(`/upload-design?orderid=${orderId}&ref=${reference}`);
         break;
       case "designer":
         router.push("/hire-designer");
@@ -312,12 +313,12 @@ export default function PaymentSuccess() {
             >
               Print Receipt 🖨️
             </button>
-            <button
+            {/* <button
               onClick={handleReturnToShop}
               className="px-6 py-2 bg-gray-600 text-white rounded-md font-semibold hover:bg-gray-700 transition"
             >
               Continue Shopping
-            </button>
+            </button> */}
           </div>
         </div>
       ) : (

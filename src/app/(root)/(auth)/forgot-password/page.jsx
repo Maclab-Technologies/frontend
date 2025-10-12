@@ -10,7 +10,7 @@ import { auth } from "@/app/utils/firebaseconfig";
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter(); // Next.js navigation
+  const router = useRouter();
 
   const handleResetPassword = async () => {
     if (!email) {

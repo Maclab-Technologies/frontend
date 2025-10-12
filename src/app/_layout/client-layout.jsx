@@ -216,7 +216,7 @@ const ClientNavLayout = () => {
                             </Link>
                           ))}
                           <button
-                            onClick={handleLogout}
+                            onClick={logoutUser}
                             className="flex items-center w-full px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 transition-colors duration-200"
                           >
                             <FiX className="w-4 h-4 mr-3" />
@@ -378,7 +378,7 @@ const ClientNavLayout = () => {
                     </Link>
                   ))}
                   <button
-                    onClick={handleLogout}
+                    onClick={logoutUser}
                     className="flex items-center w-full py-3 px-4 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors duration-200"
                   >
                     <FiX className="w-4 h-4 mr-3" />

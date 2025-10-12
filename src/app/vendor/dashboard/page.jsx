@@ -175,11 +175,7 @@ export default function VendorDashboard() {
       />
     ),
     orders: (
-      <Orders
-        orders={orders}
-        handleDesignLinkSubmit={orders}
-        loading={loading}
-      />
+      <Orders />
     ),
     addProduct: (
       <AddProduct

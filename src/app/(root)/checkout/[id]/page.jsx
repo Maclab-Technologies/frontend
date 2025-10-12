@@ -29,7 +29,7 @@ const Checkout = () => {
   const [hasMounted, setHasMounted] = useState(false);
   // const [vendor, setVendor] = useState([]);
 
-  // const token = localStorage.getItem("userToken");
+  const token = localStorage.getItem("userToken");
 
   useEffect(() => {
     setHasMounted(true);
@@ -43,7 +43,7 @@ const Checkout = () => {
       try {
         setIsLoadingOrder(true);
         const response = await get(`/orders/order/${orderId}`, {
-          token:true,
+          token,
         });
 
         if (!response.success) {
@@ -54,6 +54,7 @@ const Checkout = () => {
         setFullName(data.user.fullName);
         setEmail(data.user.email);
         setPhone(data.user.phone);
+        localStorage.setItem("orderDetails", JSON.stringify(data))
         // setVendor(()=>(data.items.map(i=> i.vendorId)));
       } catch (error) {
         console.error("Error fetching order details:", error);
@@ -124,7 +125,7 @@ const Checkout = () => {
           },
         }),
         {
-          token:true,
+          token,
         }
       );
 

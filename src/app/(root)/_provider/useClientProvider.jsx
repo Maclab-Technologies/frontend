@@ -55,7 +55,7 @@ export function ClientAuthProvider({ children }) {
 
     setIsLoading(true);
     try {
-      const response = await get("/auth/verify", { token: true });
+      const response = await get("/auth/verify", { token });
       if (!response.success) {
         throw new Error(response.error || "Verification failed");
       }
