@@ -9,7 +9,7 @@ import WhatWeOffer from "../_components/WhatWeOffer";
 import { motion } from "framer-motion";
 import Feedback from "../_components/Feedback";
 import Carousel from "../_components/Carousel";
-import products from "../../../public/products/products.json";
+import products from "../../../public/Products/products.json";
 import { useState, useEffect, useRef } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
