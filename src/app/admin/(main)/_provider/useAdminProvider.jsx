@@ -37,7 +37,7 @@ export function AdminAuthProvider({ children }) {
     setAdminToken(null);
     localStorage.removeItem("adminToken");
     localStorage.removeItem("adminData");
-    router.push("/Admin/Auth/Login");
+    router.push("/admin/login");
   }, [router]);
 
   const verifyAdmin = useCallback(async () => {

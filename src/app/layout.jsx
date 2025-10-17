@@ -2,6 +2,7 @@ import "./globals.css";
 import "react-toastify/dist/ReactToastify.css";
 import ReduxProvider from "./utils/Redux/Provider";
 import { ToastContainer } from "react-toastify";
+import { Analytics } from "@vercel/analytics/next"
 
 
 export const metadata = {
@@ -16,6 +17,7 @@ export default function RootLayout({ children }) {
         <ReduxProvider>
             <ToastContainer position="top-right" autoClose={2000} />
             {children}
+            <Analytics />
         </ReduxProvider>
       </body>
     </html>

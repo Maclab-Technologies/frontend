@@ -12,7 +12,7 @@ export default function MobileSidebar({ isOpen, onClose }) {
   const pathname = usePathname()
   
   const navItems = [
-    { path: '/Admin/Dashboard', icon: <FiHome />, label: 'Dashboard' },
+    { path: '/Admin/dashboard', icon: <FiHome />, label: 'Dashboard' },
     { path: '/Admin/orders', icon: <FiPackage />, label: 'Orders' },
     { path: '/Admin/users', icon: <FiUsers />, label: 'Users' },
     { path: '/Admin/vendors', icon: <FiTruck />, label: 'Vendors' },

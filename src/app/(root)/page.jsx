@@ -9,7 +9,7 @@ import WhatWeOffer from "../_components/WhatWeOffer";
 import { motion } from "framer-motion";
 import Feedback from "../_components/Feedback";
 import Carousel from "../_components/Carousel";
-import products from "../../../public/Products/products.json";
+import products from "../../../public/products/products.json";
 import { useState, useEffect, useRef } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -136,7 +136,7 @@ export default function Home() {
               orders in as fast as 59 minutes.
             </p>
             <motion.button
-              onClick={() => router.push("/Auth/Register")}
+              onClick={() => router.push("/register")}
               className="mt-8 px-8 py-3 bg-yellow-500 hover:bg-yellow-600 rounded-full text-black font-semibold transition-all duration-300 shadow-lg transform hover:scale-105"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
@@ -304,7 +304,7 @@ export default function Home() {
             {/* View All Button */}
             <div className="text-center mt-12">
               <Link
-                href="/Products"
+                href="/products"
                 className="inline-flex items-center px-8 py-3 bg-yellow-500 hover:bg-yellow-600 transition-all text-black font-semibold rounded-md shadow-lg hover:shadow-yellow-500/40"
               >
                 Explore All Print Products
@@ -338,7 +338,7 @@ export default function Home() {
               them while they last!
             </p>
             <button
-              onClick={() => router.push("/Products")}
+              onClick={() => router.push("/products")}
               className="px-8 py-3 bg-yellow-500 text-black font-semibold rounded-full hover:bg-yellow-600 transition duration-300 shadow-lg"
             >
               Shop Now

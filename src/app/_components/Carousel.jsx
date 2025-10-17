@@ -10,7 +10,7 @@ const Carousel = () => {
       mobileImage: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=500&fit=crop&auto=format',
       title: 'Premium Print Solutions',
       subtitle: 'Fast, reliable printing for your business needs',
-      ctaLink: '/Products',
+      ctaLink: '/products',
       ctaText: 'Order Now',
       gradient: 'from-blue-900/80 via-purple-900/60 to-transparent',
       badge: 'NEW'
@@ -21,7 +21,7 @@ const Carousel = () => {
       mobileImage: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=500&fit=crop&auto=format',
       title: 'Business Cards & Brochures',
       subtitle: 'Make a lasting impression with our premium finishes',
-      ctaLink: '/Pages/Categories/Business-Cards',
+      ctaLink: '/categories/cusiness-Cards',
       ctaText: 'Explore Options',
       gradient: 'from-emerald-900/80 via-teal-900/60 to-transparent',
       badge: 'POPULAR'
@@ -32,7 +32,7 @@ const Carousel = () => {
       mobileImage: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=500&fit=crop&auto=format',
       title: 'New Customer Special',
       subtitle: '15% off your first order with code WELCOME15',
-      ctaLink: '/Auth/Register',
+      ctaLink: '/register',
       ctaText: 'Get Started',
       gradient: 'from-orange-900/80 via-red-900/60 to-transparent',
       badge: 'OFFER'

@@ -328,7 +328,7 @@ const ClientNavLayout = () => {
               {!isLoggedIn ? (
                 <div className="space-y-3">
                   <Link
-                    href="/Auth/Login"
+                    href="/login"
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="w-full py-3 text-center border border-yellow-400/60 text-yellow-400 rounded-lg font-medium hover:bg-yellow-400/10 transition-colors duration-200"
                   >

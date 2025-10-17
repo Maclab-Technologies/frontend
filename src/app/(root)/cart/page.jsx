@@ -140,7 +140,7 @@ export default function Cart() {
   };
 
   const handleContinueShopping = () => {
-    safeNavigate("/Products");
+    safeNavigate("/products");
   };
 
   const totalPrice = cartItems.reduce(

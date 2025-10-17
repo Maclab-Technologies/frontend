@@ -994,7 +994,7 @@ export default function HireDesigner() {
 
       // Redirect to Products page after a short delay
       setTimeout(() => {
-        router.push("/Products");
+        router.push("/products");
       }, 2000);
 
     } catch (error) {
