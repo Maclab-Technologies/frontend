@@ -17,16 +17,8 @@ const Navbar = () => {
   const { 
     isLoggedIn, 
     authUser, 
-    setAuthUser, 
-    setIsLoggedIn, 
     logoutUser 
   } = useAuth();
-
-  // const pathname = usePathname();
-
-  // const isVendor = pathname.startsWith("/Vendor");
-  // const isAdmin = pathname.startsWith("/admin");
-  // const isAuth = pathname.startsWith("/Auth");
 
   const cartCount = cartItems.length;
 

@@ -136,7 +136,7 @@ export default function Home() {
               orders in as fast as 59 minutes.
             </p>
             <motion.button
-              onClick={() => router.push("/Auth/Register")}
+              onClick={() => router.push("/register")}
               className="mt-8 px-8 py-3 bg-yellow-500 hover:bg-yellow-600 rounded-full text-black font-semibold transition-all duration-300 shadow-lg transform hover:scale-105"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
