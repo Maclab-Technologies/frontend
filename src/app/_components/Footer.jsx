@@ -34,8 +34,8 @@ const Footer = () => {
           <h4 className="font-bold text-lg uppercase mb-4">59MinutesPrint</h4>
           <ul className="space-y-2">
             {[
-              { href: "/About", label: "About Us" },
-              { href: "/Career", label: "Career" },
+              { href: "/about", label: "About Us" },
+              { href: "/career", label: "Career" },
               { href: "/contact", label: "Contact Us" },
               { href: "/blog", label: "Our Blog" },
               { href: "/promise", label: "Our Promise" },
