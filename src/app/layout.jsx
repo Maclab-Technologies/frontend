@@ -17,6 +17,7 @@ export default function RootLayout({ children }) {
         <ReduxProvider>
             <ToastContainer position="top-right" autoClose={2000} />
             {children}
+            <Analytics />
         </ReduxProvider>
       </body>
     </html>
