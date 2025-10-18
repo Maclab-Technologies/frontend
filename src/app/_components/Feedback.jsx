@@ -1,7 +1,7 @@
 import { useState } from "react";
 import emailjs from "emailjs-com";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const Feedback = () => {
@@ -90,8 +90,6 @@ const Feedback = () => {
 
   return (
     <section className="bg-gradient-to-b from-black to-gray-900 text-white px-4 sm:px-8 py-16">
-      {/* Toast Notifications */}
-      <ToastContainer />
 
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl md:text-4xl font-bold text-center mb-12">

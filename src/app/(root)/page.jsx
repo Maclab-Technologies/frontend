@@ -9,9 +9,8 @@ import WhatWeOffer from "../_components/WhatWeOffer";
 import { motion } from "framer-motion";
 import Feedback from "../_components/Feedback";
 import Carousel from "../_components/Carousel";
-import products from "../../../public/products/products.json";
+import products from "../../../public/Products/products.json";
 import { useState, useEffect, useRef } from "react";
-import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function Home() {
@@ -89,17 +88,6 @@ export default function Home() {
       <div className="bg-black text-white min-h-screen">
         <Carousel />
 
-        <ToastContainer
-          position="top-right"
-          autoClose={3000}
-          hideProgressBar={false}
-          newestOnTop
-          closeOnClick
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="dark"
-        />
         {/* Hero Section */}
         <section className="flex flex-col md:flex-row items-center justify-between py-16 md:py-24 md:min-h-screen">
           {/* Left Section: Image */}

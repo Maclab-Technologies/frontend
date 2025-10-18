@@ -15,7 +15,7 @@ import {
   FaTimes,
   FaUser,
 } from "react-icons/fa";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { batchRequests, post } from "@/app/_hooks/fetch-hook";
 import Dashboard from "../Components/dashboard";
@@ -232,8 +232,6 @@ export default function VendorDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-900">
-      <ToastContainer position="top-right" autoClose={5000} />
-
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 bg-gray-800 z-50 p-4 border-b border-gray-700">
         <div className="flex items-center justify-between">

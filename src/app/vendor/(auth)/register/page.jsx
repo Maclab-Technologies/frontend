@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useContext } from "react";
 import { useRouter } from "next/navigation";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
 import { EyeIcon, EyeOffIcon, CheckCircle, XCircle, AlertCircle } from "lucide-react";
@@ -264,7 +264,6 @@ export default function VendorRegister() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-yellow-100 flex items-center justify-center p-4">
-      <ToastContainer position="top-center" />
 
       <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden border-t-4 border-t-yellow-400">
         <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-8 text-center">
