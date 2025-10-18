@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
 import { useState, useEffect, useContext } from "react";
 import { useRouter } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
-import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { EyeIcon, EyeOffIcon, CheckCircle, XCircle, AlertCircle, Shield } from "lucide-react";
 import { VendorAuthContext } from "@/app/vendor/_provider/useVendorProvider";
 
 export default function VendorLogin() {
@@ -20,10 +20,33 @@ export default function VendorLogin() {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [formProgress, setFormProgress] = useState(0);
+  const [fieldStatus, setFieldStatus] = useState({});
 
   useEffect(() => {
     calculateFormProgress();
+    validateFieldStatus();
   }, [formData]);
+
+  const validateFieldStatus = () => {
+    const status = {};
+
+    // Email validation
+    if (formData.businessEmail) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      status.businessEmail = emailRegex.test(formData.businessEmail) 
+        ? 'valid' 
+        : 'invalid';
+    }
+
+    // Password validation
+    if (formData.businessPassword) {
+      status.businessPassword = formData.businessPassword.length >= 1 
+        ? 'valid' 
+        : 'invalid';
+    }
+
+    setFieldStatus(status);
+  };
 
   const calculateFormProgress = () => {
     const requiredFields = ["businessEmail", "businessPassword"];
@@ -62,6 +85,38 @@ export default function VendorLogin() {
 
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  const getInputStatus = (fieldName) => {
+    if (!formData[fieldName]) return 'neutral';
+    return fieldStatus[fieldName] || 'neutral';
+  };
+
+  const getStatusIcon = (fieldName) => {
+    const status = getInputStatus(fieldName);
+    
+    switch (status) {
+      case 'valid':
+        return <CheckCircle className="w-5 h-5 text-green-500" />;
+      case 'invalid':
+        return <XCircle className="w-5 h-5 text-red-500" />;
+      default:
+        return <AlertCircle className="w-5 h-5 text-gray-400" />;
+    }
+  };
+
+  const getInputClasses = (fieldName) => {
+    const status = getInputStatus(fieldName);
+    const baseClasses = "w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 pr-10 text-black placeholder-gray-500";
+    
+    switch (status) {
+      case 'valid':
+        return `${baseClasses} border-green-500 ring-1 ring-green-500 focus:ring-green-400`;
+      case 'invalid':
+        return `${baseClasses} border-red-500 ring-1 ring-red-500 focus:ring-red-400`;
+      default:
+        return `${baseClasses} border-gray-300 focus:ring-yellow-400`;
     }
   };
 
@@ -112,85 +167,109 @@ export default function VendorLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-yellow-50 to-yellow-100 flex items-center justify-center p-4">
-      {/* <ToastContainer position="top-center" /> */}
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-yellow-100 flex items-center justify-center p-4">
+      <ToastContainer position="top-center" />
 
-      <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden border-t-4 border-t-yellow-400">
-        <div className="bg-yellow-400 p-8 text-center">
-          <h1 className="text-3xl font-bold text-black">Vendor Login</h1>
-          <p className="text-black mt-2">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border-t-4 border-t-yellow-400">
+        <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-8 text-center">
+          <h1 className="text-4xl font-bold text-black mb-2">Vendor Login</h1>
+          <p className="text-black/80 text-lg">
             Access your 59Minutes vendor dashboard
           </p>
 
           {/* Progress bar */}
-          <div className="mt-6 w-full bg-yellow-200 rounded-full h-2">
+          <div className="mt-6 bg-white/30 rounded-full h-3 overflow-hidden">
             <div
-              className="bg-black h-2 rounded-full transition-all duration-300 ease-in-out"
+              className="bg-black h-3 rounded-full transition-all duration-500 ease-out"
               style={{ width: `${formProgress}%` }}
             ></div>
           </div>
-          <p className="text-xs text-black mt-1">
+          <p className="text-sm text-black/80 mt-2 font-medium">
             Form completion: {formProgress}%
           </p>
         </div>
 
-        <div className="px-8 pb-8">
-          <form onSubmit={handleLogin} className="space-y-5">
+        <div className="p-8">
+          <form onSubmit={handleLogin} className="space-y-6">
             {/* Business Email */}
             <div>
-              <label className="block text-sm font-medium text-black mb-1">
+              <label className="block text-sm font-semibold text-gray-900 mb-2">
                 Business Email <span className="text-red-500">*</span>
               </label>
-              <input
-                type="email"
-                name="businessEmail"
-                className={`w-full px-4 py-3 border ${errors.businessEmail ? "border-red-500 ring-1 ring-red-500" : "border-black"} rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition duration-200`}
-                placeholder="business@example.com"
-                value={formData.businessEmail}
-                onChange={handleInputChange}
-              />
+              <div className="relative">
+                <input
+                  type="email"
+                  name="businessEmail"
+                  className={getInputClasses('businessEmail')}
+                  placeholder="business@example.com"
+                  value={formData.businessEmail}
+                  onChange={handleInputChange}
+                />
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                  {getStatusIcon('businessEmail')}
+                </div>
+              </div>
               {errors.businessEmail && (
-                <p className="mt-1 text-sm text-red-600">
+                <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+                  <XCircle className="w-4 h-4" />
                   {errors.businessEmail}
+                </p>
+              )}
+              {formData.businessEmail && !errors.businessEmail && (
+                <p className="mt-2 text-sm text-green-600 flex items-center gap-1">
+                  <CheckCircle className="w-4 h-4" />
+                  Valid email format
                 </p>
               )}
             </div>
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-black mb-1">
+              <label className="block text-sm font-semibold text-gray-900 mb-2">
                 Password <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
                   name="businessPassword"
-                  className={`w-full px-4 py-3 border ${errors.businessPassword ? "border-red-500 ring-1 ring-red-500" : "border-black"} rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition duration-200`}
+                  className={getInputClasses('businessPassword')}
                   placeholder="Enter your password"
                   value={formData.businessPassword}
                   onChange={handleInputChange}
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-600 hover:text-black"
-                >
-                  {showPassword ? (
-                    <EyeOffIcon size={18} />
-                  ) : (
-                    <EyeIcon size={18} />
-                  )}
-                </button>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 space-x-1">
+                  {getStatusIcon('businessPassword')}
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="text-gray-600 hover:text-gray-800 transition-colors"
+                  >
+                    {showPassword ? (
+                      <EyeOffIcon size={18} />
+                    ) : (
+                      <EyeIcon size={18} />
+                    )}
+                  </button>
+                </div>
               </div>
               {errors.businessPassword && (
-                <p className="mt-1 text-sm text-red-600">
+                <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+                  <XCircle className="w-4 h-4" />
                   {errors.businessPassword}
                 </p>
               )}
-              <div className="text-right mt-2">
+              <div className="flex justify-between items-center mt-2">
+                <div>
+                  {formData.businessPassword && !errors.businessPassword && (
+                    <p className="text-sm text-green-600 flex items-center gap-1">
+                      <CheckCircle className="w-4 h-4" />
+                      Password entered
+                    </p>
+                  )}
+                </div>
                 <Link
                   href="/vendor/forgot-password"
-                  className="text-sm text-yellow-600 hover:text-yellow-800 hover:underline font-medium"
+                  className="text-sm text-yellow-600 hover:text-yellow-800 font-semibold transition-colors hover:underline"
                 >
                   Forgot password?
                 </Link>
@@ -198,28 +277,17 @@ export default function VendorLogin() {
             </div>
 
             {/* Security Information Box */}
-            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mt-4">
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border border-green-200 mt-6">
               <div className="flex items-start">
                 <div className="flex-shrink-0">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="text-yellow-600"
-                  >
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                  </svg>
+                  <Shield className="w-5 h-5 text-green-600 mt-0.5" />
                 </div>
                 <div className="ml-3">
-                  <p className="text-sm text-gray-700">
-                    Your connection is secure. We never store your password in
-                    plain text.
+                  <p className="text-sm font-semibold text-green-900 mb-1">
+                    Secure Connection
+                  </p>
+                  <p className="text-sm text-green-700">
+                    Your connection is encrypted and secure. We never store passwords in plain text.
                   </p>
                 </div>
               </div>
@@ -229,47 +297,39 @@ export default function VendorLogin() {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full py-3 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400 transition-colors ${loading ? "opacity-75 cursor-not-allowed" : ""}`}
+              className={`w-full py-4 px-6 border border-transparent rounded-xl shadow-sm text-lg font-semibold text-white transition-all duration-200 ${
+                loading 
+                  ? 'bg-gray-400 cursor-not-allowed' 
+                  : 'bg-gradient-to-r from-black to-gray-800 hover:from-gray-800 hover:to-black transform hover:scale-[1.02]'
+              }`}
             >
               {loading ? (
-                <span className="flex items-center justify-center">
-                  <svg
-                    className="animate-spin -ml-1 mr-2 h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Signing in...
+                <span className="flex items-center justify-center gap-2">
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                  Signing In...
                 </span>
               ) : (
-                "Login to Dashboard"
+                "Access Dashboard 🚀"
               )}
             </button>
           </form>
 
-          <div className="mt-6 text-center text-sm border-t border-gray-200 pt-6">
-            <p className="text-black">
-              Don't have an account?{" "}
+          <div className="mt-8 text-center border-t border-gray-200 pt-6">
+            <p className="text-gray-700">
+              Don't have a vendor account?{" "}
               <Link
                 href="/vendor/register"
-                className="font-medium text-yellow-600 hover:text-yellow-800"
+                className="font-semibold text-yellow-600 hover:text-yellow-800 transition-colors hover:underline"
               >
-                Register here
+                Start selling today
               </Link>
+            </p>
+          </div>
+
+          {/* Quick Tips */}
+          <div className="mt-6 bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <p className="text-sm text-blue-800 text-center">
+              💡 <strong>Pro Tip:</strong> Use the same email you used during vendor registration
             </p>
           </div>
         </div>

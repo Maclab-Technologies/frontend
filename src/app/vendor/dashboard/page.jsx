@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -26,10 +26,8 @@ import Withdraw from "../Components/withdraw";
 import Orders from "../Components/order";
 import { VendorAuthContext } from "../_provider/useVendorProvider";
 
-// Delete Confirmation Modal
-
 export default function VendorDashboard() {
-  const { vendorToken, authVendor } = useContext(VendorAuthContext);
+  const { vendorToken, authVendor, logoutVendor } = useContext(VendorAuthContext);
   const router = useRouter();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -42,15 +40,22 @@ export default function VendorDashboard() {
   const [earningsStats, setEarningsStats] = useState({});
   const [summary, setSummary] = useState({});
 
+  // Check authentication on component mount
+  useEffect(() => {
+    if (!vendorToken || !authVendor?.id) {
+      toast.error("Please login to access vendor dashboard");
+      router.push("/vendor/login");
+      return;
+    }
+  }, [vendorToken, authVendor, router]);
 
   // Load user data and initial content
   useEffect(() => {
     const loadInitialData = async () => {
+      if (!vendorToken || !authVendor?.id) return;
+      
       setLoading(true);
       try {
-        if (!vendorToken) {
-          throw new Error("No token found");
-        }
         let token = vendorToken;
 
         // Using batchRequests for parallel API calls
@@ -61,7 +66,7 @@ export default function VendorDashboard() {
             options: {
               method: "GET",
               token,
-              config: { showToast: false }, // Disable individual toasts
+              config: { showToast: false },
             },
           },
           {
@@ -114,36 +119,38 @@ export default function VendorDashboard() {
         // Handle products
         if (productsResult.success) {
           setProducts(productsResult.data?.data || []);
-        } else if (!productsResult.data.data.length === 0) {
-          toast.warning("No Product found");
-        } else if (!productsResult._failed) {
-          toast.warning("Failed to fetch products");
+        } else if (productsResult.data?.data?.length === 0) {
+          console.log("No products found");
+        } else if (productsResult._failed) {
+          console.warn("Failed to fetch products");
         }
 
         // Handle orders
         if (ordersResult.success) {
           setOrders(ordersResult.data?.data || []);
-        } else if (!ordersResult._failed) {
-          toast.warning("Failed to fetch orders");
+        } else if (ordersResult._failed) {
+          console.warn("Failed to fetch orders");
         }
 
         // Handle earnings
         if (earningsResult.success) {
           setEarnings(earningsResult.data?.data || []);
-        } else if (!earningsResult._failed) {
-          toast.warning("Failed to fetch earnings");
+        } else if (earningsResult._failed) {
+          console.warn("Failed to fetch earnings");
         }
 
+        // Handle earnings stats
         if (earningStats.success) {
-          setEarningsStats(earningStats.data?.data || []);
-        } else if (!earningStats._failed) {
-          toast.warning("Failed to fetch earnings stats");
+          setEarningsStats(earningStats.data?.data || {});
+        } else if (earningStats._failed) {
+          console.warn("Failed to fetch earnings stats");
         }
+
         // Handle vendor summary
         if (statsSummary.success) {
-          setSummary(statsSummary.data?.data || []);
-        } else if (!statsSummary._failed) {
-          toast.warning("Failed to fetch earnings");
+          setSummary(statsSummary.data?.data || {});
+        } else if (statsSummary._failed) {
+          console.warn("Failed to fetch vendor summary");
         }
 
         // Check if any critical requests failed
@@ -155,14 +162,20 @@ export default function VendorDashboard() {
         }
       } catch (error) {
         console.error("Error loading initial data:", error);
-        toast.error("Failed to load data");
+        toast.error("Failed to load dashboard data");
       } finally {
         setLoading(false);
       }
     };
 
     loadInitialData();
-  }, [router]);
+  }, [vendorToken, authVendor]);
+
+  const handleLogout = () => {
+    logoutVendor();
+    toast.success("Logged out successfully");
+    router.push("/vendor/login");
+  };
 
   const tabs = {
     dashboard: (
@@ -175,18 +188,21 @@ export default function VendorDashboard() {
       />
     ),
     orders: (
-      <Orders />
+      <Orders orders={orders} loading={loading} />
     ),
     addProduct: (
       <AddProduct
         products={products}
         setProducts={setProducts}
+        vendorToken={vendorToken}
+        vendorId={authVendor?.id}
       />
     ),
     manageProduct: (
       <ManageProducts 
         products={products}
         setProducts={setProducts}
+        vendorToken={vendorToken}
       />
     ),
     earnings: (
@@ -203,13 +219,36 @@ export default function VendorDashboard() {
         vendorToken={vendorToken}
       />
     ),
-    // payout: <Payout payouts={payouts} />,
   };
+
+  // If no vendor token, show loading
+  if (!vendorToken) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-900">
       <ToastContainer position="top-right" autoClose={5000} />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* Mobile Header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 bg-gray-800 z-50 p-4 border-b border-gray-700">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => setMobileNavOpen(!mobileNavOpen)}
+            className="p-2 text-gray-400 hover:text-white focus:outline-none"
+          >
+            <FaBars size={20} />
+          </button>
+          <h1 className="text-white font-bold text-lg">Vendor Dashboard</h1>
+          <div className="w-8"></div> {/* Spacer for balance */}
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pt-20 lg:pt-6">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Side Navigation */}
           <aside
@@ -223,7 +262,7 @@ export default function VendorDashboard() {
           `}
           >
             {/* Close button for mobile */}
-            <div className="lg:hidden absolute top-1 right-2">
+            <div className="lg:hidden absolute top-4 right-4">
               <button
                 onClick={() => setMobileNavOpen(false)}
                 className="p-2 text-gray-400 hover:text-white focus:outline-none"
@@ -243,7 +282,7 @@ export default function VendorDashboard() {
                     {authVendor?.businessName || "Guest"}
                   </p>
                   <p className="text-xs text-gray-400 truncate">
-                    {authVendor?.businessEmail || "Guest@59minutesprints.com"}
+                    {authVendor?.businessEmail || "vendor@59minutesprints.com"}
                   </p>
                 </div>
               </div>
@@ -251,170 +290,76 @@ export default function VendorDashboard() {
 
             {/* Navigation Links */}
             <nav className="p-2 h-[calc(100%-72px-4rem)] overflow-y-auto">
-              <button
-                onClick={() => {
-                  setActiveTab("dashboard");
-                  setMobileNavOpen(false);
-                }}
-                className={`
-                  w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
-                  transition-all duration-200
-                  ${
-                    activeTab === "dashboard"
-                      ? "bg-yellow-400 text-black font-bold shadow-md"
-                      : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                  }
-                `}
-              >
-                <span className="mr-3 text-base">
-                  <FaHome />
-                </span>
-                <span className="text-left">Dashboard</span>
-              </button>
+              {[
+                { key: "dashboard", label: "Dashboard", icon: FaHome },
+                { key: "orders", label: "Orders", icon: FaClipboardList },
+                { key: "addProduct", label: "Create Product", icon: FaPlus },
+                { key: "manageProduct", label: "Manage Products", icon: FaBoxOpen },
+                { key: "earnings", label: "Earnings", icon: FaMoneyBillWave },
+                { key: "withdraw", label: "Withdraw", icon: FaWallet },
+              ].map(({ key, label, icon: Icon }) => (
+                <button
+                  key={key}
+                  onClick={() => {
+                    setActiveTab(key);
+                    setMobileNavOpen(false);
+                  }}
+                  className={`
+                    w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
+                    transition-all duration-200
+                    ${
+                      activeTab === key
+                        ? "bg-yellow-400 text-black font-bold shadow-md"
+                        : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                    }
+                  `}
+                >
+                  <span className="mr-3 text-base">
+                    <Icon />
+                  </span>
+                  <span className="text-left">{label}</span>
+                </button>
+              ))}
 
+              {/* Logout Button */}
               <button
-                onClick={() => {
-                  setActiveTab("orders");
-                  setMobileNavOpen(false);
-                }}
-                className={`
-                  w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
-                  transition-all duration-200
-                  ${
-                    activeTab === "orders"
-                      ? "bg-yellow-400 text-black font-bold shadow-md"
-                      : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                  }
-                `}
+                onClick={handleLogout}
+                className="w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 text-gray-300 hover:bg-red-600 hover:text-white transition-all duration-200 mt-4"
               >
                 <span className="mr-3 text-base">
-                  <FaClipboardList />
+                  <FaSignOutAlt />
                 </span>
-                <span className="text-left">Orders</span>
+                <span className="text-left">Logout</span>
               </button>
-
-              <button
-                onClick={() => {
-                  setActiveTab("addProduct");
-                  setMobileNavOpen(false);
-                }}
-                className={`
-                  w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
-                  transition-all duration-200
-                  ${
-                    activeTab === "addProduct"
-                      ? "bg-yellow-400 text-black font-bold shadow-md"
-                      : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                  }
-                `}
-              >
-                <span className="mr-3 text-base">
-                  <FaPlus />
-                </span>
-                <span className="text-left">Create Product</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setActiveTab("manageProduct");
-                  setMobileNavOpen(false);
-                }}
-                className={`
-                  w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
-                  transition-all duration-200
-                  ${
-                    activeTab === "manageProduct"
-                      ? "bg-yellow-400 text-black font-bold shadow-md"
-                      : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                  }
-                `}
-              >
-                <span className="mr-3 text-base">
-                  <FaBoxOpen />
-                </span>
-                <span className="text-left">Manage Products</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setActiveTab("earnings");
-                  setMobileNavOpen(false);
-                }}
-                className={`
-                  w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
-                  transition-all duration-200
-                  ${
-                    activeTab === "earnings"
-                      ? "bg-yellow-400 text-black font-bold shadow-md"
-                      : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                  }
-                `}
-              >
-                <span className="mr-3 text-base">
-                  <FaMoneyBillWave />
-                </span>
-                <span className="text-left">Earnings</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setActiveTab("withdraw");
-                  setMobileNavOpen(false);
-                }}
-                className={`
-                  w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
-                  transition-all duration-200
-                  ${
-                    activeTab === "withdraw"
-                      ? "bg-yellow-400 text-black font-bold shadow-md"
-                      : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                  }
-                `}
-              >
-                <span className="mr-3 text-base">
-                  <FaWallet />
-                </span>
-                <span className="text-left">Withdraw</span>
-              </button>
-
-              {/* <button
-                onClick={() => {
-                  setActiveTab("payout");
-                  setMobileNavOpen(false);
-                }}
-                className={`
-                  w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
-                  transition-all duration-200
-                  ${
-                    activeTab === "payouts"
-                      ? "bg-yellow-400 text-black font-bold shadow-md"
-                      : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                  }
-                `}
-              >
-                <span className="mr-3 text-base">
-                  <FaHistory />
-                </span>
-                <span className="text-left">Payouts Received</span>
-              </button> */}
             </nav>
           </aside>
 
           {/* Main Content Area */}
-          <main className="flex-1">
-            <div className="mb-4 flex lg:hidden items-center">
-              {mobileNavOpen && (
-                <button
-                  onClick={() => setMobileNavOpen(false)}
-                  className="flex items-center text-sm text-yellow-400 mr-4"
-                >
-                  <FaTimes className="mr-1" /> Close Menu
-                </button>
-              )}
-              <h2 className="text-xl font-bold text-white">{activeTab}</h2>
+          <main className="flex-1 min-w-0">
+            {/* Desktop Header */}
+            <div className="hidden lg:flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-white capitalize">
+                {activeTab.replace(/([A-Z])/g, ' $1').trim()}
+              </h2>
+              <button
+                onClick={() => setMobileNavOpen(true)}
+                className="lg:hidden p-2 text-gray-400 hover:text-white focus:outline-none"
+              >
+                <FaBars size={20} />
+              </button>
             </div>
 
-            {tabs[activeTab]}
+            {/* Mobile Header for active tab */}
+            <div className="lg:hidden mb-6">
+              <h2 className="text-xl font-bold text-white capitalize">
+                {activeTab.replace(/([A-Z])/g, ' $1').trim()}
+              </h2>
+            </div>
+
+            {/* Content */}
+            <div className="bg-gray-800 rounded-lg shadow-lg p-4 lg:p-6">
+              {tabs[activeTab]}
+            </div>
           </main>
         </div>
       </div>
