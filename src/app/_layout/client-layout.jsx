@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSelector } from "react-redux";
 import Image from "next/image";
-import { FiMenu, FiX, FiBell } from "react-icons/fi";
+import { FiMenu, FiX, FiBell, FiChevronDown } from "react-icons/fi";
 import { useAuth } from "../(root)/_provider/useClientProvider";
 import {
   FaShoppingCart,
@@ -14,6 +14,7 @@ import {
   FaStar,
   FaStore,
   FaInfo,
+  FaSignOutAlt,
 } from "react-icons/fa";
 import logo from "../../../public/images/brandimage.jpeg";
 import { usePathname } from "next/navigation";
@@ -28,11 +29,11 @@ const NAV_LINKS = [
 ];
 
 const ClientNavLayout = () => {
-
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const cartItems = useSelector((state) => state.cart.cartItems || []);
-  const pathname = usePathname()
+  const pathname = usePathname();
   
   const { 
     isLoggedIn, 
@@ -55,341 +56,318 @@ const ClientNavLayout = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const handleLogout = () => {
+    logoutUser();
+    setIsMobileMenuOpen(false);
+  };
+
   return (
-    
     <header className="w-full">
-      <div className="h-full px-4 flex justify-between items-center">
-        {/* Global Styles */}
-        <style jsx global>{`
-          .navbar-blur {
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-          }
-          .cart-bounce {
-            animation: bounce 0.3s ease-in-out;
-          }
-          @keyframes bounce {
-            0%,
-            20%,
-            60%,
-            100% {
-              transform: translateY(0);
-            }
-            40% {
-              transform: translateY(-6px);
-            }
-            80% {
-              transform: translateY(-3px);
-            }
-          }
-        `}</style>
-
-        {/* Main Navbar */}
-        <nav
-          className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-            isScrolled
-              ? "bg-black/95 navbar-blur shadow-lg border-b border-yellow-400/20"
-              : "bg-black/90 navbar-blur"
-          }`}
-        >
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              {/* Logo */}
-              <Link href="/" className="flex items-center space-x-3 group">
-                <div className="relative">
-                  <Image
-                    src={logo}
-                    alt="59Minutes Prints"
-                    width={40}
-                    height={40}
-                    className="rounded-lg transition-transform duration-200 group-hover:scale-105"
-                    priority
-                  />
-                </div>
-                <div className="hidden sm:block">
-                  <span className="text-xl font-bold text-yellow-400">
-                    59Minutes
-                  </span>
-                  <span className="text-xl font-light text-white ml-1">
-                    Prints
-                  </span>
-                </div>
-              </Link>
-
-              {/* Desktop Navigation */}
-              <div className="hidden lg:flex items-center space-x-1">
-                {NAV_LINKS.map(({ label, href, icon: Icon }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                      pathname === href
-                        ? "bg-yellow-400 text-black shadow-md"
-                        : "text-white hover:bg-yellow-400/10 hover:text-yellow-400"
-                    }`}
-                  >
-                    <Icon className="w-4 h-4 mr-2" />
-                    {label}
-                  </Link>
-                ))}
+      {/* Modern Navbar */}
+      <nav
+        className={`fixed top-0 w-full z-50 transition-all duration-500 ${
+          isScrolled
+            ? "bg-black/95 backdrop-blur-xl shadow-2xl border-b border-yellow-500/30"
+            : "bg-gradient-to-b from-black/95 to-transparent backdrop-blur-lg"
+        }`}
+      >
+        <div className="w-full px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16 lg:h-20">
+            {/* Logo & Brand */}
+            <Link href="/" className="flex items-center space-x-3 group flex-shrink-0">
+              <div className="relative">
+                <Image
+                  src={logo}
+                  alt="59Minutes Prints"
+                  width={45}
+                  height={45}
+                  className="rounded-xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
+                  priority
+                />
+                <div className="absolute inset-0 rounded-xl bg-yellow-500/20 group-hover:bg-yellow-500/30 transition-colors duration-300" />
               </div>
-
-              {/* Desktop Right Section */}
-              <div className="hidden md:flex items-center space-x-4">
-                {!isLoggedIn ? (
-                  <>
-                    <Link
-                      href="/login"
-                      className="text-white hover:text-yellow-400 px-4 py-2 text-sm font-medium transition-colors duration-200"
-                    >
-                      Login
-                    </Link>
-                    <Link
-                      href="/register"
-                      className="bg-yellow-400 text-black px-6 py-2 rounded-lg text-sm font-medium hover:bg-yellow-500 transition-colors duration-200 shadow-sm"
-                    >
-                      Sign Up
-                    </Link>
-                  </>
-                ) : (
-                  <>
-                    {/* Notifications */}
-                    <button className="p-2 text-white hover:text-yellow-400 hover:bg-yellow-400/10 rounded-lg transition-colors duration-200 relative">
-                      <FiBell className="w-5 h-5" />
-                      <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-                    </button>
-
-                    {/* Cart */}
-                    <Link
-                      href="/cart"
-                      className="p-2 text-white hover:text-yellow-400 hover:bg-yellow-400/10 rounded-lg transition-colors duration-200 relative"
-                    >
-                      <FaShoppingCart className="w-5 h-5" />
-                      {cartCount > 0 && (
-                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
-                          {cartCount > 99 ? "99+" : cartCount}
-                        </span>
-                      )}
-                    </Link>
-
-                    {/* User Menu */}
-                    <div className="relative group">
-                      <button className="flex items-center space-x-2 bg-yellow-400/10 hover:bg-yellow-400/20 rounded-lg pl-3 pr-4 py-2 transition-colors duration-200">
-                        <FaUser className="w-4 h-4 text-yellow-400" />
-                        <span className="text-sm font-medium text-white">
-                          {authUser?.fullName?.split(" ")[0] || "Guest"}
-                        </span>
-                      </button>
-
-                      {/* Dropdown */}
-                      <div className="absolute right-0 mt-2 w-64 bg-black/95 rounded-xl shadow-xl border border-yellow-400/20 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right scale-95 group-hover:scale-100">
-                        <div className="p-4 border-b border-yellow-400/20">
-                          <p className="font-medium text-white">
-                            {authUser?.fullName || "Guest"}
-                          </p>
-                          <p className="text-sm text-gray-400 truncate">
-                            {authUser?.email}
-                          </p>
-                        </div>
-                        <div className="py-2">
-                          {[
-                            {
-                              href: "/profile",
-                              icon: FaUser,
-                              label: "Profile",
-                            },
-                            {
-                              href: "/dashboard",
-                              icon: FaBox,
-                              label: "Dashboard",
-                            },
-                            { href: "/inbox", icon: FaList, label: "Inbox" },
-                            { href: "/help", icon: FaInfo, label: "Help" },
-                          ].map(({ href, icon: Icon, label }) => (
-                            <Link
-                              key={href}
-                              href={href}
-                              className="flex items-center px-4 py-3 text-sm text-white hover:bg-yellow-400/10 hover:text-yellow-400 transition-colors duration-200"
-                            >
-                              <Icon className="w-4 h-4 mr-3 text-gray-400" />
-                              {label}
-                            </Link>
-                          ))}
-                          <button
-                            onClick={logoutUser}
-                            className="flex items-center w-full px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 transition-colors duration-200"
-                          >
-                            <FiX className="w-4 h-4 mr-3" />
-                            Logout
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
+              <div className="hidden sm:block">
+                <span className="text-2xl font-black bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
+                  59Minutes
+                </span>
+                <span className="text-2xl font-light text-white ml-1">
+                  Prints
+                </span>
               </div>
+            </Link>
 
-              {/* Mobile Menu Button */}
-              <div className="md:hidden flex items-center space-x-3">
-                {authUser && (
-                  <Link
-                    href="/cart"
-                    className="p-2 text-white hover:text-yellow-400 rounded-lg relative"
-                  >
-                    <FaShoppingCart className="w-5 h-5" />
-                    {cartCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
-                        {cartCount > 9 ? "9+" : cartCount}
-                      </span>
-                    )}
-                  </Link>
-                )}
-                <button
-                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="p-2 text-white hover:text-yellow-400 hover:bg-yellow-400/10 rounded-lg transition-colors duration-200"
-                >
-                  {isMobileMenuOpen ? (
-                    <FiX className="w-6 h-6" />
-                  ) : (
-                    <FiMenu className="w-6 h-6" />
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        </nav>
-
-        {/* Mobile Menu Overlay */}
-        {isMobileMenuOpen && (
-          <div
-            className="fixed inset-0 bg-black/50 z-40 md:hidden"
-            onClick={() => setIsMobileMenuOpen(false)}
-          />
-        )}
-
-        {/* Mobile Menu */}
-        <div
-          className={`fixed top-0 right-0 h-full w-80 bg-black/95 shadow-2xl z-50 transform transition-transform duration-300 md:hidden border-l border-yellow-400/20 ${
-            isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
-          }`}
-        >
-          {/* Mobile Header */}
-          <div className="flex justify-between items-center p-6 border-b border-yellow-400/20">
-            <span className="text-lg font-semibold text-yellow-400">Menu</span>
-            <button
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="p-2 text-white hover:text-yellow-400 hover:bg-yellow-400/10 rounded-lg"
-            >
-              <FiX className="w-5 h-5" />
-            </button>
-          </div>
-
-          <div className="flex flex-col h-full overflow-y-auto">
-            {/* User Section */}
-            {isLoggedIn && authUser && (
-              <div className="p-6 border-b border-yellow-400/20">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center">
-                    <FaUser className="w-6 h-6 text-black" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-white">
-                      {authUser?.fullName || "Guest"}
-                    </p>
-                    <p className="text-sm text-gray-400 truncate">
-                      {authUser?.email}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Navigation Links */}
-            <div className="flex-1 py-6">
+            {/* Desktop Navigation - Center */}
+            <div className="hidden xl:flex items-center space-x-1 mx-8">
               {NAV_LINKS.map(({ label, href, icon: Icon }) => (
                 <Link
                   key={href}
                   href={href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`flex items-center px-6 py-4 text-base font-medium transition-colors duration-200 ${
+                  className={`flex items-center px-5 py-3 rounded-2xl text-sm font-semibold transition-all duration-300 group ${
                     pathname === href
-                      ? "bg-yellow-400/10 text-yellow-400 border-r-2 border-yellow-400"
-                      : "text-white hover:bg-yellow-400/10 hover:text-yellow-400"
+                      ? "bg-gradient-to-r from-yellow-500 to-yellow-600 text-black shadow-2xl shadow-yellow-500/25 scale-105"
+                      : "text-white/90 hover:text-yellow-400 hover:bg-white/5 hover:scale-105"
                   }`}
                 >
-                  <Icon className="w-5 h-5 mr-4" />
+                  <Icon className={`w-4 h-4 mr-3 transition-transform duration-300 ${
+                    pathname === href ? "scale-110" : "group-hover:scale-110"
+                  }`} />
                   {label}
                 </Link>
               ))}
             </div>
 
-            {/* Auth Section */}
-            <div className="p-6 border-t border-yellow-400/20">
+            {/* Desktop Right Section */}
+            <div className="hidden lg:flex items-center space-x-3">
               {!isLoggedIn ? (
-                <div className="space-y-3">
+                <div className="flex items-center space-x-3">
                   <Link
                     href="/login"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="w-full py-3 text-center border border-yellow-400/60 text-yellow-400 rounded-lg font-medium hover:bg-yellow-400/10 transition-colors duration-200"
+                    className="px-6 py-2.5 text-white/90 hover:text-yellow-400 text-sm font-semibold transition-all duration-300 hover:scale-105"
                   >
                     Login
                   </Link>
                   <Link
                     href="/register"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="w-full py-3 text-center bg-yellow-400 text-black rounded-lg font-medium hover:bg-yellow-500 transition-colors duration-200"
+                    className="px-6 py-2.5 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black text-sm font-bold rounded-2xl hover:shadow-2xl hover:shadow-yellow-500/25 transition-all duration-300 hover:scale-105"
                   >
-                    Sign Up
+                    Get Started
                   </Link>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  {[
-                    { href: "/profile", icon: FaUser, label: "Profile" },
-                    {
-                      href: "/dashboard",
-                      icon: FaBox,
-                      label: "Dashboard",
-                    },
-                    {
-                      href: "/cart",
-                      icon: FaShoppingCart,
-                      label: "Cart",
-                      badge: cartCount,
-                    },
-                    { href: "/Inbox", icon: FaList, label: "Inbox" },
-                    { href: "/Help", icon: FaInfo, label: "Help" },
-                  ].map(({ href, icon: Icon, label, badge }) => (
-                    <Link
-                      key={href}
-                      href={href}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex items-center justify-between py-3 px-4 text-white hover:bg-yellow-400/10 hover:text-yellow-400 rounded-lg transition-colors duration-200"
-                    >
-                      <div className="flex items-center">
-                        <Icon className="w-4 h-4 mr-3" />
-                        <span>{label}</span>
-                      </div>
-                      {badge > 0 && (
-                        <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                          {badge > 99 ? "99+" : badge}
-                        </span>
-                      )}
-                    </Link>
-                  ))}
-                  <button
-                    onClick={logoutUser}
-                    className="flex items-center w-full py-3 px-4 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors duration-200"
-                  >
-                    <FiX className="w-4 h-4 mr-3" />
-                    Logout
+                <div className="flex items-center space-x-4">
+                  {/* Notifications */}
+                  <button className="relative p-2.5 text-white/80 hover:text-yellow-400 hover:bg-white/5 rounded-2xl transition-all duration-300 group">
+                    <FiBell className="w-5 h-5 transition-transform group-hover:scale-110" />
+                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-black shadow-lg"></span>
                   </button>
+
+                  {/* Cart */}
+                  <Link
+                    href="/cart"
+                    className="relative p-2.5 text-white/80 hover:text-yellow-400 hover:bg-white/5 rounded-2xl transition-all duration-300 group"
+                  >
+                    <FaShoppingCart className="w-5 h-5 transition-transform group-hover:scale-110" />
+                    {cartCount > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-black w-6 h-6 flex items-center justify-center rounded-full shadow-lg border-2 border-black">
+                        {cartCount > 99 ? "99+" : cartCount}
+                      </span>
+                    )}
+                  </Link>
+
+                  {/* User Menu */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                      className="flex items-center space-x-3 bg-white/5 hover:bg-white/10 rounded-2xl pl-4 pr-5 py-2.5 transition-all duration-300 group border border-white/10 hover:border-yellow-500/30"
+                    >
+                      <div className="w-8 h-8 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-full flex items-center justify-center">
+                        <FaUser className="w-3.5 h-3.5 text-black font-bold" />
+                      </div>
+                      <span className="text-sm font-semibold text-white/90">
+                        {authUser?.fullName?.split(" ")[0] || "Guest"}
+                      </span>
+                      <FiChevronDown className={`w-4 h-4 text-white/60 transition-transform duration-300 ${
+                        userDropdownOpen ? "rotate-180" : ""
+                      }`} />
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {userDropdownOpen && (
+                      <div className="absolute right-0 mt-3 w-72 bg-black/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 py-3 transform origin-top-right scale-95 animate-in fade-in-0 zoom-in-95">
+                        <div className="px-5 py-4 border-b border-white/10">
+                          <p className="font-bold text-white text-sm">
+                            {authUser?.fullName || "Guest"}
+                          </p>
+                          <p className="text-xs text-white/60 truncate mt-1">
+                            {authUser?.email}
+                          </p>
+                        </div>
+                        <div className="py-2">
+                          {[
+                            { href: "/profile", icon: FaUser, label: "Profile" },
+                            { href: "/dashboard", icon: FaBox, label: "Dashboard" },
+                            { href: "/orders", icon: FaList, label: "My Orders" },
+                            { href: "/settings", icon: FaInfo, label: "Settings" },
+                          ].map(({ href, icon: Icon, label }) => (
+                            <Link
+                              key={href}
+                              href={href}
+                              className="flex items-center px-5 py-3 text-sm text-white/80 hover:text-yellow-400 hover:bg-white/5 transition-all duration-200 group"
+                              onClick={() => setUserDropdownOpen(false)}
+                            >
+                              <Icon className="w-4 h-4 mr-3 text-white/60 group-hover:text-yellow-400 transition-colors" />
+                              {label}
+                            </Link>
+                          ))}
+                          <button
+                            onClick={handleLogout}
+                            className="flex items-center w-full px-5 py-3 text-sm text-red-400 hover:bg-red-500/10 transition-all duration-200 group"
+                          >
+                            <FaSignOutAlt className="w-4 h-4 mr-3 group-hover:scale-110 transition-transform" />
+                            Logout
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
+
+            {/* Mobile Menu Button */}
+            <div className="lg:hidden flex items-center space-x-3">
+              {isLoggedIn && (
+                <Link
+                  href="/cart"
+                  className="relative p-2.5 text-white/80 hover:text-yellow-400 rounded-2xl transition-colors duration-300"
+                >
+                  <FaShoppingCart className="w-5 h-5" />
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-black w-5 h-5 flex items-center justify-center rounded-full border-2 border-black">
+                      {cartCount > 9 ? "9+" : cartCount}
+                    </span>
+                  )}
+                </Link>
+              )}
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="p-2.5 text-white/80 hover:text-yellow-400 hover:bg-white/5 rounded-2xl transition-all duration-300"
+              >
+                {isMobileMenuOpen ? (
+                  <FiX className="w-6 h-6" />
+                ) : (
+                  <FiMenu className="w-6 h-6" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
+      </nav>
 
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 lg:hidden animate-in fade-in-0"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Modern Mobile Menu - Login/Register after navigation items */}
+      <div
+        className={`fixed top-0 right-0 h-full w-80 bg-gradient-to-b from-black to-gray-900 shadow-2xl z-50 transform transition-transform duration-500 lg:hidden border-l border-yellow-500/30 ${
+          isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        {/* Mobile Header - Clean with only close button */}
+        <div className="flex justify-end items-center p-4 border-b border-yellow-500/30 bg-black/50">
+          <button
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="p-3 text-white/80 hover:text-yellow-400 hover:bg-white/5 rounded-xl transition-colors duration-300"
+          >
+            <FiX className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div className="flex flex-col h-full overflow-y-auto">
+          {/* User Section - Only show if logged in */}
+          {isLoggedIn && authUser && (
+            <div className="p-6 border-b border-yellow-500/30 bg-black/30">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-full flex items-center justify-center">
+                  <FaUser className="w-5 h-5 text-black font-bold" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-white text-sm truncate">
+                    {authUser?.fullName || "Guest"}
+                  </p>
+                  <p className="text-xs text-white/60 truncate">
+                    {authUser?.email}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Navigation Links */}
+          <div className="p-4">
+            <div className="space-y-2">
+              {NAV_LINKS.map(({ label, href, icon: Icon }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`flex items-center px-4 py-4 rounded-2xl text-base font-semibold transition-all duration-300 group ${
+                    pathname === href
+                      ? "bg-gradient-to-r from-yellow-500 to-yellow-600 text-black shadow-lg"
+                      : "text-white/90 hover:text-yellow-400 hover:bg-white/5"
+                  }`}
+                >
+                  <Icon className={`w-5 h-5 mr-4 transition-transform duration-300 ${
+                    pathname === href ? "scale-110" : "group-hover:scale-110"
+                  }`} />
+                  {label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Login/Register Buttons - Always visible when not logged in */}
+          {!isLoggedIn && (
+            <div className="p-4 border-t border-yellow-500/30 bg-black/30">
+              <div className="space-y-3">
+                <Link
+                  href="/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="w-full py-4 text-center border-2 border-yellow-500 text-yellow-400 rounded-2xl font-bold hover:bg-yellow-500/10 transition-all duration-300 hover:scale-105 text-lg flex items-center justify-center"
+                >
+                  <FaUser className="w-5 h-5 mr-3" />
+                  Login
+                </Link>
+                <Link
+                  href="/register"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="w-full py-4 text-center bg-gradient-to-r from-yellow-500 to-yellow-600 text-black rounded-2xl font-bold hover:shadow-lg hover:shadow-yellow-500/25 transition-all duration-300 hover:scale-105 text-lg flex items-center justify-center"
+                >
+                  <FaUser className="w-5 h-5 mr-3" />
+                  Register
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {/* User Actions - Only show if logged in */}
+          {isLoggedIn && (
+            <div className="p-4 border-t border-yellow-500/30 bg-black/30">
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <Link
+                    href="/profile"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="py-3 text-center bg-white/5 text-white/90 rounded-xl hover:bg-white/10 transition-colors duration-300 text-sm font-semibold flex items-center justify-center"
+                  >
+                    <FaUser className="w-4 h-4 mr-2" />
+                    Profile
+                  </Link>
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="py-3 text-center bg-white/5 text-white/90 rounded-xl hover:bg-white/10 transition-colors duration-300 text-sm font-semibold flex items-center justify-center"
+                  >
+                    <FaBox className="w-4 h-4 mr-2" />
+                    Dashboard
+                  </Link>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="w-full py-4 text-center bg-red-500/10 text-red-400 rounded-2xl font-bold hover:bg-red-500/20 transition-all duration-300 hover:scale-105 border border-red-500/30 text-lg flex items-center justify-center"
+                >
+                  <FaSignOutAlt className="w-5 h-5 mr-3" />
+                  Logout
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );
