@@ -303,7 +303,9 @@ const Register = () => {
                 value={formData.firstName}
                 onChange={handleInputChange}
                 onBlur={(e) => validateField("firstName", e.target.value)}
-                className={`w-full p-3 rounded-md border ${errors.firstName ? "border-red-500" : "border-gray-400"}`}
+                className={`w-full p-3 rounded-md border bg-white text-gray-800 placeholder-gray-500 ${
+                  errors.firstName ? "border-red-500" : "border-gray-400"
+                }`}
               />
               {errors.firstName && (
                 <p className="text-red-300 text-sm mt-1">{errors.firstName}</p>
@@ -317,7 +319,9 @@ const Register = () => {
                 value={formData.lastName}
                 onChange={handleInputChange}
                 onBlur={(e) => validateField("lastName", e.target.value)}
-                className={`w-full p-3 rounded-md border ${errors.lastName ? "border-red-500" : "border-gray-400"}`}
+                className={`w-full p-3 rounded-md border bg-white text-gray-800 placeholder-gray-500 ${
+                  errors.lastName ? "border-red-500" : "border-gray-400"
+                }`}
               />
               {errors.lastName && (
                 <p className="text-red-300 text-sm mt-1">{errors.lastName}</p>
@@ -334,7 +338,9 @@ const Register = () => {
               value={formData.email}
               onChange={handleInputChange}
               onBlur={(e) => validateField("email", e.target.value)}
-              className={`w-full p-3 rounded-md border ${errors.email ? "border-red-500" : "border-gray-400"}`}
+              className={`w-full p-3 rounded-md border bg-white text-gray-800 placeholder-gray-500 ${
+                errors.email ? "border-red-500" : "border-gray-400"
+              }`}
             />
             {errors.email && (
               <p className="text-red-300 text-sm mt-1">{errors.email}</p>
@@ -350,7 +356,9 @@ const Register = () => {
               value={formData.phone}
               onChange={handlePhoneChange}
               onBlur={(e) => validateField("phone", e.target.value)}
-              className={`w-full p-3 rounded-md border ${errors.phone ? "border-red-500" : "border-gray-400"}`}
+              className={`w-full p-3 rounded-md border bg-white text-gray-800 placeholder-gray-500 ${
+                errors.phone ? "border-red-500" : "border-gray-400"
+              }`}
             />
             {errors.phone && (
               <p className="text-red-300 text-sm mt-1">{errors.phone}</p>
@@ -366,7 +374,9 @@ const Register = () => {
               value={formData.password}
               onChange={handleInputChange}
               onBlur={(e) => validateField("password", e.target.value)}
-              className={`w-full p-3 rounded-md border ${errors.password ? "border-red-500" : "border-gray-400"}`}
+              className={`w-full p-3 rounded-md border bg-white text-gray-800 placeholder-gray-500 ${
+                errors.password ? "border-red-500" : "border-gray-400"
+              }`}
             />
             <button
               type="button"
@@ -389,7 +399,9 @@ const Register = () => {
               value={formData.confirmPassword}
               onChange={handleInputChange}
               onBlur={(e) => validateField("confirmPassword", e.target.value)}
-              className={`w-full p-3 rounded-md border ${errors.confirmPassword ? "border-red-500" : "border-gray-400"}`}
+              className={`w-full p-3 rounded-md border bg-white text-gray-800 placeholder-gray-500 ${
+                errors.confirmPassword ? "border-red-500" : "border-gray-400"
+              }`}
             />
             <button
               type="button"
