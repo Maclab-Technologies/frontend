@@ -32,7 +32,9 @@ const ClientNavLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-  const cartItems = useSelector((state) => state.cart.cartItems || []);
+  
+  // Fixed: Added proper typing for Redux state
+  const cartItems = useSelector((state, any) => state.cart?.cartItems || []);
   const pathname = usePathname();
   
   const { 
@@ -59,6 +61,7 @@ const ClientNavLayout = () => {
   const handleLogout = () => {
     logoutUser();
     setIsMobileMenuOpen(false);
+    setUserDropdownOpen(false);
   };
 
   return (
@@ -137,9 +140,8 @@ const ClientNavLayout = () => {
                 </Link>
               ))}
             </div>
-          </div>
 
-            {/* Desktop Right Section */}
+            {/* Desktop Right Section - FIXED: Moved inside the main flex container */}
             <div className="hidden md:flex items-center space-x-4">
               {!isLoggedIn ? (
                 <>
@@ -147,15 +149,13 @@ const ClientNavLayout = () => {
                     href="/login"
                     className="text-white hover:text-yellow-400 px-4 py-2 text-sm font-medium transition-colors duration-200"
                   >
-                    <FaUser className="w-4 h-4 mr-2" />
-                    Profile
+                    Login
                   </Link>
                   <Link
                     href="/register"
                     className="bg-yellow-400 text-black px-6 py-2 rounded-lg text-sm font-medium hover:bg-yellow-500 transition-colors duration-200 shadow-sm"
                   >
-                    <FaBox className="w-4 h-4 mr-2" />
-                    Dashboard
+                    Sign Up
                   </Link>
                 </>
               ) : (
@@ -186,6 +186,7 @@ const ClientNavLayout = () => {
                       <span className="text-sm font-medium text-white">
                         {authUser?.fullName?.split(" ")[0] || "Guest"}
                       </span>
+                      <FiChevronDown className="w-4 h-4 text-yellow-400" />
                     </button>
 
                     {/* Dropdown */}
@@ -223,10 +224,10 @@ const ClientNavLayout = () => {
                           </Link>
                         ))}
                         <button
-                          onClick={logoutUser}
+                          onClick={handleLogout}
                           className="flex items-center w-full px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 transition-colors duration-200"
                         >
-                          <FiX className="w-4 h-4 mr-3" />
+                          <FaSignOutAlt className="w-4 h-4 mr-3" />
                           Logout
                         </button>
                       </div>
@@ -377,7 +378,7 @@ const ClientNavLayout = () => {
                       <Icon className="w-4 h-4 mr-3" />
                       <span>{label}</span>
                     </div>
-                    {badge > 0 && (
+                    {badge && badge > 0 && (
                       <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                         {badge > 99 ? "99+" : badge}
                       </span>
@@ -385,10 +386,10 @@ const ClientNavLayout = () => {
                   </Link>
                 ))}
                 <button
-                  onClick={logoutUser}
+                  onClick={handleLogout}
                   className="flex items-center w-full py-3 px-4 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors duration-200"
                 >
-                  <FiX className="w-4 h-4 mr-3" />
+                  <FaSignOutAlt className="w-4 h-4 mr-3" />
                   Logout
                 </button>
               </div>

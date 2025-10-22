@@ -534,8 +534,8 @@ export default function VendorRegister() {
                     One number
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}  
 
             {/* Terms and Conditions */}
             <div className={`flex items-start p-4 rounded-lg border transition-colors ${
