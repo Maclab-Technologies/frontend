@@ -14,6 +14,8 @@ import {
   FaBars,
   FaTimes,
   FaUser,
+  FaChevronDown,
+  FaBell,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -30,6 +32,7 @@ export default function VendorDashboard() {
   const { vendorToken, authVendor, logoutVendor } = useContext(VendorAuthContext);
   const router = useRouter();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard");
 
@@ -61,7 +64,6 @@ export default function VendorDashboard() {
         // Using batchRequests for parallel API calls
         const result = await batchRequests([
           {
-            // Vendor Products
             url: `/products/vendor/${authVendor.id}`,
             options: {
               method: "GET",
@@ -70,7 +72,6 @@ export default function VendorDashboard() {
             },
           },
           {
-            // vendor orders
             url: `/orders/vendor/my-orders`,
             options: {
               method: "GET",
@@ -79,7 +80,6 @@ export default function VendorDashboard() {
             },
           },
           {
-            // vendor earnings
             url: `/payments/vendor/${authVendor.id}`,
             options: {
               method: "GET",
@@ -88,7 +88,6 @@ export default function VendorDashboard() {
             },
           },
           {
-            // vendor earnings stats
             url: `/payments/earnings/stats/${authVendor.id}`,
             options: {
               method: "GET",
@@ -97,7 +96,6 @@ export default function VendorDashboard() {
             },
           },
           {
-            // vendor stats summary
             url: `/payments/vendor/${authVendor.id}/summary`,
             options: {
               method: "GET",
@@ -107,7 +105,6 @@ export default function VendorDashboard() {
           },
         ]);
 
-        // Destructure results (batchRequests returns array in same order)
         const [
           productsResult,
           ordersResult,
@@ -116,7 +113,7 @@ export default function VendorDashboard() {
           statsSummary,
         ] = result;
 
-        // Handle products
+        // Handle products - no alerts
         if (productsResult.success) {
           setProducts(productsResult.data?.data || []);
         } else if (productsResult.data?.data?.length === 0) {
@@ -125,14 +122,14 @@ export default function VendorDashboard() {
           console.warn("Failed to fetch products");
         }
 
-        // Handle orders
+        // Handle orders - no alerts
         if (ordersResult.success) {
           setOrders(ordersResult.data?.data || []);
         } else if (ordersResult._failed) {
           console.warn("Failed to fetch orders");
         }
 
-        // Handle earnings
+        // Handle earnings - no alerts
         if (earningsResult.success) {
           setEarnings(earningsResult.data?.data || []);
         } else if (earningsResult._failed) {
@@ -153,13 +150,6 @@ export default function VendorDashboard() {
           console.warn("Failed to fetch vendor summary");
         }
 
-        // Check if any critical requests failed
-        const criticalFailures = result.filter((r) => r._failed).length;
-        if (criticalFailures > 0) {
-          toast.warning(
-            `${criticalFailures} requests failed. Some data may be incomplete.`
-          );
-        }
       } catch (error) {
         console.error("Error loading initial data:", error);
         toast.error("Failed to load dashboard data");
@@ -251,13 +241,13 @@ export default function VendorDashboard() {
           {/* Side Navigation */}
           <aside
             className={`
-            fixed inset-y-0 left-0 z-40 
-            w-64 bg-gray-800 shadow-lg 
-            transform transition-transform duration-300 ease-in-out rounded
-            ${mobileNavOpen ? "translate-x-0" : "-translate-x-full"} 
-            lg:relative lg:translate-x-0 lg:w-64
-            mt-14 lg:mt-0
-          `}
+              fixed inset-y-0 left-0 z-40 
+              w-64 bg-gray-800 shadow-xl 
+              transform transition-transform duration-300 ease-in-out
+              ${mobileNavOpen ? "translate-x-0" : "-translate-x-full"} 
+              lg:translate-x-0 lg:static lg:w-64
+              mt-16 lg:mt-0
+            `}
           >
             {/* Close button for mobile */}
             <div className="lg:hidden absolute top-4 right-4">
@@ -270,7 +260,7 @@ export default function VendorDashboard() {
             </div>
 
             {/* User Profile */}
-            <div className="p-4 border-b border-gray-700">
+            <div className="p-4 border-b border-gray-700 lg:border-t-0">
               <div className="flex items-center space-x-3">
                 <div className="bg-yellow-400 bg-opacity-20 p-2 rounded-full">
                   <FaUser className="text-yellow-400" />
@@ -361,6 +351,14 @@ export default function VendorDashboard() {
           </main>
         </div>
       </div>
+
+      {/* Mobile Overlay */}
+      {mobileNavOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
+          onClick={() => setMobileNavOpen(false)}
+        />
+      )}
     </div>
   );
 }

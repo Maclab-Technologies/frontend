@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSelector } from "react-redux";
 import Image from "next/image";
-import { FiMenu, FiX, FiBell } from "react-icons/fi";
+import { FiMenu, FiX, FiBell, FiChevronDown } from "react-icons/fi";
 import { useAuth } from "../(root)/_provider/useClientProvider";
 import {
   FaShoppingCart,
@@ -14,6 +14,7 @@ import {
   FaStar,
   FaStore,
   FaInfo,
+  FaSignOutAlt,
 } from "react-icons/fa";
 import logo from "../../../public/images/brandimage.jpeg";
 import { usePathname } from "next/navigation";
@@ -30,6 +31,7 @@ const NAV_LINKS = [
 const ClientNavLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const cartItems = useSelector((state) => state.cart.cartItems || []);
   const pathname = usePathname();
   
@@ -53,6 +55,11 @@ const ClientNavLayout = () => {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleLogout = () => {
+    logoutUser();
+    setIsMobileMenuOpen(false);
+  };
 
   return (
     <header className="w-full">
@@ -130,6 +137,7 @@ const ClientNavLayout = () => {
                 </Link>
               ))}
             </div>
+          </div>
 
             {/* Desktop Right Section */}
             <div className="hidden md:flex items-center space-x-4">
@@ -139,13 +147,15 @@ const ClientNavLayout = () => {
                     href="/login"
                     className="text-white hover:text-yellow-400 px-4 py-2 text-sm font-medium transition-colors duration-200"
                   >
-                    Login
+                    <FaUser className="w-4 h-4 mr-2" />
+                    Profile
                   </Link>
                   <Link
                     href="/register"
                     className="bg-yellow-400 text-black px-6 py-2 rounded-lg text-sm font-medium hover:bg-yellow-500 transition-colors duration-200 shadow-sm"
                   >
-                    Sign Up
+                    <FaBox className="w-4 h-4 mr-2" />
+                    Dashboard
                   </Link>
                 </>
               ) : (

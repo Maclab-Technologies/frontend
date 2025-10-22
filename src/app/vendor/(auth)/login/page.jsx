@@ -50,28 +50,23 @@ export default function VendorLogin() {
 
   const calculateFormProgress = () => {
     const requiredFields = ["businessEmail", "businessPassword"];
-
     const filledFields = requiredFields.filter(
       (field) => formData[field] && formData[field].trim() !== ""
     ).length;
-
     const progress = Math.floor((filledFields / requiredFields.length) * 100);
     setFormProgress(progress);
   };
 
   const validateForm = () => {
     const newErrors = {};
-
     if (!formData.businessEmail) {
       newErrors.businessEmail = "Email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.businessEmail)) {
       newErrors.businessEmail = "Please enter a valid email";
     }
-
     if (!formData.businessPassword) {
       newErrors.businessPassword = "Password is required";
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -82,7 +77,6 @@ export default function VendorLogin() {
       ...prev,
       [name]: value,
     }));
-
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
@@ -144,8 +138,6 @@ export default function VendorLogin() {
       }
 
       const data = await response.json();
-
-      // Ensure token is present
       const token = data.token;
       if (!token) {
         throw new Error("Authentication token missing from response.");

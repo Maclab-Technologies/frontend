@@ -105,68 +105,55 @@ export default function VendorRegister() {
       "businessPassword",
       "confirmPassword",
     ];
-
     const filledFields = requiredFields.filter(
       (field) => formData[field] && formData[field].trim() !== ""
     ).length;
-
     const progress = Math.floor((filledFields / requiredFields.length) * 100);
     setFormProgress(progress);
   };
 
   const validateForm = () => {
     const newErrors = {};
-
     if (!formData.businessName.trim()) {
       newErrors.businessName = "Business name is required";
     } else if (formData.businessName.trim().length < 3) {
       newErrors.businessName = "Business name must be at least 3 characters";
     }
-
     if (!formData.businessEmail) {
       newErrors.businessEmail = "Business email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.businessEmail)) {
       newErrors.businessEmail = "Please enter a valid email";
     }
-
     if (!formData.businessPhoneNumber) {
       newErrors.businessPhoneNumber = "Business phone is required";
     } else if (!/^[\d\s\+\-\(\)]{10,15}$/.test(formData.businessPhoneNumber)) {
       newErrors.businessPhoneNumber = "Please enter a valid phone number";
     }
-
     if (!formData.businessAddress) {
       newErrors.businessAddress = "Shop address is required";
     }
-
     if (!formData.businessDescription) {
       newErrors.businessDescription = "Business description is required";
     } else if (formData.businessDescription.length < 20) {
-      newErrors.businessDescription =
-        "Description must be at least 20 characters";
+      newErrors.businessDescription = "Description must be at least 20 characters";
     }
-
     if (!formData.businessPassword) {
       newErrors.businessPassword = "Password is required";
     } else if (formData.businessPassword.length < 6) {
       newErrors.businessPassword = "Password must be at least 6 characters";
     } else if (!/[A-Z]/.test(formData.businessPassword)) {
-      newErrors.businessPassword =
-        "Password must contain at least one uppercase letter";
+      newErrors.businessPassword = "Password must contain at least one uppercase letter";
     } else if (!/[0-9]/.test(formData.businessPassword)) {
       newErrors.businessPassword = "Password must contain at least one number";
     }
-
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = "Please confirm your password";
     } else if (formData.businessPassword !== formData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
     }
-
     if (!formData.agreeToTerms) {
       newErrors.agreeToTerms = "You must accept the Terms & Conditions";
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -177,7 +164,6 @@ export default function VendorRegister() {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
-
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
@@ -218,7 +204,6 @@ export default function VendorRegister() {
   const handleEmailSignUp = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-
     setLoading(true);
 
     try {
@@ -234,10 +219,8 @@ export default function VendorRegister() {
       );
 
       const data = await response.json();
-
       if (!response.ok) {
-        const message =
-          data?.message || "Registration failed. Please try again.";
+        const message = data?.message || "Registration failed. Please try again.";
         throw new Error(message);
       }
 
@@ -551,8 +534,8 @@ export default function VendorRegister() {
                     One number
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* Terms and Conditions */}
             <div className={`flex items-start p-4 rounded-lg border transition-colors ${
@@ -565,7 +548,7 @@ export default function VendorRegister() {
                   id="agreeToTerms"
                   name="agreeToTerms"
                   type="checkbox"
-                  className="h-5 w-5 text-yellow-400 focus:ring-yellow-400 border-gray-300 rounded"
+                  className="h-5 w-5 text-yellow-400 focus:ring-yellow-400 border-gray-500 rounded bg-gray-600"
                   checked={formData.agreeToTerms}
                   onChange={handleInputChange}
                 />
@@ -583,7 +566,7 @@ export default function VendorRegister() {
                   >
                     Terms & Conditions
                   </Link>{" "}
-                  <span className="text-red-500">*</span>
+                  <span className="text-red-400">*</span>
                 </label>
                 <p className="text-gray-600 text-xs mt-1">
                   20% platform fee applies to all sales. By registering, you agree to our vendor agreement.
