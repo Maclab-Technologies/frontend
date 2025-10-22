@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {
   ArrowLeft,
@@ -211,7 +211,6 @@ export default function ProductDetail() {
 
   return (
     <div className="bg-gradient-to-br from-black via-gray-900 to-black min-h-screen">
-      <ToastContainer />
 
       {/* Navigation */}
       <div className="container mx-auto pt-8 px-4">

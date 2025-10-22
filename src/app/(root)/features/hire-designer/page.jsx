@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ArrowLeft, Upload, PlusCircle, Trash2, Send } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 // ... (keep all your existing imports and statesAndLGAs object)
@@ -1010,18 +1010,6 @@ export default function HireDesigner() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center p-4 md:p-6">
-      {/* Add ToastContainer near the top of your component */}
-      <ToastContainer
-        position="top-center"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
 
       <div className="w-full max-w-3xl">
         {/* ... (keep all your existing JSX code) */}

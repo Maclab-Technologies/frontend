@@ -22,7 +22,7 @@ import {
   sendPasswordResetEmail,
 } from "firebase/auth";
 import { auth } from "../../../utils/firebaseconfig";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AuthContext } from "@/app/(root)/_provider/useClientProvider";
 import { post } from "@/app/_hooks/fetch-hook";
@@ -249,19 +249,6 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex bg-gray-50">
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="colored"
-      />
-
       {/* Left Section - Brand Image */}
       <div className="hidden md:flex md:w-1/2 bg-[#726002] items-center justify-center p-8">
         <div className="relative w-full h-full max-w-md">

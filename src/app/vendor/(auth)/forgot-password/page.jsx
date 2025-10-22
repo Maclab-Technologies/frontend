@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { auth } from "../../../utils/firebaseconfig"; // Adjust path as needed
 import { sendPasswordResetEmail } from "firebase/auth";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
 import { post } from "@/app/_hooks/fetch-hook";

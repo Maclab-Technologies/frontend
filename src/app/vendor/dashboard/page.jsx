@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -17,7 +17,9 @@ import {
   FaChevronDown,
   FaBell,
 } from "react-icons/fa";
-import { batchRequests } from "@/app/_hooks/fetch-hook";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { batchRequests, post } from "@/app/_hooks/fetch-hook";
 import Dashboard from "../Components/dashboard";
 import AddProduct from "../Components/create-product";
 import ManageProducts from "../Components/manage-product";
@@ -41,14 +43,22 @@ export default function VendorDashboard() {
   const [earningsStats, setEarningsStats] = useState({});
   const [summary, setSummary] = useState({});
 
+  // Check authentication on component mount
+  useEffect(() => {
+    if (!vendorToken || !authVendor?.id) {
+      toast.error("Please login to access vendor dashboard");
+      router.push("/vendor/login");
+      return;
+    }
+  }, [vendorToken, authVendor, router]);
+
   // Load user data and initial content
   useEffect(() => {
     const loadInitialData = async () => {
+      if (!vendorToken || !authVendor?.id) return;
+      
       setLoading(true);
       try {
-        if (!vendorToken) {
-          throw new Error("No token found");
-        }
         let token = vendorToken;
 
         // Using batchRequests for parallel API calls
@@ -106,40 +116,56 @@ export default function VendorDashboard() {
         // Handle products - no alerts
         if (productsResult.success) {
           setProducts(productsResult.data?.data || []);
+        } else if (productsResult.data?.data?.length === 0) {
+          console.log("No products found");
+        } else if (productsResult._failed) {
+          console.warn("Failed to fetch products");
         }
 
         // Handle orders - no alerts
         if (ordersResult.success) {
           setOrders(ordersResult.data?.data || []);
+        } else if (ordersResult._failed) {
+          console.warn("Failed to fetch orders");
         }
 
         // Handle earnings - no alerts
         if (earningsResult.success) {
           setEarnings(earningsResult.data?.data || []);
+        } else if (earningsResult._failed) {
+          console.warn("Failed to fetch earnings");
         }
 
-        // Handle earnings stats - no alerts
+        // Handle earnings stats
         if (earningStats.success) {
           setEarningsStats(earningStats.data?.data || {});
+        } else if (earningStats._failed) {
+          console.warn("Failed to fetch earnings stats");
         }
 
-        // Handle summary - no alerts
+        // Handle vendor summary
         if (statsSummary.success) {
           setSummary(statsSummary.data?.data || {});
+        } else if (statsSummary._failed) {
+          console.warn("Failed to fetch vendor summary");
         }
 
       } catch (error) {
         console.error("Error loading initial data:", error);
-        // No error alert
+        toast.error("Failed to load dashboard data");
       } finally {
         setLoading(false);
       }
     };
 
-    if (vendorToken && authVendor?.id) {
-      loadInitialData();
-    }
-  }, [vendorToken, authVendor?.id]);
+    loadInitialData();
+  }, [vendorToken, authVendor]);
+
+  const handleLogout = () => {
+    logoutVendor();
+    toast.success("Logged out successfully");
+    router.push("/vendor/login");
+  };
 
   const tabs = {
     dashboard: (
@@ -151,12 +177,23 @@ export default function VendorDashboard() {
         loading={loading}
       />
     ),
-    orders: <Orders orders={orders} loading={loading} />,
+    orders: (
+      <Orders orders={orders} loading={loading} />
+    ),
     addProduct: (
-      <AddProduct products={products} setProducts={setProducts} />
+      <AddProduct
+        products={products}
+        setProducts={setProducts}
+        vendorToken={vendorToken}
+        vendorId={authVendor?.id}
+      />
     ),
     manageProduct: (
-      <ManageProducts products={products} setProducts={setProducts} />
+      <ManageProducts 
+        products={products}
+        setProducts={setProducts}
+        vendorToken={vendorToken}
+      />
     ),
     earnings: (
       <Earnings
@@ -174,134 +211,33 @@ export default function VendorDashboard() {
     ),
   };
 
-  const handleLogout = () => {
-    logoutVendor();
-    router.push("/vendor/login");
-  };
+  // If no vendor token, show loading
+  if (!vendorToken) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-900">
-      {/* Top Navigation Bar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-gray-800 border-b border-gray-700">
-        <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Left Section - Menu Toggle & Brand */}
-            <div className="flex items-center space-x-4">
-              {/* Mobile Menu Toggle */}
-              <button
-                onClick={() => setMobileNavOpen(!mobileNavOpen)}
-                className="lg:hidden p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
-                aria-label="Toggle menu"
-              >
-                {mobileNavOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
-              </button>
-
-              {/* Brand */}
-              <div className="flex items-center space-x-3">
-                <div className="bg-yellow-400 p-2 rounded-lg">
-                  <FaBoxOpen className="text-black text-sm" />
-                </div>
-                <div className="hidden sm:block">
-                  <h1 className="text-lg font-bold text-white">Vendor Dashboard</h1>
-                  <p className="text-xs text-gray-400">59Minutes Prints</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Center Section - Current Page Title */}
-            <div className="hidden md:block">
-              <h2 className="text-xl font-semibold text-white capitalize">
-                {activeTab.replace(/([A-Z])/g, ' $1').trim()}
-              </h2>
-            </div>
-
-            {/* Right Section - User Menu */}
-            <div className="flex items-center space-x-4">
-              {/* Notifications */}
-              <button 
-                className="relative p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
-                aria-label="Notifications"
-              >
-                <FaBell size={18} />
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-gray-800"></span>
-              </button>
-
-              {/* User Dropdown */}
-              <div className="relative">
-                <button
-                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                  className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-700 transition-colors"
-                  aria-label="User menu"
-                >
-                  <div className="bg-yellow-400 bg-opacity-20 p-2 rounded-full">
-                    <FaUser className="text-yellow-400 text-sm" />
-                  </div>
-                  <div className="hidden sm:block text-left">
-                    <p className="text-sm font-medium text-white">
-                      {authVendor?.businessName || "Vendor"}
-                    </p>
-                    <p className="text-xs text-gray-400">Vendor Account</p>
-                  </div>
-                  <FaChevronDown 
-                    className={`text-gray-400 transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`} 
-                    size={12} 
-                  />
-                </button>
-
-                {/* Dropdown Menu */}
-                {userDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-64 bg-gray-800 rounded-lg shadow-xl border border-gray-700 py-2 z-50">
-                    <div className="px-4 py-3 border-b border-gray-700">
-                      <p className="text-sm font-medium text-white">
-                        {authVendor?.businessName}
-                      </p>
-                      <p className="text-xs text-gray-400 truncate">
-                        {authVendor?.businessEmail}
-                      </p>
-                    </div>
-                    
-                    <button
-                      onClick={() => {
-                        setActiveTab("dashboard");
-                        setUserDropdownOpen(false);
-                      }}
-                      className="w-full flex items-center px-4 py-3 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
-                    >
-                      <FaHome className="mr-3" size={14} />
-                      Dashboard
-                    </button>
-                    
-                    <button
-                      onClick={() => {
-                        setActiveTab("manageProduct");
-                        setUserDropdownOpen(false);
-                      }}
-                      className="w-full flex items-center px-4 py-3 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
-                    >
-                      <FaBoxOpen className="mr-3" size={14} />
-                      Manage Products
-                    </button>
-
-                    <div className="border-t border-gray-700 mt-2 pt-2">
-                      <button
-                        onClick={handleLogout}
-                        className="w-full flex items-center px-4 py-3 text-sm text-red-400 hover:bg-red-500 hover:bg-opacity-10 transition-colors"
-                      >
-                        <FaSignOutAlt className="mr-3" size={14} />
-                        Logout
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+      {/* Mobile Header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 bg-gray-800 z-50 p-4 border-b border-gray-700">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => setMobileNavOpen(!mobileNavOpen)}
+            className="p-2 text-gray-400 hover:text-white focus:outline-none"
+          >
+            <FaBars size={20} />
+          </button>
+          <h1 className="text-white font-bold text-lg">Vendor Dashboard</h1>
+          <div className="w-8"></div> {/* Spacer for balance */}
         </div>
-      </nav>
+      </div>
 
-      {/* Main Content */}
-      <div className="pt-16">
-        <div className="flex">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pt-20 lg:pt-6">
+        <div className="flex flex-col lg:flex-row gap-6">
           {/* Side Navigation */}
           <aside
             className={`
@@ -313,18 +249,14 @@ export default function VendorDashboard() {
               mt-16 lg:mt-0
             `}
           >
-            {/* Mobile Header */}
-            <div className="lg:hidden p-4 border-b border-gray-700">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-white">Menu</h3>
-                <button
-                  onClick={() => setMobileNavOpen(false)}
-                  className="p-2 text-gray-400 hover:text-white"
-                  aria-label="Close menu"
-                >
-                  <FaTimes size={18} />
-                </button>
-              </div>
+            {/* Close button for mobile */}
+            <div className="lg:hidden absolute top-4 right-4">
+              <button
+                onClick={() => setMobileNavOpen(false)}
+                className="p-2 text-gray-400 hover:text-white focus:outline-none"
+              >
+                <FaTimes size={20} />
+              </button>
             </div>
 
             {/* User Profile */}
@@ -338,14 +270,14 @@ export default function VendorDashboard() {
                     {authVendor?.businessName || "Guest"}
                   </p>
                   <p className="text-xs text-gray-400 truncate">
-                    {authVendor?.businessEmail || "Guest@59minutesprints.com"}
+                    {authVendor?.businessEmail || "vendor@59minutesprints.com"}
                   </p>
                 </div>
               </div>
             </div>
 
             {/* Navigation Links */}
-            <nav className="p-4 space-y-2">
+            <nav className="p-2 h-[calc(100%-72px-4rem)] overflow-y-auto">
               {[
                 { key: "dashboard", label: "Dashboard", icon: FaHome },
                 { key: "orders", label: "Orders", icon: FaClipboardList },
@@ -361,43 +293,60 @@ export default function VendorDashboard() {
                     setMobileNavOpen(false);
                   }}
                   className={`
-                    w-full flex items-center px-4 py-3 text-sm rounded-lg 
-                    transition-all duration-200 group
+                    w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
+                    transition-all duration-200
                     ${
                       activeTab === key
-                        ? "bg-yellow-400 text-black font-semibold shadow-lg"
+                        ? "bg-yellow-400 text-black font-bold shadow-md"
                         : "text-gray-300 hover:bg-gray-700 hover:text-white"
                     }
                   `}
                 >
-                  <Icon 
-                    className={`mr-3 text-base ${
-                      activeTab === key ? "text-black" : "text-gray-400 group-hover:text-yellow-400"
-                    }`} 
-                  />
+                  <span className="mr-3 text-base">
+                    <Icon />
+                  </span>
                   <span className="text-left">{label}</span>
                 </button>
               ))}
+
+              {/* Logout Button */}
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 text-gray-300 hover:bg-red-600 hover:text-white transition-all duration-200 mt-4"
+              >
+                <span className="mr-3 text-base">
+                  <FaSignOutAlt />
+                </span>
+                <span className="text-left">Logout</span>
+              </button>
             </nav>
           </aside>
 
           {/* Main Content Area */}
-          <main className="flex-1 min-h-screen bg-gray-900">
-            <div className="p-4 sm:p-6 lg:p-8">
-              {/* Mobile Page Header */}
-              <div className="lg:hidden mb-6">
-                <h1 className="text-2xl font-bold text-white capitalize">
-                  {activeTab.replace(/([A-Z])/g, ' $1').trim()}
-                </h1>
-                <p className="text-gray-400 mt-1">
-                  Manage your vendor account and products
-                </p>
-              </div>
+          <main className="flex-1 min-w-0">
+            {/* Desktop Header */}
+            <div className="hidden lg:flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-white capitalize">
+                {activeTab.replace(/([A-Z])/g, ' $1').trim()}
+              </h2>
+              <button
+                onClick={() => setMobileNavOpen(true)}
+                className="lg:hidden p-2 text-gray-400 hover:text-white focus:outline-none"
+              >
+                <FaBars size={20} />
+              </button>
+            </div>
 
-              {/* Content */}
-              <div className="bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6">
-                {tabs[activeTab]}
-              </div>
+            {/* Mobile Header for active tab */}
+            <div className="lg:hidden mb-6">
+              <h2 className="text-xl font-bold text-white capitalize">
+                {activeTab.replace(/([A-Z])/g, ' $1').trim()}
+              </h2>
+            </div>
+
+            {/* Content */}
+            <div className="bg-gray-800 rounded-lg shadow-lg p-4 lg:p-6">
+              {tabs[activeTab]}
             </div>
           </main>
         </div>

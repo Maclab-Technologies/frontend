@@ -11,7 +11,7 @@ import {
   FiRefreshCw,
 } from "react-icons/fi";
 import { FaSortAmountDown, FaTag } from "react-icons/fa";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import debounce from "lodash.debounce";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -357,7 +357,6 @@ export default function ProductsPage() {
 
   return (
     <div className="bg-gradient-to-b from-gray-900 to-black min-h-screen">
-      <ToastContainer position="top-center" />
 
       {/* Header Section */}
       <header className="bg-gray-800 shadow-md py-4">
