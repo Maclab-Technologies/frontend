@@ -12,7 +12,7 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { auth } from "../../../utils/firebaseconfig";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AuthContext } from "@/app/(root)/_provider/useClientProvider";
 import { post } from "@/app/_hooks/fetch-hook";
@@ -284,7 +284,6 @@ const Register = () => {
 
   return (
     <div className="min-h-screen flex">
-      <ToastContainer position="top-right" autoClose={3000} />
 
       {/* Left Section: Registration Form */}
       <div className="w-full md:w-1/2 bg-[#726002] p-8 flex flex-col justify-center">

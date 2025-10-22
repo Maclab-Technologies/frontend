@@ -1,7 +1,7 @@
 import { useState } from "react";
 import emailjs from "emailjs-com";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const Feedback = () => {
@@ -29,8 +29,8 @@ const Feedback = () => {
 
     emailjs
       .send(
-        "service_s6q2eq9",
-        "template_li0k6lc",
+        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID,
         {
           firstname: formData.firstname,
           lastname: formData.lastname,
@@ -39,7 +39,7 @@ const Feedback = () => {
           reply_to: formData.email,
           bcc: "59minutesprint@gmail.com",
         },
-        "we_RK3ND6zgwH-WxT"
+        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
       )
       .then(() => {
         toast.success("✅ Feedback sent successfully!", {
@@ -48,7 +48,8 @@ const Feedback = () => {
         });
         setFormData({ firstname: "", lastname: "", email: "", message: "" });
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error("EmailJS error:", error);
         toast.error("❌ Failed to send feedback. Please try again.", {
           position: "top-right",
           autoClose: 3000,
@@ -89,8 +90,6 @@ const Feedback = () => {
 
   return (
     <section className="bg-gradient-to-b from-black to-gray-900 text-white px-4 sm:px-8 py-16">
-      {/* Toast Notifications */}
-      <ToastContainer />
 
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl md:text-4xl font-bold text-center mb-12">
@@ -197,7 +196,7 @@ const Feedback = () => {
               <h3 className="font-bold text-xl mb-4 text-yellow-500">Still Have Questions?</h3>
               <p className="mb-4">Our customer support team is available to help you with any questions or concerns.</p>
               <ul className="space-y-2 text-gray-300">
-                <li><strong>Email:</strong> support@59minutesprints.com</li>
+                <li><strong>Email:</strong> 59minutesprints@gmail.com</li>
                 <li><strong>Phone:</strong> (800) 123-4567</li>
                 <li><strong>Hours:</strong> Monday-Friday, 8am-8pm EST</li>
               </ul>

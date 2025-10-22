@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { UploadCloud, X, Loader2 } from "lucide-react";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function UploadDesignPage() {
@@ -134,7 +134,6 @@ export default function UploadDesignPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <ToastContainer position="top-center" autoClose={3000} />
       
       <div className="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6">
         <div className="text-center mb-8">

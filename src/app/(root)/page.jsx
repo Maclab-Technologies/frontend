@@ -1,105 +1,28 @@
 "use client";
 
-import "../globals.css";
-import Image from "next/image";
-import brandguy from "../../../public/images/brandguy.png";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+// Components
+import Carousel from "../_components/Carousel";
+import Hero from "../_components/Hero";
 import WhatWeOffer from "../_components/WhatWeOffer";
-import { motion } from "framer-motion";
+import CategoriesSection from "../_components/CategoriesSection";
+import Promotion from "../_components/Promotion";
 import Feedback from "../_components/Feedback";
 import Carousel from "../_components/Carousel";
 import products from "../../../public/Products/products.json";
 import { useState, useEffect, useRef } from "react";
-import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function Home() {
   const router = useRouter();
-  const [categories, setCategories] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const fetchAttempted = useRef(false);
-
-  useEffect(() => {
-    if (fetchAttempted.current) return;
-
-    const fetchCategories = async () => {
-      fetchAttempted.current = true;
-      setIsLoading(true);
-
-      try {
-        const controller = new AbortController();
-        // const timeoutId = setTimeout(() => controller.abort(), 15000);
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/categories`,
-          {
-            signal: controller.signal,
-          }
-        );
-
-        // clearTimeout(timeoutId);
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(
-            `Server responded with ${response.status}: ${errorText}`
-          );
-        }
-
-        const json = await response.json();
-        setCategories(json.data);
-        setError(null);
-      } catch (error) {
-        setError(error.message);
-        if (error.name === "AbortError") {
-          // toast.error("Request timed out. Server may be slow to respond.");
-        } else if (error.message.includes("Failed to fetch")) {
-          // toast.error("Network error. Please check your internet connection.");
-        } else {
-          // toast.error("Failed to load categories. Please try again later.");
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchCategories(); // ✅ <-- this was missing
-  }, []);
-
-  // Count products in each category - moved this logic into a useMemo to avoid recalculation
-  const categoryCounts = {};
-  if (categories.length > 0) {
-    categories.forEach((category) => {
-      if (!category || !category.id) return;
-
-      // Match product category case-insensitively
-      const count = products.filter(
-        (product) =>
-          product.category &&
-          (product.category.toLowerCase() ===
-            (category.name || "").toLowerCase() ||
-            product.category.toLowerCase() === category.id.toLowerCase())
-      ).length;
-      categoryCounts[category.id] = count;
-    });
-  }
 
   return (
       <div className="bg-black text-white min-h-screen">
         <Carousel />
 
-        <ToastContainer
-          position="top-right"
-          autoClose={3000}
-          hideProgressBar={false}
-          newestOnTop
-          closeOnClick
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="dark"
-        />
         {/* Hero Section */}
         <section className="flex flex-col md:flex-row items-center justify-between py-16 md:py-24 md:min-h-screen">
           {/* Left Section: Image */}
