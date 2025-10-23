@@ -91,7 +91,11 @@ export default function Withdraw({ vendorData, summary, vendorToken }) {
     setSubmitting(true);
 
     try {
-      const token = localStorage.getItem("vendor_token");
+      const token = localStorage.getItem("vendorToken");
+
+      if(!token){
+        toast.warning("Invalid  crsf_token found")
+      }
 
       if (
         !formData.bankName ||
@@ -111,11 +115,13 @@ export default function Withdraw({ vendorData, summary, vendorToken }) {
       }
 
       const res = await post("/withdrawals/request", formData, {
-        token,
+        token: token,
       });
 
+      console.log(res)
+
       if (res.success) {
-        toast.success("Withdrawal request submitted successfully");
+        toast.success(res.message ?? "Withdrawal request submitted successfully");
         // Reset only the amount field, keep bank details
         setFormData((prevData) => ({
           ...prevData,

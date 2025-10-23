@@ -137,8 +137,8 @@ export default async function fetchHook(url, options = {}) {
         success: true,
         data: responseData,
         status: response.status,
-        headers: Object.fromEntries(response.headers.entries()),
-        cached: false,
+        // headers: Object.fromEntries(response.headers.entries()),
+        // cached: false,
       };
     } catch (error) {
       clearTimeout(timeoutId);
