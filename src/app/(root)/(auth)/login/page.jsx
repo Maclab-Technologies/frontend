@@ -46,16 +46,6 @@ const Login = () => {
     }
   }, []);
 
-  // // Check if user is already logged in
-  // useEffect(() => {
-  //   const unsubscribe = onAuthStateChanged(auth, (user) => {
-  //     if (user) {
-  //       redirectUserBasedOnRole(user.uid);
-  //     }
-  //   });
-  //   return () => unsubscribe();
-  // }, []);
-
   // Handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -248,15 +238,15 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
+    <div className="min-h-screen flex bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Left Section - Brand Image */}
-      <div className="hidden md:flex md:w-1/2 bg-[#726002] items-center justify-center p-8">
+      <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-yellow-600 to-yellow-700 items-center justify-center p-8">
         <div className="relative w-full h-full max-w-md">
           <Image
             src={logo}
             alt="59MinutesPrint Logo"
             fill
-            className="object-contain rounded-lg"
+            className="object-contain rounded-2xl shadow-2xl"
             priority
           />
         </div>
@@ -264,33 +254,32 @@ const Login = () => {
 
       {/* Right Section - Login Form */}
       <div className="w-full md:w-1/2 flex flex-col justify-center p-6 sm:p-12">
-        <div className="max-w-md w-full mx-auto bg-white p-8 rounded-lg shadow-md">
+        <div className="max-w-md w-full mx-auto bg-white p-8 rounded-2xl shadow-xl border border-gray-200">
           {isForgotPassword ? (
             <>
               <div className="text-center mb-8">
-                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 mb-4">
-                  <FaLock className="h-6 w-6 text-yellow-600" />
+                <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-2xl bg-yellow-100 mb-4 shadow-md">
+                  <FaLock className="h-8 w-8 text-yellow-600" />
                 </div>
-                <h1 className="text-2xl font-bold text-gray-800 mb-2">
+                <h1 className="text-3xl font-bold text-gray-900 mb-3">
                   Reset Password
                 </h1>
-                <p className="text-gray-600">
-                  Enter your email and we'll send you a link to reset your
-                  password
+                <p className="text-gray-600 font-medium">
+                  Enter your email and we'll send you a link to reset your password
                 </p>
               </div>
 
-              <div className="space-y-5">
+              <div className="space-y-6">
                 <div>
                   <label
                     htmlFor="forgot-email"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    className="block text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide"
                   >
                     Email Address
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FaEnvelope className="text-gray-400" />
+                      <FaEnvelope className="text-gray-500" />
                     </div>
                     <input
                       id="forgot-email"
@@ -298,9 +287,10 @@ const Login = () => {
                       value={forgotPasswordEmail}
                       onChange={(e) => setForgotPasswordEmail(e.target.value)}
                       placeholder="your@email.com"
-                      className="w-full pl-10 px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition"
+                      className="w-full pl-10 px-4 py-3 rounded-xl border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200 bg-white text-gray-900 font-medium placeholder-gray-500"
                       autoComplete="email"
                       required
+                      style={{ color: '#111827' }}
                     />
                   </div>
                 </div>
@@ -308,12 +298,16 @@ const Login = () => {
                 <button
                   onClick={handlePasswordReset}
                   disabled={forgotPasswordLoading}
-                  className={`w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition ${forgotPasswordLoading ? "opacity-70 cursor-not-allowed" : ""}`}
+                  className={`w-full flex justify-center items-center py-4 px-4 border-2 border-transparent rounded-xl shadow-lg text-base font-bold text-white transition-all duration-300 ${
+                    forgotPasswordLoading 
+                      ? "bg-gray-500 cursor-not-allowed" 
+                      : "bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 transform hover:scale-[1.02] hover:shadow-xl active:scale-100"
+                  }`}
                 >
                   {forgotPasswordLoading ? (
                     <>
-                      <FaSpinner className="animate-spin mr-2" />
-                      Sending...
+                      <FaSpinner className="animate-spin mr-3" />
+                      Sending Reset Link...
                     </>
                   ) : (
                     "Send Reset Link"
@@ -323,34 +317,34 @@ const Login = () => {
                 <button
                   type="button"
                   onClick={() => setIsForgotPassword(false)}
-                  className="w-full text-center text-sm text-yellow-600 hover:text-yellow-500 font-medium"
+                  className="w-full text-center text-sm text-yellow-600 hover:text-yellow-700 font-bold transition-colors duration-200 py-2 rounded-lg hover:bg-yellow-50"
                 >
-                  Back to login
+                  ← Back to login
                 </button>
               </div>
             </>
           ) : (
             <>
               <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                <h1 className="text-4xl font-bold text-gray-900 mb-3">
                   Welcome Back
                 </h1>
-                <p className="text-gray-600">
+                <p className="text-gray-600 font-medium text-lg">
                   Sign in to access your 59MinutesPrint account
                 </p>
               </div>
 
-              <form onSubmit={handleLogin} className="space-y-5">
+              <form onSubmit={handleLogin} className="space-y-6">
                 <div>
                   <label
                     htmlFor="email"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    className="block text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide"
                   >
                     Email Address
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FaEnvelope className="text-gray-400" />
+                      <FaEnvelope className="text-gray-500" />
                     </div>
                     <input
                       id="email"
@@ -359,10 +353,11 @@ const Login = () => {
                       value={formData.email}
                       onChange={handleInputChange}
                       placeholder="your@email.com"
-                      className="w-full pl-10 px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition"
+                      className="w-full pl-10 px-4 py-3 rounded-xl border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200 bg-white text-gray-900 font-medium placeholder-gray-500"
                       autoComplete="email"
                       required
                       ref={emailInputRef}
+                      style={{ color: '#111827' }}
                     />
                   </div>
                 </div>
@@ -370,13 +365,13 @@ const Login = () => {
                 <div>
                   <label
                     htmlFor="password"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    className="block text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide"
                   >
                     Password
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FaLock className="text-gray-400" />
+                      <FaLock className="text-gray-500" />
                     </div>
                     <input
                       id="password"
@@ -385,19 +380,20 @@ const Login = () => {
                       value={formData.password}
                       onChange={handleInputChange}
                       placeholder="••••••••"
-                      className="w-full pl-10 px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition pr-10"
+                      className="w-full pl-10 px-4 py-3 rounded-xl border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200 bg-white text-gray-900 font-medium placeholder-gray-500 pr-12"
                       autoComplete="current-password"
                       required
+                      style={{ color: '#111827' }}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
                       aria-label={
                         showPassword ? "Hide password" : "Show password"
                       }
                     >
-                      {showPassword ? <FaEyeSlash /> : <FaEye />}
+                      {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
                     </button>
                   </div>
                 </div>
@@ -410,11 +406,11 @@ const Login = () => {
                       type="checkbox"
                       checked={rememberMe}
                       onChange={() => setRememberMe(!rememberMe)}
-                      className="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded"
+                      className="h-5 w-5 text-yellow-600 focus:ring-yellow-500 border-2 border-gray-300 rounded-lg"
                     />
                     <label
                       htmlFor="remember-me"
-                      className="ml-2 block text-sm text-gray-700"
+                      className="ml-3 block text-sm font-medium text-gray-900"
                     >
                       Remember me
                     </label>
@@ -423,7 +419,7 @@ const Login = () => {
                   <button
                     type="button"
                     onClick={() => setIsForgotPassword(true)}
-                    className="text-sm font-medium text-yellow-600 hover:text-yellow-500"
+                    className="text-sm font-bold text-yellow-600 hover:text-yellow-700 transition-colors duration-200"
                   >
                     Forgot password?
                   </button>
@@ -432,39 +428,43 @@ const Login = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className={`w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
+                  className={`w-full flex justify-center items-center py-4 px-4 border-2 border-transparent rounded-xl shadow-lg text-base font-bold text-white transition-all duration-300 ${
+                    loading 
+                      ? "bg-gray-500 cursor-not-allowed" 
+                      : "bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 transform hover:scale-[1.02] hover:shadow-xl active:scale-100"
+                  }`}
                 >
                   {loading ? (
                     <>
-                      <FaSpinner className="animate-spin mr-2" />
-                      Signing in...
+                      <FaSpinner className="animate-spin mr-3" />
+                      Signing In...
                     </>
                   ) : (
-                    "Sign in"
+                    "Sign In to Your Account"
                   )}
                 </button>
               </form>
 
-              <div className="mt-6">
+              <div className="mt-8">
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-300" />
+                    <div className="w-full border-t-2 border-gray-300" />
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-white text-gray-500">
+                    <span className="px-4 bg-white text-gray-500 font-medium uppercase tracking-wide">
                       Or continue with
                     </span>
                   </div>
                 </div>
 
-                <div className="mt-6 grid grid-cols-1 gap-3">
+                <div className="mt-6">
                   <button
                     type="button"
                     onClick={handleGoogleSignIn}
                     disabled={loading}
-                    className="w-full inline-flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition"
+                    className="w-full inline-flex justify-center items-center py-3 px-4 border-2 border-gray-300 rounded-xl shadow-sm bg-white text-base font-bold text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-all duration-300 hover:shadow-md"
                   >
-                    <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                    <svg className="w-6 h-6 mr-3" viewBox="0 0 24 24">
                       <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
                         <path
                           fill="#4285F4"
@@ -489,13 +489,13 @@ const Login = () => {
                 </div>
               </div>
 
-              <div className="mt-6 text-center text-sm text-gray-600">
+              <div className="mt-8 text-center text-sm font-medium text-gray-700 border-t-2 border-gray-200 pt-6">
                 Don't have an account?{" "}
                 <a
                   href="/register"
-                  className="font-medium text-yellow-600 hover:text-yellow-500"
+                  className="font-bold text-yellow-600 hover:text-yellow-700 transition-colors duration-200 hover:underline"
                 >
-                  Sign up
+                  Create an account
                 </a>
               </div>
             </>

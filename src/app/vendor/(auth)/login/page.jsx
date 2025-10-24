@@ -102,7 +102,7 @@ export default function VendorLogin() {
 
   const getInputClasses = (fieldName) => {
     const status = getInputStatus(fieldName);
-    const baseClasses = "w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 pr-10 text-black placeholder-gray-500";
+    const baseClasses = "w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 pr-12 text-black placeholder-gray-500 bg-white";
     
     switch (status) {
       case 'valid':
@@ -110,7 +110,7 @@ export default function VendorLogin() {
       case 'invalid':
         return `${baseClasses} border-red-500 ring-1 ring-red-500 focus:ring-red-400`;
       default:
-        return `${baseClasses} border-gray-300 focus:ring-yellow-400`;
+        return `${baseClasses} border-gray-300 focus:ring-yellow-400 focus:border-yellow-400`;
     }
   };
 
@@ -194,8 +194,9 @@ export default function VendorLogin() {
                   placeholder="business@example.com"
                   value={formData.businessEmail}
                   onChange={handleInputChange}
+                  autoComplete="email"
                 />
-                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                   {getStatusIcon('businessEmail')}
                 </div>
               </div>
@@ -226,18 +227,22 @@ export default function VendorLogin() {
                   placeholder="Enter your password"
                   value={formData.businessPassword}
                   onChange={handleInputChange}
+                  autoComplete="current-password"
                 />
-                <div className="absolute inset-y-0 right-0 flex items-center pr-3 space-x-1">
-                  {getStatusIcon('businessPassword')}
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 space-x-2">
+                  <div className="pointer-events-none">
+                    {getStatusIcon('businessPassword')}
+                  </div>
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="text-gray-600 hover:text-gray-800 transition-colors"
+                    className="text-gray-500 hover:text-gray-700 transition-colors duration-200 p-1 rounded-lg hover:bg-gray-100"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? (
-                      <EyeOffIcon size={18} />
+                      <EyeOffIcon size={20} className="text-gray-600" />
                     ) : (
-                      <EyeIcon size={18} />
+                      <EyeIcon size={20} className="text-gray-600" />
                     )}
                   </button>
                 </div>
@@ -290,7 +295,7 @@ export default function VendorLogin() {
               className={`w-full py-4 px-6 border border-transparent rounded-xl shadow-sm text-lg font-semibold text-white transition-all duration-200 ${
                 loading 
                   ? 'bg-gray-400 cursor-not-allowed' 
-                  : 'bg-gradient-to-r from-black to-gray-800 hover:from-gray-800 hover:to-black transform hover:scale-[1.02]'
+                  : 'bg-gradient-to-r from-black to-gray-800 hover:from-gray-800 hover:to-black transform hover:scale-[1.02] hover:shadow-lg'
               }`}
             >
               {loading ? (
@@ -320,6 +325,14 @@ export default function VendorLogin() {
           <div className="mt-6 bg-blue-50 p-4 rounded-lg border border-blue-200">
             <p className="text-sm text-blue-800 text-center">
               💡 <strong>Pro Tip:</strong> Use the same email you used during vendor registration
+            </p>
+          </div>
+
+          {/* Password Visibility Helper */}
+          <div className="mt-4 bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+            <p className="text-sm text-yellow-800 text-center flex items-center justify-center gap-2">
+              <EyeIcon size={16} />
+              <strong>Tip:</strong> Click the eye icon to show/hide your password
             </p>
           </div>
         </div>
