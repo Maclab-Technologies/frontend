@@ -9,6 +9,8 @@ import {
   FiX,
   FiShoppingCart,
   FiRefreshCw,
+  FiHeart,
+  FiEye,
 } from "react-icons/fi";
 import { FaSortAmountDown, FaTag } from "react-icons/fa";
 import { toast } from "react-toastify";
@@ -19,10 +21,8 @@ import "react-toastify/dist/ReactToastify.css";
 const validateProduct = (product) => {
   if (!product) return null;
 
-  // Ensure product has a valid ID
   const productId = product.id || "unknown-id";
 
-  // Handle category which might be an object or string
   const category =
     typeof product.category === "object" && product.category
       ? String(product.category.name || "Uncategorized")
@@ -63,18 +63,16 @@ export default function ProductsPage() {
   const [sortOrder, setSortOrder] = useState("default");
   const [showFilters, setShowFilters] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [wishlist, setWishlist] = useState(new Set());
 
-  // Cache key constant
   const cacheKey = "products-cache";
 
-  // Fetch products with caching
   const fetchProducts = useCallback(async () => {
     try {
       const now = Date.now();
       let cachedData;
       let cacheExpiry;
 
-      // Safely check localStorage (it may not be available in SSR)
       if (typeof window !== "undefined") {
         try {
           cachedData = localStorage.getItem(cacheKey);
@@ -84,7 +82,6 @@ export default function ProductsPage() {
         }
       }
 
-      // Use cache if valid
       if (cachedData && cacheExpiry && now < parseInt(cacheExpiry)) {
         try {
           const parsedData = JSON.parse(cachedData);
@@ -95,7 +92,6 @@ export default function ProductsPage() {
           }
         } catch (cacheError) {
           console.error("Cache parsing error:", cacheError);
-          // Continue to fetch fresh data
         }
       }
 
@@ -115,7 +111,6 @@ export default function ProductsPage() {
       }
 
       const responseData = await response.json();
-      // Validate and normalize products data
       let productArray = [];
 
       if (
@@ -136,16 +131,14 @@ export default function ProductsPage() {
           .filter(Boolean);
       }
 
-      // Only update state if we got valid data
       if (productArray.length > 0) {
         setProducts(productArray);
         setError(null);
 
-        // Cache handling (safely)
         if (typeof window !== "undefined") {
           try {
             localStorage.setItem(cacheKey, JSON.stringify(productArray));
-            localStorage.setItem(`${cacheKey}-expiry`, String(now + 300000)); // 5 minutes
+            localStorage.setItem(`${cacheKey}-expiry`, String(now + 300000));
           } catch (storageError) {
             console.error("localStorage error:", storageError);
           }
@@ -156,7 +149,6 @@ export default function ProductsPage() {
     } catch (err) {
       console.error("Fetch error:", err);
       setError(err.message || "Failed to load products");
-      // Don't clear products if we already have some cached
       if (products.length === 0) {
         setProducts([]);
       }
@@ -166,7 +158,6 @@ export default function ProductsPage() {
     }
   }, [products.length]);
 
-  // Debounced search
   const debouncedSearch = useMemo(
     () =>
       debounce((searchValue) => {
@@ -179,14 +170,12 @@ export default function ProductsPage() {
     fetchProducts();
 
     return () => {
-      // Clean up the debounced function
       if (debouncedSearch && typeof debouncedSearch.cancel === "function") {
         debouncedSearch.cancel();
       }
     };
   }, [fetchProducts, debouncedSearch]);
 
-  // Filter and sort products
   const filteredProducts = useMemo(() => {
     if (!Array.isArray(products)) return [];
 
@@ -241,7 +230,6 @@ export default function ProductsPage() {
     }
   }, [filteredProducts, sortOrder]);
 
-  // Unique categories and vendors
   const [categories, vendors] = useMemo(() => {
     if (!Array.isArray(products)) return [[], []];
 
@@ -275,10 +263,59 @@ export default function ProductsPage() {
   const handleAddToCart = (product) => {
     if (!product) return;
 
-    toast.success(`Added ${product.name} to cart`, {
-      position: "top-center",
-      autoClose: 3000,
-      theme: "dark",
+    try {
+      const cartItem = {
+        vendorId: product.vendor?.id || product.vendor,
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        discountPrice: product.discountPrice,
+        image: product.images?.[0] || "/fallback-image.png",
+        quantity: product.minOrder || 1,
+      };
+
+      let existingCart = [];
+      const cartData = JSON.parse(localStorage.getItem("cart") || "[]");
+      existingCart = Array.isArray(cartData) ? cartData : [];
+
+      const existingItemIndex = existingCart.findIndex(
+        (item) => item.id === product.id
+      );
+
+      if (existingItemIndex !== -1) {
+        existingCart[existingItemIndex].quantity += product.minOrder || 1;
+      } else {
+        existingCart.push(cartItem);
+      }
+
+      localStorage.setItem("cart", JSON.stringify(existingCart));
+
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("cartUpdated"));
+      }
+
+      toast.success(`Added ${product.name} to cart`, {
+        position: "top-center",
+        autoClose: 3000,
+        theme: "dark",
+      });
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      toast.error("Failed to add item to cart. Please try again.");
+    }
+  };
+
+  const toggleWishlist = (productId) => {
+    setWishlist(prev => {
+      const newWishlist = new Set(prev);
+      if (newWishlist.has(productId)) {
+        newWishlist.delete(productId);
+        toast.info("Removed from wishlist");
+      } else {
+        newWishlist.add(productId);
+        toast.success("Added to wishlist");
+      }
+      return newWishlist;
     });
   };
 
@@ -295,15 +332,9 @@ export default function ProductsPage() {
     fetchProducts();
   }, [fetchProducts]);
 
-  // Handle search input change
   const handleSearchChange = (e) => {
     debouncedSearch(e.target.value);
   };
-
-  // // Client-side error handling for images
-  // const handleImageError = (e) => {
-  //   e.currentTarget.src = "/fallback-image.png";
-  // };
 
   if (loading && !isRefreshing)
     return (
@@ -566,8 +597,8 @@ export default function ProductsPage() {
               const productPrice = Number(product.price) || 0;
               const productDiscountPrice = Number(product.discountPrice) || 0;
               const productDiscountPercent = Number(product.discountPercent);
+              const isWishlisted = wishlist.has(productId);
 
-              // Safely determine the main image
               let mainImage = "/fallback-image.png";
               if (
                 Array.isArray(product.images) &&
@@ -580,71 +611,103 @@ export default function ProductsPage() {
               return (
                 <div
                   key={productId}
-                  className="bg-gray-800 rounded-lg overflow-hidden shadow-lg transition-all duration-300 hover:shadow-yellow-500/20 hover:translate-y-[-5px] group"
+                  className="bg-gray-800 rounded-xl overflow-hidden shadow-2xl transition-all duration-300 hover:shadow-yellow-500/25 hover:translate-y-[-8px] group border border-gray-700"
                 >
-                  {/* Product Image */}
+                  {/* Product Image with Overlay */}
                   <div className="relative h-48 overflow-hidden bg-gray-900">
                     <Image
                       src={mainImage}
                       alt={productName}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="object-cover transition-transform duration-500 group-hover:scale-110"
                       placeholder="blur"
                       blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
-                      // onError={handleImageError}
                     />
-                      <div className="absolute top-0 right-0 bg-orange-500 text-white text-xs font-bold px-2 py-1">
-                        -{productDiscountPercent}%
+                    
+                    {/* Discount Badge */}
+                    {productDiscountPercent > 0 && (
+                      <div className="absolute top-3 left-3 bg-yellow-500 text-black font-bold px-3 py-1 rounded-full text-sm shadow-lg">
+                        -{productDiscountPercent}% OFF
                       </div>
-                    {/* {productMinOrder === 0 && (
-                      <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
-                        <span className="bg-red-600 text-white font-bold px-4 py-2 rounded-md">
-                          OUT OF STOCK
-                        </span>
-                      </div>
-                    )} */}
+                    )}
+
+                    {/* Action Buttons Overlay */}
+                    <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <button
+                        onClick={() => toggleWishlist(productId)}
+                        className={`p-2 rounded-full backdrop-blur-sm transition-all duration-300 ${
+                          isWishlisted 
+                            ? 'bg-red-500 text-white' 
+                            : 'bg-black/50 text-white hover:bg-black/70'
+                        }`}
+                      >
+                        <FiHeart className={`w-4 h-4 ${isWishlisted ? 'fill-current' : ''}`} />
+                      </button>
+                      <Link href={`/products/${productId}`}>
+                        <button className="p-2 rounded-full bg-black/50 text-white backdrop-blur-sm hover:bg-black/70 transition-all duration-300">
+                          <FiEye className="w-4 h-4" />
+                        </button>
+                      </Link>
+                    </div>
+
+                    {/* Vendor Tag */}
+                    <div className="absolute bottom-3 left-3">
+                      <span className="bg-black/70 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
+                        {product.vendor}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Product Details */}
                   <div className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-lg font-semibold text-white line-clamp-1">
-                        {productName}
-                      </h3>
-                      <span className="bg-yellow-500 text-black font-bold rounded px-2 py-1 text-sm whitespace-nowrap">
-                        ₦{productDiscountPrice?.toLocaleString()}
-                        <br />
-                        <s style={{ fontSize: "12px", color: "red" }}>
-                          ₦{productPrice.toLocaleString()}
-                        </s>
+                    {/* Category */}
+                    <div className="mb-2">
+                      <span className="text-yellow-400 text-xs font-medium uppercase tracking-wide">
+                        {productCategory}
                       </span>
                     </div>
 
-                    <div className="text-sm text-gray-400 mb-4 space-y-1">
-                      <p className="truncate">Category: {productCategory}</p>
-                      <p className="truncate">Min order: {productMinOrder}</p>
-                      
+                    {/* Product Name */}
+                    <h3 className="text-lg font-bold text-white mb-2 line-clamp-2 leading-tight">
+                      {productName}
+                    </h3>
+
+                    {/* Price Section */}
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-xl font-bold text-yellow-400">
+                        ₦{productDiscountPrice?.toLocaleString()}
+                      </span>
+                      {productDiscountPrice < productPrice && (
+                        <span className="text-gray-400 text-sm line-through">
+                          ₦{productPrice.toLocaleString()}
+                        </span>
+                      )}
                     </div>
 
-                    <div className="flex space-x-2">
-                      <Link
-                        href={`/products/${productId}`}
-                        className="flex-1 transition hover:opacity-90"
-                        passHref
-                      >
-                        <button className="w-full px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition">
-                          Details
-                        </button>
-                      </Link>
+                    {/* Min Order */}
+                    <div className="text-xs text-gray-400 mb-4">
+                      Min. order: {productMinOrder} units
+                    </div>
 
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
+                      {/* Add to Cart Button */}
                       <button
                         onClick={() => handleAddToCart(product)}
-                        className={"flex items-center justify-center px-4 py-2 rounded-md transition bg-yellow-500 text-black hover:bg-yellow-400"}
-                        aria-label={`Add ${productName} to cart`}
+                        className="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-semibold py-3 px-4 rounded-lg hover:from-yellow-400 hover:to-yellow-500 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-yellow-500/25 flex items-center justify-center gap-2"
                       >
-                        <FiShoppingCart className="mr-1" /> Buy
+                        <FiShoppingCart className="w-5 h-5" />
+                        Add to Cart
                       </button>
+
+                      {/* View Details Button */}
+                      <Link href={`/products/${productId}`} className="flex-1">
+                        <button className="w-full bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg hover:bg-gray-600 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] border border-gray-600 hover:border-gray-500 flex items-center justify-center gap-2">
+                          <FiEye className="w-5 h-5" />
+                          View
+                        </button>
+                      </Link>
                     </div>
                   </div>
                 </div>

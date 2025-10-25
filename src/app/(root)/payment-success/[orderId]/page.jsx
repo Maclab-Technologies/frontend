@@ -5,12 +5,23 @@ import { useParams, useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { get } from "@/app/_hooks/fetch-hook";
 import { toast } from "react-toastify";
+import { 
+  CheckCircle, 
+  Download, 
+  Upload, 
+  Users, 
+  Printer, 
+  ShoppingBag,
+  MapPin,
+  Phone,
+  Mail,
+  User
+} from "lucide-react";
 
 export default function PaymentSuccess() {
   const [orderDetails, setOrderDetails] = useState(null);
   const [user, setUser] = useState(null);
   const [address, setAddress] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedOption, setSelectedOption] = useState(null);
   const router = useRouter();
@@ -22,14 +33,11 @@ export default function PaymentSuccess() {
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
-      setIsLoading(true);
-
       const token = localStorage.getItem("userToken");
 
       try {
         if (!reference) {
           setError("Invalid payment reference. Please contact support.");
-          setIsLoading(false);
           return;
         }
 
@@ -45,22 +53,18 @@ export default function PaymentSuccess() {
         setOrderDetails(data);
         setUser(data.user);
         setAddress(data.shippingAddress);
-        setIsLoading(false);
       } catch (error) {
         console.error("Error in payment success page:", error);
         setError(
           error.message ||
             "An unexpected error occurred. Please contact support."
         );
-        setIsLoading(false);
       }
     };
 
     // Only run on client-side
     if (typeof window !== "undefined" && orderId && reference) {
       fetchOrderDetails();
-    } else {
-      setIsLoading(false);
     }
 
     return () => {
@@ -96,245 +100,254 @@ export default function PaymentSuccess() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="container mx-auto p-6 bg-black text-white min-h-screen flex flex-col items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500 mb-4"></div>
-        <p className="text-center text-lg text-gray-400">
-          Loading order details...
-        </p>
-      </div>
-    );
-  }
-
   if (error) {
     return (
-      <div className="container mx-auto p-6 bg-black text-white min-h-screen">
-        <div className="bg-gray-800 p-6 rounded-lg shadow-lg text-center">
-          <h1 className="text-3xl font-bold mb-4 text-red-500">
+      <div className="min-h-screen bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl p-8 shadow-lg text-center max-w-md w-full">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="h-8 w-8 text-red-500" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">
             Order Processing Error
           </h1>
-          <p className="text-lg mb-6">{error}</p>
-          <div className="flex flex-col md:flex-row gap-4 justify-center">
-            <button
-              onClick={handleReturnToShop}
-              className="px-6 py-2 bg-yellow-500 text-black rounded-md font-semibold hover:bg-yellow-600 transition"
-            >
-              Return to Shop
-            </button>
-          </div>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button
+            onClick={handleReturnToShop}
+            className="w-full bg-yellow-400 text-gray-900 px-6 py-3 rounded-xl font-bold hover:bg-yellow-500 transition-all duration-300 shadow-md hover:shadow-lg"
+          >
+            Return to Shop
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 bg-black text-white min-h-screen">
-      <h1 className="text-3xl font-bold mb-4 text-center">
-        Payment Successful 🎉
-      </h1>
-
-      {orderDetails ? (
-        <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
-          <div className="mb-6 border-b border-gray-700 pb-4">
-            <h2 className="text-2xl font-semibold mb-4">Order Information</h2>
-            <p className="text-lg mb-2">
-              <span className="font-medium text-gray-400">Order ID:</span>{" "}
-              {orderId || "N/A"}
-            </p>
-            <p className="text-lg mb-2">
-              <span className="font-medium text-gray-400">Reference:</span>{" "}
-              {reference || "N/A"}
-            </p>
-            <p className="text-lg mb-2">
-              <span className="font-medium text-gray-400">Date:</span>{" "}
-              {new Date(orderDetails.createdAt).toLocaleString() || "N/A"}
-            </p>
+    <div className="min-h-screen bg-gradient-to-br from-yellow-400 to-orange-500 py-8 px-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <CheckCircle className="h-10 w-10 text-white" />
           </div>
-
-          <div className="mb-6 border-b border-gray-700 pb-4">
-            <h2 className="text-2xl font-semibold mb-4">Customer Details</h2>
-            <p className="text-lg mb-2">
-              <span className="font-medium text-gray-400">Name:</span>{" "}
-              {user.fullName || "N/A"}
-            </p>
-            <p className="text-lg mb-2">
-              <span className="font-medium text-gray-400">Email:</span>{" "}
-              {user.email || "N/A"}
-            </p>
-            <p className="text-lg mb-2">
-              <span className="font-medium text-gray-400">Phone:</span>{" "}
-              {user.phone || "N/A"}
-            </p>
-            <p className="text-lg mb-2">
-              <span className="font-medium text-gray-400">Address:</span>{" "}
-              {`${address.street}, ${address.city || " "}, ${address.state || " "}` ||
-                "N/A"}
-            </p>
-          </div>
-
-          <div className="mb-6">
-            <h2 className="text-2xl font-semibold mb-4">Items Purchased:</h2>
-            <div className="bg-gray-900 rounded-lg p-4 mb-4 max-h-64 overflow-y-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-700">
-                    <th className="text-left py-2">Item</th>
-                    <th className="text-center py-2">Quantity</th>
-                    <th className="text-right py-2">Price</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orderDetails.items.map((item, index) => (
-                    <tr key={index} className="border-b border-gray-800">
-                      <td className="py-3">{item.productId.name}</td>
-                      <td className="text-center py-3">
-                        {item.quantity}
-                      </td>
-                      <td className="text-right py-3">
-                        ₦
-                        {(
-                          item.discountPrice * item.quantity
-                        ).toLocaleString()}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="text-right">
-              <h2 className="text-xl font-bold mb-6">
-                Total: ₦{orderDetails.total.toLocaleString() || "0"}
-              </h2>
-            </div>
-          </div>
-
-          {/* Printing Options Section */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">Printing Options</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Option 1: Edit with Canvas */}
-              <div
-                className={`p-4 border rounded-lg cursor-pointer transition-all ${selectedOption === "canvas" ? "border-yellow-500 bg-gray-700" : "border-gray-600 hover:border-yellow-400"}`}
-                onClick={() => handlePrintingOptionSelect("canvas")}
-              >
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center mb-3">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="font-bold mb-1">Edit with Canvas</h3>
-                  <p className="text-sm text-gray-400">
-                    Customize your design with our editor
-                  </p>
-                  <div className="mt-2 text-yellow-500 text-sm">
-                    Coming Soon
-                  </div>
-                </div>
-              </div>
-
-              {/* Option 2: Upload your design */}
-              <div
-                className={`p-4 border rounded-lg cursor-pointer transition-all ${selectedOption === "upload" ? "border-yellow-500 bg-gray-700" : "border-gray-600 hover:border-yellow-400"}`}
-                onClick={() => handlePrintingOptionSelect("upload")}
-              >
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center mb-3">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="font-bold mb-1">Upload Your Design</h3>
-                  <p className="text-sm text-gray-400">
-                    Upload your ready-to-print design files
-                  </p>
-                </div>
-              </div>
-
-              {/* Option 3: Hire a designer */}
-              <div
-                className={`p-4 border rounded-lg cursor-pointer transition-all ${selectedOption === "designer" ? "border-yellow-500 bg-gray-700" : "border-gray-600 hover:border-yellow-400"}`}
-                onClick={() => handlePrintingOptionSelect("designer")}
-              >
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center mb-3">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="font-bold mb-1">Hire a Designer</h3>
-                  <p className="text-sm text-gray-400">
-                    Our professionals will create your design
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-col md:flex-row gap-4">
-            <button
-              onClick={handlePrint}
-              className="px-6 py-2 bg-yellow-500 text-black rounded-md font-semibold hover:bg-yellow-600 transition"
-            >
-              Print Receipt 🖨️
-            </button>
-            {/* <button
-              onClick={handleReturnToShop}
-              className="px-6 py-2 bg-gray-600 text-white rounded-md font-semibold hover:bg-gray-700 transition"
-            >
-              Continue Shopping
-            </button> */}
-          </div>
-        </div>
-      ) : (
-        <div className="text-center">
-          <p className="text-lg text-red-500 mb-4">
-            Could not retrieve order details. If you completed a payment, please
-            contact support with your reference number.
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            Payment Successful! 🎉
+          </h1>
+          <p className="text-gray-700 text-lg">
+            Thank you for your order. Your payment has been confirmed.
           </p>
-          <button
-            onClick={handleReturnToShop}
-            className="px-6 py-2 bg-yellow-500 text-black rounded-md font-semibold hover:bg-yellow-600 transition"
-          >
-            Return to Shop
-          </button>
         </div>
-      )}
+
+        {orderDetails ? (
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+            {/* Order Summary */}
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <ShoppingBag className="h-6 w-6 text-yellow-600" />
+                Order Summary
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Order Information */}
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-gray-700 mb-2">Order Details</h3>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Order ID:</span>
+                    <span className="font-mono text-yellow-600 font-bold">{orderId}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Reference:</span>
+                    <span className="font-mono text-green-600 font-bold">{reference}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Date:</span>
+                    <span className="text-gray-800">
+                      {new Date(orderDetails.createdAt).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Customer Information */}
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-gray-700 mb-2">Customer Details</h3>
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-gray-500" />
+                    <span className="text-gray-800">{user.fullName}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-gray-500" />
+                    <span className="text-gray-800">{user.email}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-gray-500" />
+                    <span className="text-gray-800">{user.phone}</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <MapPin className="h-4 w-4 text-gray-500 mt-0.5" />
+                    <span className="text-gray-800">
+                      {`${address.street}, ${address.city}, ${address.state}`}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Order Items */}
+            <div className="p-6 border-b border-gray-200">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">Items Purchased</h3>
+              <div className="space-y-3">
+                {orderDetails.items.map((item, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-800">{item.productId.name}</p>
+                      <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                    </div>
+                    <p className="text-yellow-600 font-bold">
+                      ₦{(item.discountPrice * item.quantity).toLocaleString()}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Total */}
+              <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
+                <span className="text-xl font-bold text-gray-800">Total Amount:</span>
+                <span className="text-2xl font-bold text-yellow-600">
+                  ₦{orderDetails.total.toLocaleString()}
+                </span>
+              </div>
+            </div>
+
+            {/* Printing Options */}
+            <div className="p-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                <Download className="h-6 w-6 text-yellow-600" />
+                Next Steps - Design Options
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Option 1: Edit with Canvas */}
+                <div
+                  className={`p-6 border-2 rounded-xl cursor-pointer transition-all duration-300 ${
+                    selectedOption === "canvas" 
+                      ? "border-yellow-500 bg-yellow-50 shadow-lg" 
+                      : "border-gray-200 hover:border-yellow-400 hover:shadow-md"
+                  }`}
+                  onClick={() => handlePrintingOptionSelect("canvas")}
+                >
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-8 w-8 text-yellow-600"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                        />
+                      </svg>
+                    </div>
+                    <h3 className="font-bold text-gray-800 mb-2 text-lg">Edit with Canvas</h3>
+                    <p className="text-gray-600 text-sm mb-3">
+                      Customize your design with our easy-to-use editor
+                    </p>
+                    <div className="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-500 font-medium">
+                      Coming Soon
+                    </div>
+                  </div>
+                </div>
+
+                {/* Option 2: Upload your design */}
+                <div
+                  className={`p-6 border-2 rounded-xl cursor-pointer transition-all duration-300 ${
+                    selectedOption === "upload" 
+                      ? "border-yellow-500 bg-yellow-50 shadow-lg" 
+                      : "border-gray-200 hover:border-yellow-400 hover:shadow-md"
+                  }`}
+                  onClick={() => handlePrintingOptionSelect("upload")}
+                >
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
+                      <Upload className="h-8 w-8 text-yellow-600" />
+                    </div>
+                    <h3 className="font-bold text-gray-800 mb-2 text-lg">Upload Your Design</h3>
+                    <p className="text-gray-600 text-sm mb-3">
+                      Upload your ready-to-print design files
+                    </p>
+                    <div className="px-3 py-1 bg-yellow-500 text-white rounded-full text-xs font-medium">
+                      Available Now
+                    </div>
+                  </div>
+                </div>
+
+                {/* Option 3: Hire a designer */}
+                <div
+                  className={`p-6 border-2 rounded-xl cursor-pointer transition-all duration-300 ${
+                    selectedOption === "designer" 
+                      ? "border-yellow-500 bg-yellow-50 shadow-lg" 
+                      : "border-gray-200 hover:border-yellow-400 hover:shadow-md"
+                  }`}
+                  onClick={() => handlePrintingOptionSelect("designer")}
+                >
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
+                      <Users className="h-8 w-8 text-yellow-600" />
+                    </div>
+                    <h3 className="font-bold text-gray-800 mb-2 text-lg">Hire a Designer</h3>
+                    <p className="text-gray-600 text-sm mb-3">
+                      Our professionals will create your perfect design
+                    </p>
+                    <div className="px-3 py-1 bg-yellow-500 text-white rounded-full text-xs font-medium">
+                      Available Now
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="p-6 bg-gray-50 border-t border-gray-200">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button
+                  onClick={handlePrint}
+                  className="flex-1 bg-yellow-400 text-gray-900 px-6 py-3 rounded-xl font-bold hover:bg-yellow-500 transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                >
+                  <Printer className="h-5 w-5" />
+                  Print Receipt
+                </button>
+                <button
+                  onClick={handleReturnToShop}
+                  className="flex-1 bg-gray-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-gray-700 transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                >
+                  <ShoppingBag className="h-5 w-5" />
+                  Continue Shopping
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl p-8 text-center shadow-lg">
+            <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="h-8 w-8 text-yellow-600" />
+            </div>
+            <p className="text-gray-600 mb-6">
+              Could not retrieve order details. If you completed a payment, please
+              contact support with your reference number.
+            </p>
+            <button
+              onClick={handleReturnToShop}
+              className="bg-yellow-400 text-gray-900 px-6 py-3 rounded-xl font-bold hover:bg-yellow-500 transition-all duration-300 shadow-md hover:shadow-lg"
+            >
+              Return to Shop
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
