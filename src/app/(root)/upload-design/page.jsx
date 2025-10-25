@@ -17,34 +17,13 @@ function UploadDesignContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [designId, setDesignId] = useState("");
   const [isValidParams, setIsValidParams] = useState(false);
+  const [isCheckingParams, setIsCheckingParams] = useState(true);
 
   const orderId = searchParams.get("orderid");
   const ref = searchParams.get("ref");
 
-  // Check params in useEffect to avoid rendering issues
-  useEffect(() => {
-    if (!orderId || !ref) {
-      router.push("/orders");
-      toast.error("Missing order information. Please try again.");
-    } else {
-      setIsValidParams(true);
-      setDesignId(orderId);
-    }
-  }, [orderId, ref, router]);
-
-  // Don't render anything until we've validated params
-  if (!isValidParams) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="animate-spin mx-auto h-8 w-8 text-yellow-600" />
-          <p className="mt-2 text-gray-600">Validating order information...</p>
-        </div>
-      </div>
-    );
-  }
-
-  const validateFile = (file) => {
+  // Define all hooks at the top level, before any conditional returns
+  const validateFile = useCallback((file) => {
     const validTypes = [
       "image/jpeg",
       "image/png",
@@ -63,9 +42,9 @@ function UploadDesignContent() {
     }
 
     return true;
-  };
+  }, []);
 
-  const createFileObject = (file) => {
+  const createFileObject = useCallback((file) => {
     return new Promise((resolve) => {
       const fileObj = {
         file,
@@ -84,7 +63,7 @@ function UploadDesignContent() {
         resolve(fileObj);
       }
     });
-  };
+  }, []);
 
   const handleFileChange = useCallback(
     async (e) => {
@@ -103,7 +82,7 @@ function UploadDesignContent() {
 
       setFiles((prev) => [...prev, ...fileObjects]);
     },
-    [files.length]
+    [files.length, validateFile, createFileObject]
   );
 
   const handleDrop = useCallback(
@@ -123,6 +102,18 @@ function UploadDesignContent() {
   const removeFile = useCallback((fileId) => {
     setFiles((prev) => prev.filter((f) => f.id !== fileId));
   }, []);
+
+  // Check params in useEffect to avoid rendering issues
+  useEffect(() => {
+    if (!orderId || !ref) {
+      router.push("/orders");
+      toast.error("Missing order information. Please try again.");
+    } else {
+      setIsValidParams(true);
+      setDesignId(orderId);
+    }
+    setIsCheckingParams(false);
+  }, [orderId, ref, router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -180,6 +171,28 @@ function UploadDesignContent() {
   };
 
   const canAddMore = files.length < MAX_FILES;
+
+  // Don't render anything until we've validated params
+  if (isCheckingParams) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="animate-spin mx-auto h-8 w-8 text-yellow-600" />
+          <p className="mt-2 text-gray-600">Validating order information...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isValidParams) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Redirecting to orders...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

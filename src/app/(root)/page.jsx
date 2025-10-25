@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
 import { motion } from "framer-motion"; // Import motion from framer-motion
 import Image from "next/image"; // Import Image from next/image
 
@@ -13,6 +14,7 @@ import WhatWeOffer from "../_components/WhatWeOffer";
 import CategoriesSection from "../_components/CategoriesSection";
 import Promotion from "../_components/Promotion";
 import Feedback from "../_components/Feedback";
+import RoleSelection from "../_components/RoleSelection";
 import products from "../../../public/Products/products.json";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link"; // Import Link
@@ -53,7 +55,7 @@ export default function Home() {
       <section>
         <Promotion />
       </section>
-      
+      <RoleSelection />
       {/* Feedback Section */}
       <section>
         <Feedback />
