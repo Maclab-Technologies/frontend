@@ -12,13 +12,11 @@ import {
   FaEnvelope,
 } from "react-icons/fa";
 import {
-  signInWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
   setPersistence,
   browserSessionPersistence,
   browserLocalPersistence,
-  onAuthStateChanged,
   sendPasswordResetEmail,
 } from "firebase/auth";
 import { auth } from "../../../utils/firebaseconfig";
@@ -88,6 +86,7 @@ const Login = () => {
           password: formData.password,
         },
       );
+
       const data = response.data;
       setAuthUser(data.data);
       setIsLoggedIn(true);
@@ -97,7 +96,8 @@ const Login = () => {
       toast.success("Login successful!");
       router.push("/");
     } catch (error) {
-      toast.error(error.message || "Something went wrong");
+      console.log(error)
+      toast.error("Something went wrong");
     } finally {
       setLoading(false);
     }

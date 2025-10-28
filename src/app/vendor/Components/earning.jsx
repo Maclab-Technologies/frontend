@@ -1,19 +1,9 @@
 "use client";
 import LoadingMiddleware from "@/app/_components/loading";
+import { formatCurrency, getSafeValue } from "@/app/utils/dto";
 import { FaMoneyBillWave, FaDollarSign, FaClock, FaExclamationTriangle } from "react-icons/fa";
 
 export default function Earnings({ earnings, earningsStats, loading }) {
-  // Format currency helper
-  const formatCurrency = (amount) => {
-    if (!amount && amount !== 0) return "₦0";
-    return `₦${Number(amount).toLocaleString()}`;
-  };
-
-  // Safe value getter
-  const getSafeValue = (value, fallback = 0) => {
-    return value || fallback;
-  };
-
   return (
     <div className="bg-gray-800 rounded-lg p-6 text-white">
       <h1 className="text-2xl font-bold mb-6">Your Earnings</h1>
