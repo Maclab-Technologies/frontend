@@ -3,8 +3,8 @@
 
 import { useContext, useEffect, useState } from "react";
 import { batchRequests } from "@/app/_hooks/fetch-hook";
-import VendorLayout from "../components/vendor-layout";
-import Earnings from "../components/earning";
+import VendorLayout from "../_components/vendor-layout";
+import Earnings from "../_components/earning";
 import { VendorAuthContext } from "../_provider/useVendorProvider";
 
 export default function EarningsPage() {
