@@ -1,24 +1,12 @@
+// app/dashboard/page.jsx
 "use client";
 
 import { useContext, useEffect, useState } from "react";
 import {
-  FaHome,
-  FaUpload,
   FaShoppingCart,
-  FaFileAlt,
-  FaComments,
-  FaMoneyBillWave,
-  FaCog,
-  FaSignOutAlt,
-  FaBars,
-  FaTimes,
-  FaUser,
   FaCheck,
   FaClock,
   FaExclamationCircle,
-  FaDownutad,
-  FaPaperPlane,
-  FaTrash,
 } from "react-icons/fa";
 import { AuthContext } from "@/app/(root)/_provider/useClientProvider";
 import { dashboardStats } from "@/app/dal/client/dashbard.dal";
@@ -47,10 +35,9 @@ export default function ClientDashboard() {
         console.log(data)
         if (success) {
           setStats(data.orders);
-          // setAmountSpent(data.totalSpent);
         }
       } catch (error) {
-        setError.stats(error);
+        setError(error.message || "Failed to load stats");
       } finally {
         setLoading(false);
       }
@@ -60,60 +47,64 @@ export default function ClientDashboard() {
   }, []);
 
   return (
-    <div className="space-y-6">
-      <div className="bg-gray-800 rounded-lg p-6 text-white">
-        <h1 className="text-2xl font-bold mb-2">
+    <div className="space-y-4 lg:space-y-6">
+      <div className="bg-gray-800 rounded-lg p-4 lg:p-6 text-white">
+        <h1 className="text-xl lg:text-2xl font-bold mb-2">
           Welcome back,{" "}
           <span className="text-yellow-400">
             {authUser?.displayName || "Client"}
           </span>
         </h1>
-        <p className="text-gray-300 mb-6">
+        <p className="text-gray-300 text-sm lg:text-base mb-4 lg:mb-6">
           Here's an overview of your design and print projects
         </p>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
             {[...Array(4)].map((_, i) => (
               <div
                 key={i}
-                className="bg-gray-700 rounded-lg p-4 animate-pulse h-24"
+                className="bg-gray-700 rounded-lg p-3 lg:p-4 animate-pulse h-20 lg:h-24"
               ></div>
             ))}
           </div>
         ) : error ? (
-          <div className="text-red-400 p-4">{error}</div>
+          <div className="text-red-400 p-4 text-center">{error}</div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
             <StatCard
-              icon={<FaShoppingCart className="text-yellow-400" />}
+              icon={<FaShoppingCart className="text-yellow-400 text-sm lg:text-base" />}
               label="Total Orders"
               value={stats.total || "0"}
+              compact
             />
 
             <StatCard
-              icon={<FaExclamationCircle className="text-yellow-400" />}
+              icon={<FaExclamationCircle className="text-yellow-400 text-sm lg:text-base" />}
               label="Pending Revisions"
               value={stats.pending || "0"}
+              compact
             />
             <StatCard
-              icon={<FaClock className="text-yellow-400" />}
+              icon={<FaClock className="text-yellow-400 text-sm lg:text-base" />}
               label="In Progress"
               value={stats.inProgress || "0"}
+              compact
             />
             <StatCard
-              icon={<FaCheck className="text-yellow-400" />}
+              icon={<FaCheck className="text-yellow-400 text-sm lg:text-base" />}
               label="Completed"
               value={stats.completed || "0"}
+              compact
             />
           </div>
         )}
       </div>
 
-      <div className="bg-gray-800 rounded-lg p-6 text-white">
+      <div className="bg-gray-800 rounded-lg p-4 lg:p-6 text-white">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-bold">Recent Orders</h2>
-          <button className="text-sm text-yellow-400 hover:underline">
+          <h2 className="text-base lg:text-lg font-bold">Recent Orders</h2>
+          <button className="text-xs lg:text-sm text-yellow-400 hover:underline">
             View All
           </button>
         </div>
