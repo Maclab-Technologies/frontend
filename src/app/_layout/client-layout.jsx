@@ -19,6 +19,7 @@ import {
   FaTachometerAlt,
   FaClipboardList,
   FaQuestionCircle,
+  FaMoneyBillWave,
 } from "react-icons/fa";
 import logo from "../../../public/images/brandimage.jpeg";
 import { usePathname } from "next/navigation";
@@ -36,9 +37,9 @@ const PUBLIC_NAV_LINKS = [
 // User dashboard links for authenticated users
 const USER_DASHBOARD_LINKS = [
   { label: "Dashboard", href: "/dashboard", icon: FaTachometerAlt },
-  { label: "My Orders", href: "/orders", icon: FaClipboardList },
+  { label: "My Orders", href: "/dashboard/orders", icon: FaClipboardList },
   { label: "Products", href: "/products", icon: FaBox },
-  { label: "Help Center", href: "/help", icon: FaQuestionCircle },
+  { label: "Transaction", href: "/dashboard/transaction", icon: FaMoneyBillWave },
 ];
 
 const ClientNavLayout = () => {
