@@ -1,107 +1,81 @@
+// app/dashboard/_components/SideNav.jsx
 "use client";
 
-import Link from "next/link";
+import { useContext } from "react";
 import {
   FaHome,
   FaShoppingCart,
-  FaFileAlt,
   FaMoneyBillWave,
   FaCog,
   FaSignOutAlt,
-  FaTimes,
-  FaUser,
 } from "react-icons/fa";
-import { useContext, useState } from "react";
-import { AuthContext } from "../../_provider/useClientProvider";
-import { usePathname } from "next/navigation";
+import { AuthContext } from "@/app/(root)/_provider/useClientProvider";
+import { useRouter, usePathname } from "next/navigation";
 
-const navItems = [
-  { name: "Dashboard", href: "/dashboard", icon: <FaHome /> },
-  { name: "My Orders", href: "/dashboard/orders", icon: <FaShoppingCart /> },
-  // {
-  //   name: "Track Progress",
-  //   href: "/dashboard/track-order-progress",
-  //   icon: <FaFileAlt />,
-  // },
-  { name: "Transactions", href: "/dashboard/transaction", icon: <FaMoneyBillWave /> },
-  { name: "Settings", href: "/dashboard/settings", icon: <FaCog /> },
-];
+export default function SideNav() {
+  const { logout } = useContext(AuthContext);
+  const router = useRouter();
+  const pathname = usePathname();
 
-const SideNav = () => {
-  const pathname = usePathname()
-  const { authUser, logoutUser } = useContext(AuthContext);
-  const [mobileNavOpen, setMobileNavOpen] = useState(null);
+  const navigationItems = [
+    { id: "dashboard", name: "Dashboard", icon: FaHome, path: "/dashboard" },
+    { id: "orders", name: "My Orders", icon: FaShoppingCart, path: "/dashboard/orders" },
+    { id: "transactions", name: "Transactions", icon: FaMoneyBillWave, path: "/dashboard/transaction" },
+    { id: "settings", name: "Settings", icon: FaCog, path: "/dashboard/settings" },
+  ];
+
+  const handleNavigation = (item) => {
+    router.push(item.path);
+  };
+
+  const isActive = (path) => pathname === path;
 
   return (
-    <aside
-      className={`
-      fixed inset-y-0 left-0 z-40 
-      w-64 bg-gray-800 shadow-lg 
-      transform transition-transform duration-300 ease-in-out rounded
-      ${mobileNavOpen ? "translate-x-0" : "-translate-x-full"} 
-      lg:relative lg:translate-x-0 lg:w-64
-      mt-16 lg:mt-0
-    `}
-    >
-      <div className="lg:hidden absolute top-2 right-2">
-        <button
-          onClick={() => setMobileNavOpen(false)}
-          className="p-2 text-gray-400 hover:text-white focus:outline-none"
-        >
-          <FaTimes size={20} />
-        </button>
-      </div>
-
-      <div className="p-4 border-b border-gray-700">
-        <div className="flex items-center space-x-3">
-          <div className="bg-yellow-400 bg-opacity-20 p-2 rounded-full">
-            <FaUser className="text-yellow-400" />
+    <div className="hidden lg:block w-72 bg-gray-800 rounded-lg flex-shrink-0">
+      <div className="h-full flex flex-col">
+        <div className="p-6 flex-1 flex flex-col">
+          {/* Logo/Brand */}
+          <div className="mb-8">
+            <h1 className="text-white text-xl font-bold">Customer Dashboard</h1>
           </div>
-          <div className="overflow-hidden">
-            <p className="font-medium text-white truncate">
-              {authUser?.displayName || "Client"}
-            </p>
-            <p className="text-xs text-gray-400 truncate">{authUser?.email}</p>
+
+          {/* Navigation Items */}
+          <nav className="space-y-2 flex-1">
+            {navigationItems.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item.path);
+              
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleNavigation(item)}
+                  className={`
+                    w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 text-sm
+                    ${active 
+                      ? 'bg-yellow-400 text-gray-900 font-semibold' 
+                      : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                    }
+                  `}
+                >
+                  <Icon className={`text-lg ${active ? 'text-gray-900' : 'text-current'}`} />
+                  <span className="font-medium">{item.name}</span>
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* Logout Button */}
+          <div className="mt-auto pt-6 border-t border-gray-700">
+            <button
+              onClick={logout}
+              className="w-full flex items-center space-x-3 px-4 py-3 text-red-400 hover:bg-red-400 hover:text-white rounded-lg transition-all duration-200 text-sm"
+            >
+              <FaSignOutAlt className="text-lg" />
+              <span className="font-medium">Logout</span>
+            </button>
           </div>
         </div>
       </div>
-
-      <nav className="p-2  overflow-y-auto">
-        {navItems.map((item) => (
-          <Link
-            key={item.name}
-            href={item.href}
-            onClick={() => {
-              setMobileNavOpen(false);
-            }}
-            className={`
-              w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
-              transition-all duration-200
-              ${
-                pathname === item.href
-                  ? "bg-yellow-400 text-black font-bold shadow-md"
-                  : "text-gray-300 hover:bg-gray-700 hover:text-white"
-              }
-            `}
-          >
-            <span className="mr-3 text-base">{item.icon}</span>
-            <span className="text-left">{item.name}</span>
-          </Link>
-        ))}
-
-        <button
-          onClick={logoutUser}
-          className="lg:hidden w-full flex items-center px-4 py-3 text-sm rounded-md mb-1 
-          text-gray-300 hover:bg-gray-700 hover:text-white transition-all duration-200 mt-4"
-        >
-          <span className="mr-3 text-base">
-            <FaSignOutAlt />
-          </span>
-          <span className="text-left">Logout</span>
-        </button>
-      </nav>
-    </aside>
+    </div>
   );
-};
-
-export default SideNav;
+}
