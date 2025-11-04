@@ -39,17 +39,16 @@ export default function Home() {
       <Carousel />
 
       {/* Hero Section */}
-      <section>
+      {/* <section>
         <Hero />
-      </section>
+      </section> */}
 
       {/* What We Offer Section */}
       <section>
         <WhatWeOffer />
       </section>
 
-      
-<CategoriesSection />
+      <CategoriesSection />
 
       {/* Promotion Section */}
       <section>
@@ -60,8 +59,6 @@ export default function Home() {
       <section>
         <Feedback />
       </section>
-
-      
     </div>
   );
 }
