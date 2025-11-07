@@ -25,20 +25,14 @@ const CategoryCard = ({ category, index }) => (
 
     {/* Image Container */}
     <div className="relative h-64 w-full overflow-hidden">
-      {category.imageUrl ? (
         <Image
-          src={category.imageUrl}
+          src={category.imageUrl || "/images/brandimage.jpeg"}
           alt={category.name || "Category image"}
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
           className="object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
         />
-      ) : (
-        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-          <span className="text-gray-500">No Image</span>
-        </div>
-      )}
 
       {/* Category Count Badge */}
       <div className="absolute top-4 right-4 bg-yellow-500 text-black font-semibold text-sm px-3 py-1 rounded-full shadow-md z-10">

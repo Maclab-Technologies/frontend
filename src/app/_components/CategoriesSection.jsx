@@ -1,8 +1,6 @@
 "use client";
 import { useState, useEffect, useRef, useMemo } from "react";
-import Image from "next/image";
 import Link from "next/link";
-// import products from "../../public/Products/products.json";
 import CategoryCard from "./CategoryCard";
 const CategoriesSection = () => {
   const [categories, setCategories] = useState([]);
@@ -62,6 +60,8 @@ const CategoriesSection = () => {
       setIsLoading(false);
     }
   };
+
+  console.log(categories)
 
   return (
     <section className="bg-gradient-to-b from-gray-900 to-gray-800 py-16">
