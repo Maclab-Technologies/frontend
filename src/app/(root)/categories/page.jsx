@@ -19,7 +19,6 @@ export default function CategoriesPage() {
 
     try {
 
-      const controller = new AbortController();
       const response = await get("/categories");
 
       if (!response.success) {
@@ -27,8 +26,7 @@ export default function CategoriesPage() {
         throw new Error(`Server responded with ${response.status}: ${errorText}`);
       }
 
-      const json = await response.json();
-      setCategories(json.data || []);
+      setCategories(response.data.data || []);
       setError(null);
     } catch (error) {
       setError(error.message);

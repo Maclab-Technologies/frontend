@@ -61,7 +61,6 @@ const CategoriesSection = () => {
     }
   };
 
-  console.log(categories)
 
   return (
     <section className="bg-gradient-to-b from-gray-900 to-gray-800 py-16">
