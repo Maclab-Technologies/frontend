@@ -1,10 +1,17 @@
-'use client';
+"use client";
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSelector } from "react-redux";
 import Image from "next/image";
-import { FiMenu, FiX, FiBell, FiChevronDown, FiLogIn, FiUserPlus } from "react-icons/fi";
+import {
+  FiMenu,
+  FiX,
+  FiBell,
+  FiChevronDown,
+  FiLogIn,
+  FiUserPlus,
+} from "react-icons/fi";
 import { useAuth } from "../(root)/_provider/useClientProvider";
 import {
   FaShoppingCart,
@@ -39,30 +46,40 @@ const USER_DASHBOARD_LINKS = [
   { label: "Dashboard", href: "/dashboard", icon: FaTachometerAlt },
   { label: "My Orders", href: "/dashboard/orders", icon: FaClipboardList },
   { label: "Products", href: "/products", icon: FaBox },
-  { label: "Transaction", href: "/dashboard/transaction", icon: FaMoneyBillWave },
+  {
+    label: "Transaction",
+    href: "/dashboard/transaction",
+    icon: FaMoneyBillWave,
+  },
 ];
 
 const ClientNavLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-  
+
   const dropdownRef = useRef(null);
-  
+
   const cartItems = useSelector((state) => state?.cart?.cartItems || []);
   const pathname = usePathname();
-  
-  const { 
-    isLoggedIn, 
-    authUser, 
-    logoutUser 
-  } = useAuth();
+
+  const { isLoggedIn, authUser, logoutUser } = useAuth();
 
   const cartCount = cartItems.length;
 
   // Get the appropriate navigation links based on authentication
   const getNavLinks = () => {
-    return isLoggedIn ? USER_DASHBOARD_LINKS : PUBLIC_NAV_LINKS;
+    return isLoggedIn
+      ? USER_DASHBOARD_LINKS
+      : [
+          ...PUBLIC_NAV_LINKS,
+          {
+            label: "Cart",
+            href: "/cart",
+            icon: FaShoppingCart,
+            badge: cartCount,
+          },
+        ];
   };
 
   // Get mobile menu links based on authentication
@@ -71,10 +88,17 @@ const ClientNavLayout = () => {
       return [
         ...USER_DASHBOARD_LINKS,
         { label: "Profile", href: "/profile", icon: FaUser },
-        { label: "Cart", href: "/cart", icon: FaShoppingCart, badge: cartCount },
       ];
     } else {
-      return PUBLIC_NAV_LINKS;
+      return [
+        ...PUBLIC_NAV_LINKS,
+        {
+          label: "Cart",
+          href: "/cart",
+          icon: FaShoppingCart,
+          badge: cartCount,
+        },
+      ];
     }
   };
 
@@ -86,8 +110,8 @@ const ClientNavLayout = () => {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   useEffect(() => {
@@ -128,17 +152,38 @@ const ClientNavLayout = () => {
           animation: fadeIn 0.2s ease-out;
         }
         @keyframes bounce {
-          0%, 20%, 60%, 100% { transform: translateY(0); }
-          40% { transform: translateY(-4px); }
-          80% { transform: translateY(-2px); }
+          0%,
+          20%,
+          60%,
+          100% {
+            transform: translateY(0);
+          }
+          40% {
+            transform: translateY(-4px);
+          }
+          80% {
+            transform: translateY(-2px);
+          }
         }
         @keyframes slideInRight {
-          from { transform: translateX(100%); opacity: 0; }
-          to { transform: translateX(0); opacity: 1; }
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
         }
         @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(-8px); }
-          to { opacity: 1; transform: translateY(0); }
+          from {
+            opacity: 0;
+            transform: translateY(-8px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
       `}</style>
 
@@ -153,8 +198,8 @@ const ClientNavLayout = () => {
         <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <Link 
-              href="/" 
+            <Link
+              href="/"
               className="flex items-center space-x-3 group flex-shrink-0"
               onClick={() => setIsMobileMenuOpen(false)}
             >
@@ -236,7 +281,7 @@ const ClientNavLayout = () => {
 
                   {/* User Menu */}
                   <div className="relative" ref={dropdownRef}>
-                    <button 
+                    <button
                       onClick={() => setUserDropdownOpen(!userDropdownOpen)}
                       className="flex items-center space-x-2 bg-white/5 hover:bg-white/10 rounded-lg pl-3 pr-4 py-2 transition-colors duration-200"
                     >
@@ -246,9 +291,11 @@ const ClientNavLayout = () => {
                       <span className="text-sm font-medium text-white">
                         {authUser?.fullName?.split(" ")[0] || "Guest"}
                       </span>
-                      <FiChevronDown className={`w-4 h-4 text-yellow-400 transition-transform duration-200 ${
-                        userDropdownOpen ? 'rotate-180' : ''
-                      }`} />
+                      <FiChevronDown
+                        className={`w-4 h-4 text-yellow-400 transition-transform duration-200 ${
+                          userDropdownOpen ? "rotate-180" : ""
+                        }`}
+                      />
                     </button>
 
                     {/* Dropdown */}
@@ -264,10 +311,26 @@ const ClientNavLayout = () => {
                         </div>
                         <div className="py-2">
                           {[
-                            { href: "/profile", icon: FaUser, label: "Profile" },
-                            { href: "/dashboard", icon: FaTachometerAlt, label: "Dashboard" },
-                            { href: "/orders", icon: FaClipboardList, label: "My Orders" },
-                            { href: "/help", icon: FaQuestionCircle, label: "Help Center" },
+                            {
+                              href: "/profile",
+                              icon: FaUser,
+                              label: "Profile",
+                            },
+                            {
+                              href: "/dashboard",
+                              icon: FaTachometerAlt,
+                              label: "Dashboard",
+                            },
+                            {
+                              href: "/orders",
+                              icon: FaClipboardList,
+                              label: "My Orders",
+                            },
+                            {
+                              href: "/help",
+                              icon: FaQuestionCircle,
+                              label: "Help Center",
+                            },
                           ].map(({ href, icon: Icon, label }) => (
                             <Link
                               key={href}
@@ -393,9 +456,7 @@ const ClientNavLayout = () => {
                   <FaUser className="w-5 h-5 text-gray-400" />
                 </div>
                 <div>
-                  <p className="font-medium text-white text-sm">
-                    Welcome!
-                  </p>
+                  <p className="font-medium text-white text-sm">Welcome!</p>
                   <p className="text-xs text-gray-400">
                     Sign in to your account
                   </p>
@@ -439,7 +500,7 @@ const ClientNavLayout = () => {
                     Join our community today
                   </p>
                 </div>
-                
+
                 {/* Login Button */}
                 <Link
                   href="/login"
@@ -472,7 +533,11 @@ const ClientNavLayout = () => {
                 {/* Additional user-specific links in mobile */}
                 {[
                   { href: "/profile", icon: FaUser, label: "Profile" },
-                  { href: "/settings", icon: FaTachometerAlt, label: "Settings" },
+                  {
+                    href: "/settings",
+                    icon: FaTachometerAlt,
+                    label: "Settings",
+                  },
                 ].map(({ href, icon: Icon, label }) => (
                   <Link
                     key={href}
