@@ -197,7 +197,7 @@ const Feedback = () => {
               <p className="mb-4">Our customer support team is available to help you with any questions or concerns.</p>
               <ul className="space-y-2 text-gray-300">
                 <li><strong>Email:</strong> 59minutesprints@gmail.com</li>
-                <li><strong>Phone:</strong> (800) 123-4567</li>
+                <li><strong>Phone:</strong> +234 803 551 9472</li>
                 <li><strong>Hours:</strong> Monday-Friday, 8am-8pm EST</li>
               </ul>
             </div>

@@ -27,25 +27,22 @@ export default function CategoryProductsPage() {
     setError(null);
 
     try {
-      // Fetch category details
-      const categoryResponse = await get(`/categories/name/${decodeURIComponent(categoryName)}`);
+      // Decode category name from URL
+      const decodedCategoryName = decodeURIComponent(categoryName).replace("%20", " ");
+      
+      // Fetch category details and products
+      const categoryResponse = await get(`/categories/${decodedCategoryName}`);
       
       if (!categoryResponse.success) {
         throw new Error(`Failed to fetch category: ${categoryResponse.data?.message || 'Category not found'}`);
       }
 
-      const categoryData = categoryResponse.data;
+      const categoryData = categoryResponse.data?.data || categoryResponse.data;
       setCategory(categoryData);
 
-      // Fetch products for this category
-      const productsResponse = await get(`/products?category=${decodeURIComponent(categoryName)}`);
-      
-      if (productsResponse.success) {
-        setProducts(productsResponse.data || []);
-      } else {
-        console.warn('Could not fetch products:', productsResponse.data?.message);
-        setProducts([]);
-      }
+      // Set products from response
+      const productsData = categoryResponse.data?.data || categoryResponse.data?.products || [];
+      setProducts(Array.isArray(productsData) ? productsData : []);
 
     } catch (error) {
       console.error('Error fetching category data:', error);
@@ -68,8 +65,8 @@ export default function CategoryProductsPage() {
     fetchCategoryData();
   };
 
-  const handleProductClick = (productSlug) => {
-    router.push(`/products/${productSlug}`);
+  const handleProductClick = (productId) => {
+    router.push(`/products/${productId}`);
   };
 
   if (isLoading || error) {
@@ -103,6 +100,8 @@ export default function CategoryProductsPage() {
     );
   }
 
+  const displayCategoryName = category.name || decodeURIComponent(categoryName).replace("%20", " ");
+
   return (
     <div className="bg-black min-h-screen">
       {/* Category Header */}
@@ -128,7 +127,7 @@ export default function CategoryProductsPage() {
               <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-lg overflow-hidden flex-shrink-0">
                 <Image
                   src={category.imageUrl}
-                  alt={category.name}
+                  alt={displayCategoryName}
                   fill
                   className="object-cover"
                 />
@@ -136,18 +135,18 @@ export default function CategoryProductsPage() {
             )}
             
             <div className="flex-1">
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                {category.name}
+              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 capitalize">
+                {displayCategoryName}
               </h1>
               <p className="text-gray-300 text-lg mb-6 max-w-3xl">
-                {category.description || `Explore our premium ${category.name} collection`}
+                {category.description || `Explore our premium ${displayCategoryName} collection`}
               </p>
               
               <div className="flex flex-wrap gap-4">
                 <div className="bg-yellow-500 text-black px-4 py-2 rounded-full text-sm font-semibold">
-                  {category.productCount || products.length} Products
+                  {products.length} Products
                 </div>
-                {category.tags && category.tags.map((tag, index) => (
+                {category.tags && Array.isArray(category.tags) && category.tags.map((tag, index) => (
                   <div key={index} className="bg-gray-700 text-gray-300 px-3 py-1 rounded-full text-sm">
                     {tag}
                   </div>
@@ -205,56 +204,88 @@ export default function CategoryProductsPage() {
 
             {/* Products Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {products.map((product) => (
-                <div
-                  key={product._id || product.id}
-                  onClick={() => handleProductClick(product.slug || product._id)}
-                  className="group bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 cursor-pointer"
-                >
-                  {/* Product Image */}
-                  <div className="relative h-64 w-full overflow-hidden">
-                    {product.imageUrl || product.images?.[0] ? (
-                      <Image
-                        src={product.imageUrl || product.images[0]}
-                        alt={product.name}
-                        fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                        className="object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gray-700 flex items-center justify-center">
-                        <span className="text-gray-500">No Image</span>
-                      </div>
-                    )}
-                    
-                    {/* Quick View Overlay */}
-                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300 flex items-center justify-center">
-                      <button className="bg-yellow-500 text-black px-6 py-2 rounded-full font-semibold transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                        Quick View
-                      </button>
-                    </div>
-                  </div>
+              {products.map((product) => {
+                const productId = product._id || product.id;
+                const productName = product.name || 'Unnamed Product';
+                const productImage = product.imageUrl || product.images?.[0] || product.image;
+                const productPrice = product.price;
+                const productDescription = product.shortDescription || product.description;
+                const imagesArray = Array.isArray(product.images) ? product.images : [product.images];
+                const mainImage = imagesArray[0] || productImage;
 
-                  {/* Product Info */}
-                  <div className="p-6">
-                    <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-yellow-500 transition-colors line-clamp-2">
-                      {product.name}
-                    </h3>
-                    
-                    <p className="text-gray-400 text-sm mb-4 line-clamp-2">
-                      {product.shortDescription || product.description || 'No description available'}
-                    </p>
-
-                    <div className="flex justify-between items-center">
-                      <div className="text-yellow-500 font-bold text-lg">
-                        {product.price ? `$${product.price}` : 'Price on request'}
-                      </div>
+                return (
+                  <div
+                    key={productId}
+                    onClick={() => handleProductClick(productId)}
+                    className="group bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 cursor-pointer"
+                  >
+                    {/* Product Image */}
+                    <div className="relative h-64 w-full overflow-hidden">
+                      {mainImage ? (
+                        <Image
+                          src={mainImage}
+                          alt={productName}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                          className="object-cover transition-transform duration-500 group-hover:scale-110"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      ) : null}
                       
-                      {product.isPopular && (
-                        <div className="bg-red-500 text-white text-xs px-2 py-1 rounded">
-                          Popular
+                      {/* Fallback when no image or image fails to load */}
+                      {!mainImage && (
+                        <div className="w-full h-full bg-gray-700 flex items-center justify-center">
+                          <span className="text-gray-500">No Image</span>
                         </div>
                       )}
+                      
+                      {/* Quick View Overlay */}
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300 flex items-center justify-center">
+                        <button className="bg-yellow-500 text-black px-6 py-2 rounded-full font-semibold transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                          Quick View
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Product Info */}
+                    <div className="p-6">
+                      <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-yellow-500 transition-colors line-clamp-2">
+                        {productName}
+                      </h3>
+                      
+                      <p className="text-gray-400 text-sm mb-4 line-clamp-2">
+                        {productDescription || 'No description available'}
+                      </p>
+
+                      <div className="flex justify-between items-center">
+                        <div className="text-yellow-500 font-bold text-lg">
+                          {productPrice ? `₦${productPrice}` : 'Price on request'}
+                        </div>
+                        
+                        {product.isPopular && (
+                          <div className="bg-red-500 text-white text-xs px-2 py-1 rounded">
+                            Popular
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Vendor and Stock Info */}
+                      <div className="mt-4 pt-4 border-t border-gray-700">
+                        <div className="flex flex-col gap-2 text-sm text-gray-400">
+                          {product.vendor && (
+                            <div className="flex items-center">
+                              <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-2"></span>
+                              <span>Vendor: {product.vendor}</span>
+                            </div>
+                          )}
+                          <div className="flex items-center">
+                            <span className="inline-block w-2 h-2 rounded-full bg-blue-500 mr-2"></span>
+                            <span>Stock: {product.stock || 0}</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
                     {/* Product Features */}
@@ -270,8 +301,8 @@ export default function CategoryProductsPage() {
                       </div>
                     )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </>
         )}
