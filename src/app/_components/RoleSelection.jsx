@@ -6,7 +6,7 @@ import {
   FaStore, 
   FaUser, 
   FaRocket, 
-  FaShield, 
+  FaShieldAlt,
   FaChartLine, 
   FaUsers,
   FaShoppingCart,
@@ -29,7 +29,7 @@ const RoleSelection = () => {
       description: "Track sales and performance"
     },
     {
-      icon: "FaShield",
+      icon: "FaShieldAlt",
       title: "Secure Payments",
       description: "Get paid securely"
     },
@@ -52,7 +52,7 @@ const RoleSelection = () => {
       description: "Competitive pricing and deals"
     },
     {
-      icon: "FaShield",
+      icon: "FaShieldAlt",
       title: "Buyer Protection",
       description: "Your purchases are protected"
     },
@@ -86,7 +86,7 @@ const RoleSelection = () => {
     FaStore,
     FaUser,
     FaRocket,
-    FaShield,
+    FaShieldAlt,
     FaChartLine,
     FaUsers,
     FaShoppingCart,

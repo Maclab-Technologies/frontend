@@ -21,6 +21,10 @@ export default function CategoriesPage() {
     setError(null);
 
     try {
+<<<<<<< HEAD
+=======
+
+>>>>>>> b763550786928ca24102b0c6ad774ef1b4c6b437
       const response = await get("/categories");
 
       console.log('API Response:', response);
@@ -30,6 +34,7 @@ export default function CategoriesPage() {
         throw new Error(`Failed to fetch categories: ${errorText}`);
       }
 
+<<<<<<< HEAD
       let categoriesData = [];
       
       if (Array.isArray(response.data)) {
@@ -48,6 +53,10 @@ export default function CategoriesPage() {
       console.log('Extracted categories:', categoriesData);
       setCategories(categoriesData);
 
+=======
+      setCategories(response.data.data || []);
+      setError(null);
+>>>>>>> b763550786928ca24102b0c6ad774ef1b4c6b437
     } catch (error) {
       console.error('Error fetching categories:', error);
       setError(error.message);
