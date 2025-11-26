@@ -21,10 +21,6 @@ export default function CategoriesPage() {
     setError(null);
 
     try {
-<<<<<<< HEAD
-=======
-
->>>>>>> b763550786928ca24102b0c6ad774ef1b4c6b437
       const response = await get("/categories");
 
       console.log('API Response:', response);
@@ -34,7 +30,6 @@ export default function CategoriesPage() {
         throw new Error(`Failed to fetch categories: ${errorText}`);
       }
 
-<<<<<<< HEAD
       let categoriesData = [];
       
       if (Array.isArray(response.data)) {
@@ -53,10 +48,6 @@ export default function CategoriesPage() {
       console.log('Extracted categories:', categoriesData);
       setCategories(categoriesData);
 
-=======
-      setCategories(response.data.data || []);
-      setError(null);
->>>>>>> b763550786928ca24102b0c6ad774ef1b4c6b437
     } catch (error) {
       console.error('Error fetching categories:', error);
       setError(error.message);
@@ -82,8 +73,8 @@ export default function CategoriesPage() {
 
   // Filter categories based on search
   const filteredCategories = categories.filter(category =>
-    category.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    category.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    category?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    category?.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Safe rendering of categories
@@ -121,11 +112,13 @@ export default function CategoriesPage() {
           }
 
           const productCount = category.productCount || category.count || 0;
+          const categoryName = category.name || 'Unnamed Category';
+          const categorySlug = encodeURIComponent(categoryName.toLowerCase().replace(/\s+/g, '-'));
 
           return (
             <Link
-              key={category._id || category.id || category.name || `category-${index}`}
-              href={`/categories/${encodeURIComponent(category.name || 'uncategorized')}`}
+              key={category._id || category.id || categoryName || `category-${index}`}
+              href={`/categories/${categorySlug}`}
               className="group relative bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl overflow-hidden shadow-2xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border border-gray-700/50 hover:border-yellow-500/30"
             >
               {/* Background Glow Effect */}
@@ -136,22 +129,29 @@ export default function CategoriesPage() {
                 {category.imageUrl || category.image ? (
                   <Image
                     src={category.imageUrl || category.image}
-                    alt={category.name || 'Category image'}
+                    alt={categoryName}
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                     className="object-cover transition-transform duration-700 group-hover:scale-110"
                     loading="lazy"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
                   />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center">
-                    <div className="text-center">
-                      <svg className="w-12 h-12 text-gray-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      <span className="text-gray-400 text-sm">No Image</span>
-                    </div>
+                ) : null}
+                
+                {/* Fallback when no image or image fails to load */}
+                <div 
+                  className={`w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center ${category.imageUrl || category.image ? 'hidden' : 'flex'}`}
+                >
+                  <div className="text-center">
+                    <svg className="w-12 h-12 text-gray-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span className="text-gray-400 text-sm">No Image</span>
                   </div>
-                )}
+                </div>
                 
                 {/* Gradient Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
@@ -175,7 +175,7 @@ export default function CategoriesPage() {
               {/* Content Section */}
               <div className="relative p-6 z-10">
                 <h3 className="text-xl font-bold text-white mb-3 group-hover:text-yellow-400 transition-colors duration-300 line-clamp-1">
-                  {category.name || 'Unnamed Category'}
+                  {categoryName}
                 </h3>
                 
                 <p className="text-gray-300 text-sm leading-relaxed mb-4 line-clamp-2">
