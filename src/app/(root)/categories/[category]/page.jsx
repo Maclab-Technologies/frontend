@@ -287,6 +287,19 @@ export default function CategoryProductsPage() {
                         </div>
                       </div>
                     </div>
+
+                    {/* Product Features */}
+                    {product.features && (
+                      <div className="mt-4 pt-4 border-t border-gray-700">
+                        <div className="flex flex-wrap gap-2">
+                          {product.features.slice(0, 3).map((feature, index) => (
+                            <span key={index} className="bg-gray-700 text-gray-300 text-xs px-2 py-1 rounded">
+                              {feature}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
