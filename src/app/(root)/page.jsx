@@ -48,8 +48,7 @@ export default function Home() {
         <WhatWeOffer />
       </section>
 
-      
-<CategoriesSection />
+      <CategoriesSection />
 
       {/* Promotion Section */}
       <section>
@@ -60,8 +59,6 @@ export default function Home() {
       <section>
         <Feedback />
       </section>
-
-      
     </div>
   );
 }
