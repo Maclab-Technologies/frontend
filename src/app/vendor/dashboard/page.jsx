@@ -4,8 +4,8 @@
 import { useContext, useEffect, useState } from "react";
 import { batchRequests } from "@/app/_hooks/fetch-hook";
 import { toast } from "react-toastify";
-import VendorLayout from "../Components/vendor-layout"; // This is the new layout with sidebar
-import Dashboard from "../components/dashboard";
+import VendorLayout from "../_components/vendor-layout"; // This is the new layout with sidebar
+import Dashboard from "../_components/dashboard";
 import { VendorAuthContext } from "../_provider/useVendorProvider";
 
 export default function DashboardPage() {

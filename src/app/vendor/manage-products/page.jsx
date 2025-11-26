@@ -3,8 +3,8 @@
 
 import { useContext, useEffect, useState } from "react";
 import { batchRequests } from "@/app/_hooks/fetch-hook";
-import VendorLayout from "../components/vendor-layout";
-import ManageProducts from "../components/manage-product";
+import VendorLayout from "../_components/vendor-layout";
+import ManageProducts from "../_components/manage-product";
 import { VendorAuthContext } from "../_provider/useVendorProvider";
 
 export default function ManageProductsPage() {

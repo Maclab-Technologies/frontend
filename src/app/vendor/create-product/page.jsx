@@ -2,8 +2,8 @@
 "use client";
 
 import { useContext, useState } from "react";
-import VendorLayout from "../components/vendor-layout";
-import CreateProduct from "../components/create-product";
+import VendorLayout from "../_components/vendor-layout";
+import CreateProduct from "../_components/create-product";
 import { VendorAuthContext } from "../_provider/useVendorProvider";
 
 export default function CreateProductPage() {
