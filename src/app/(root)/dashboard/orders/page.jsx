@@ -40,8 +40,6 @@ export default function Order() {
     initOrders();
   }, []);
 
-  console.log(orders)
-
   return (
     <>
       {loading ? (

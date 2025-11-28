@@ -81,10 +81,10 @@ export default function PayoutSummary() {
                 Successful Payouts
               </p>
               <p className="text-xl md:text-2xl font-bold mt-1 truncate">
-                ₦{payoutsByStatus[1].totalAmount}
+                ₦{payoutsByStatus[1]?.totalAmount || 0}
               </p>
               <p className="text-xl md:text-2xl font-bold mt-1 truncate">
-                {payoutsByStatus[1].count}
+                {payoutsByStatus[1]?.count || 0}
               </p>
             </div>
             <div className="ml-4 p-2 md:p-3 rounded-full bg-green-50 text-green-600 flex-shrink-0">
@@ -103,10 +103,10 @@ export default function PayoutSummary() {
                 Approved Payouts
               </p>
               <p className="text-xl md:text-2xl font-bold mt-1 truncate">
-                ₦{payoutsByStatus[2].totalAmount}
+                ₦{payoutsByStatus[2]?.totalAmount || 0}
               </p>
               <p className="text-xl md:text-2xl font-bold mt-1 truncate">
-                {payoutsByStatus[2].count}
+                {payoutsByStatus[2]?.count || 0}
               </p>
             </div>
             Failed
@@ -126,10 +126,10 @@ export default function PayoutSummary() {
                 Pending Payouts
               </p>
               <p className="text-xl md:text-2xl font-bold mt-1 truncate">
-                ₦{payoutsByStatus[0].totalAmount}
+                ₦{payoutsByStatus[0]?.totalAmount || 0}
               </p>
               <p className="text-xl md:text-2xl font-bold mt-1 truncate">
-                {payoutsByStatus[0].count}
+                {payoutsByStatus[0]?.count || 0}
               </p>
             </div>
             <div className="ml-4 p-2 md:p-3 rounded-full bg-red-50 text-red-600 flex-shrink-0">

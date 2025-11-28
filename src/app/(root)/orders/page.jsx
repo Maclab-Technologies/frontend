@@ -30,7 +30,7 @@ export default function Orders() {
           toast.error("Something went wrong, please try again.");
         }
       } catch (error) {
-        console.log(error);
+        console.error(error);
         toast.error("Failed to fetch orders. Please try again.");
       } finally {
         setLoading(false);

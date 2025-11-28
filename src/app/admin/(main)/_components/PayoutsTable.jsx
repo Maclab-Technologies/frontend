@@ -24,7 +24,7 @@ export default function PayoutsTable() {
   useEffect(() => {
     const fetchOrders = async () => {
       setLoading(true);
-      if(!adminToken)throw new Error("No token found");
+      if (!adminToken) throw new Error("No token found");
       try {
         const res = await get("/admin/withdrawals", { token: adminToken });
 
@@ -210,49 +210,55 @@ export default function PayoutsTable() {
           </tr>
         </thead>
         <tbody className="bg-gray-800 divide-y divide-gray-700">
-          <LoadingErrorHandler loading={loading} error={error}>
-            {payouts.map((payout) => (
-              <tr key={payout._id || payout.id} className="hover:bg-gray-750">
-                <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm font-medium text-yellow-500">
-                  {payout.id || payout._id}
-                </td>
-                <td className="px-4 md:px-6 py-4 text-sm text-gray-100">
-                  <div className="flex items-center">
-                    <FiUser className="mr-2" /> {payout.vendor.businessName}
-                  </div>
-                </td>
-                <td className="px-4 md:px-6 py-4 text-sm text-gray-100 hidden md:table-cell">
-                  <div className="flex items-center">
-                    <FiDollarSign className="mr-1" /> ₦
-                    {payout.amount.toLocaleString()}
-                  </div>
-                </td>
-                <td className="px-4 md:px-6 py-4 text-sm text-gray-100">
-                  <div className="flex items-center">
-                    <FiCalendar className="mr-1" /> {payout.requestedAt}
-                  </div>
-                </td>
-                <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm">
-                  {getStatusBadge(payout.status)}
-                </td>
-                {/* <td className="px-4 md:px-6 py-4 text-sm text-gray-100 hidden lg:table-cell">
-                {payout.method}
-              </td> */}
-                <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <div className="flex space-x-3">
-                    {payout.status === "Pending" && (
-                      <button className="text-green-500 hover:text-green-400">
-                        Approve
-                      </button>
-                    )}
-                    <button className="text-blue-500 hover:text-blue-400">
-                      Details
-                    </button>
-                  </div>
+          {loading ||
+            (error && (
+              <tr>
+                <td colSpan={6}>
+                  <LoadingErrorHandler loading={loading} error={error} />
                 </td>
               </tr>
             ))}
-          </LoadingErrorHandler>
+          {payouts.map((payout) => (
+            <tr key={payout._id || payout.id} className="hover:bg-gray-750">
+              <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm font-medium text-yellow-500">
+                {payout.id || payout._id}
+              </td>
+              <td className="px-4 md:px-6 py-4 text-sm text-gray-100">
+                <div className="flex items-center">
+                  <FiUser className="mr-2" /> {payout.vendor.businessName}
+                </div>
+              </td>
+              <td className="px-4 md:px-6 py-4 text-sm text-gray-100 hidden md:table-cell">
+                <div className="flex items-center">
+                  <FiDollarSign className="mr-1" /> ₦
+                  {payout.amount.toLocaleString()}
+                </div>
+              </td>
+              <td className="px-4 md:px-6 py-4 text-sm text-gray-100">
+                <div className="flex items-center">
+                  <FiCalendar className="mr-1" /> {payout.requestedAt}
+                </div>
+              </td>
+              <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm">
+                {getStatusBadge(payout.status)}
+              </td>
+              {/* <td className="px-4 md:px-6 py-4 text-sm text-gray-100 hidden lg:table-cell">
+                {payout.method}
+              </td> */}
+              <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <div className="flex space-x-3">
+                  {payout.status === "Pending" && (
+                    <button className="text-green-500 hover:text-green-400">
+                      Approve
+                    </button>
+                  )}
+                  <button className="text-blue-500 hover:text-blue-400">
+                    Details
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>

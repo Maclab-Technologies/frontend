@@ -47,7 +47,6 @@ const Checkout = () => {
   }, []);
 
   useEffect(() => {
-    console.log("Order ID from params:", orderId);
     if (!hasMounted || !orderId) return;
 
     const fetchOrderDetails = async () => {
@@ -156,8 +155,6 @@ const Checkout = () => {
         }
       );
 
-      console.log(response);
-
       const data = response.data;
 
       if (data.success) {
@@ -186,7 +183,6 @@ const Checkout = () => {
       currency: "NGN",
       reference: `ORDER_${orderId}_${Date.now()}`,
       callback: (response) => {
-        console.log(response);
         verifyPayment(response.reference);
       },
       onClose: () => {

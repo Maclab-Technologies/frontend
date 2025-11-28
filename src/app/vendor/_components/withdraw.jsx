@@ -118,8 +118,6 @@ export default function Withdraw({ vendorData, summary, vendorToken }) {
         token: token,
       });
 
-      console.log(res)
-
       if (res.success) {
         toast.success(res.message ?? "Withdrawal request submitted successfully");
         // Reset only the amount field, keep bank details

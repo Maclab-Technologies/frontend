@@ -277,7 +277,7 @@ export default function PaymentsTable() {
                 </td>
                 <td className="px-4 md:px-6 py-4 text-sm text-gray-100">
                   <div className="flex items-center">
-                    <FiUser className="mr-2" /> {payment.user.fullName}
+                    <FiUser className="mr-2" /> {payment.user?.fullName || "N/A"}
                   </div>
                 </td>
                 <td className="px-4 md:px-6 py-4 text-sm text-gray-100 hidden md:table-cell">

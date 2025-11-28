@@ -96,7 +96,7 @@ const Login = () => {
       toast.success("Login successful!");
       router.push("/");
     } catch (error) {
-      console.log(error)
+      console.error(error)
       toast.error("Something went wrong");
     } finally {
       setLoading(false);
