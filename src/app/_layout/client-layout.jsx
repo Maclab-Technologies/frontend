@@ -69,26 +69,21 @@ const ClientNavLayout = () => {
 
   // Get the appropriate navigation links based on authentication
   const getNavLinks = () => {
-    return isLoggedIn
-      ? USER_DASHBOARD_LINKS
-      : [
-          ...PUBLIC_NAV_LINKS,
-          {
-            label: "Cart",
-            href: "/cart",
-            icon: FaShoppingCart,
-            badge: cartCount,
-          },
-        ];
+    return [
+      ...PUBLIC_NAV_LINKS,
+      // {
+      //   label: "Cart",
+      //   href: "/cart",
+      //   icon: FaShoppingCart,
+      //   badge: cartCount,
+      // },
+    ];
   };
 
   // Get mobile menu links based on authentication
   const getMobileMenuLinks = () => {
     if (isLoggedIn) {
-      return [
-        ...USER_DASHBOARD_LINKS,
-        // { label: "Profile", href: "/profile", icon: FaUser },
-      ];
+      return [...PUBLIC_NAV_LINKS, ...USER_DASHBOARD_LINKS];
     } else {
       return [
         ...PUBLIC_NAV_LINKS,
@@ -359,22 +354,6 @@ const ClientNavLayout = () => {
 
             {/* Mobile Menu Button */}
             <div className="md:hidden flex items-center space-x-2">
-              {!isLoggedIn && (
-                <>
-                  <Link
-                    href="/login"
-                    className="p-2 text-white hover:text-yellow-400 rounded-lg transition-colors duration-200"
-                  >
-                    <FiLogIn className="w-5 h-5" />
-                  </Link>
-                  <Link
-                    href="/register"
-                    className="p-2 text-white hover:text-yellow-400 rounded-lg transition-colors duration-200"
-                  >
-                    <FiUserPlus className="w-5 h-5" />
-                  </Link>
-                </>
-              )}
               {isLoggedIn && (
                 <Link
                   href="/cart"
@@ -413,27 +392,14 @@ const ClientNavLayout = () => {
 
       {/* Mobile Menu */}
       <div
-        className={`fixed top-0 right-0 h-full w-80 max-w-[90vw] bg-black/95 navbar-blur shadow-xl z-50 transform transition-transform duration-300 md:hidden border-l border-yellow-400/20 slide-in-right ${
+        className={`fixed top-0 right-0 h-full w-80 max-w-[70vw] bg-black/95 navbar-blur shadow-xl z-50 transform transition-transform duration-300 md:hidden border-l border-yellow-400/20 slide-in-right ${
           isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        {/* Mobile Header */}
-        <div className="flex justify-between items-center p-4 border-b border-yellow-400/20">
-          <span className="text-lg font-semibold text-yellow-400">
-            {isLoggedIn ? "My Account" : "Menu"}
-          </span>
-          <button
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="p-2 text-white hover:text-yellow-400 hover:bg-white/5 rounded-lg"
-          >
-            <FiX className="w-5 h-5" />
-          </button>
-        </div>
-
         <div className="flex flex-col h-full overflow-y-auto">
           {/* User Section */}
           {isLoggedIn && authUser ? (
-            <div className="p-4 border-b border-yellow-400/20">
+            <div className="flex justify-between items-center p-4 border-b border-yellow-400/20">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center">
                   <FaUser className="w-5 h-5 text-black" />
@@ -447,6 +413,12 @@ const ClientNavLayout = () => {
                   </p>
                 </div>
               </div>
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-2 text-white hover:text-yellow-400 hover:bg-white/5 rounded-lg"
+              >
+                <FiX className="w-5 h-5" />
+              </button>
             </div>
           ) : (
             // Welcome section for non-logged in users
@@ -530,25 +502,6 @@ const ClientNavLayout = () => {
               </div>
             ) : (
               <div className="space-y-2">
-                {/* Additional user-specific links in mobile */}
-                {[
-                  // { href: "/profile", icon: FaUser, label: "Profile" },
-                  {
-                    href: "/settings",
-                    icon: FaTachometerAlt,
-                    label: "Settings",
-                  },
-                ].map(({ href, icon: Icon, label }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center py-3 px-3 text-white hover:text-yellow-400 hover:bg-white/5 rounded-lg transition-colors duration-200"
-                  >
-                    <Icon className="w-4 h-4 mr-3" />
-                    <span className="text-sm">{label}</span>
-                  </Link>
-                ))}
                 <button
                   onClick={handleLogout}
                   className="flex items-center w-full py-3 px-3 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors duration-200"
