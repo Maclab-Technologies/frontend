@@ -6,17 +6,17 @@ import { useDispatch } from "react-redux";
 import { clearCart } from "../../../utils/Redux/CartSlice";
 import { get, post } from "@/app/_hooks/fetch-hook";
 import { toast } from "react-toastify";
-import { 
-  ArrowLeft, 
-  CreditCard, 
-  MapPin, 
-  User, 
-  Mail, 
-  Phone, 
+import {
+  ArrowLeft,
+  CreditCard,
+  MapPin,
+  User,
+  Mail,
+  Phone,
   Loader2,
   AlertCircle,
   CheckCircle2,
-  ShoppingBag
+  ShoppingBag,
 } from "lucide-react";
 
 const Checkout = () => {
@@ -39,7 +39,8 @@ const Checkout = () => {
   const [orderError, setOrderError] = useState("");
   const [hasMounted, setHasMounted] = useState(false);
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("userToken") : null;
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("userToken") : null;
 
   useEffect(() => {
     setHasMounted(true);
@@ -95,16 +96,16 @@ const Checkout = () => {
   const handlePhoneChange = (e) => {
     const value = e.target.value;
     // Remove ALL non-numeric characters including spaces
-    const numericValue = value.replace(/\D/g, '');
+    const numericValue = value.replace(/\D/g, "");
     setPhone(numericValue);
   };
 
   // Prevent any formatting on paste
   const handlePhonePaste = (e) => {
     e.preventDefault();
-    const pastedText = e.clipboardData.getData('text');
+    const pastedText = e.clipboardData.getData("text");
     // Remove all non-numeric characters from pasted content
-    const numericValue = pastedText.replace(/\D/g, '');
+    const numericValue = pastedText.replace(/\D/g, "");
     setPhone(numericValue);
   };
 
@@ -120,7 +121,9 @@ const Checkout = () => {
       return false;
     }
 
-    if (!/^\d+$/.test(phone) || phone.length < 10) {
+    phone.replace(/\D/g, "")
+
+    if (phone.length < 10) {
       setError("Please enter a valid phone number (minimum 10 digits)");
       return false;
     }
@@ -158,7 +161,7 @@ const Checkout = () => {
       const data = response.data;
 
       if (data.success) {
-        toast.success('Payment successful!');
+        toast.success("Payment successful!");
         dispatch(clearCart());
         window.location.href = `/payment-success/${orderId}?reference=${reference}`;
       }
@@ -173,7 +176,8 @@ const Checkout = () => {
   };
 
   const handlePaystackPayment = async () => {
-    if (!hasMounted || !validateInput() || isProcessing || !orderDetails) return;
+    if (!hasMounted || !validateInput() || isProcessing || !orderDetails)
+      return;
 
     const handler = window.PaystackPop?.setup({
       key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
@@ -196,11 +200,43 @@ const Checkout = () => {
   };
 
   const nigerianStates = [
-    "Abia", "Adamawa", "Akwa Ibom", "Anambra", "Bauchi", "Bayelsa", "Benue", "Borno", 
-    "Cross River", "Delta", "Ebonyi", "Edo", "Ekiti", "Enugu", "FCT", "Gombe", "Imo", 
-    "Jigawa", "Kaduna", "Kano", "Katsina", "Kebbi", "Kogi", "Kwara", "Lagos", "Nasarawa", 
-    "Niger", "Ogun", "Ondo", "Osun", "Oyo", "Plateau", "Rivers", "Sokoto", "Taraba", 
-    "Yobe", "Zamfara"
+    "Abia",
+    "Adamawa",
+    "Akwa Ibom",
+    "Anambra",
+    "Bauchi",
+    "Bayelsa",
+    "Benue",
+    "Borno",
+    "Cross River",
+    "Delta",
+    "Ebonyi",
+    "Edo",
+    "Ekiti",
+    "Enugu",
+    "FCT",
+    "Gombe",
+    "Imo",
+    "Jigawa",
+    "Kaduna",
+    "Kano",
+    "Katsina",
+    "Kebbi",
+    "Kogi",
+    "Kwara",
+    "Lagos",
+    "Nasarawa",
+    "Niger",
+    "Ogun",
+    "Ondo",
+    "Osun",
+    "Oyo",
+    "Plateau",
+    "Rivers",
+    "Sokoto",
+    "Taraba",
+    "Yobe",
+    "Zamfara",
   ];
 
   if (!hasMounted) {
@@ -208,7 +244,9 @@ const Checkout = () => {
       <div className="min-h-screen bg-yellow-400 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl p-8 shadow-lg w-full max-w-md text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-4 border-yellow-400 border-t-transparent mx-auto mb-4"></div>
-          <p className="text-gray-700 text-lg font-medium">Loading checkout...</p>
+          <p className="text-gray-700 text-lg font-medium">
+            Loading checkout...
+          </p>
         </div>
       </div>
     );
@@ -219,7 +257,9 @@ const Checkout = () => {
       <div className="min-h-screen bg-yellow-400 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl p-8 shadow-lg w-full max-w-md text-center">
           <Loader2 className="h-12 w-12 animate-spin text-yellow-400 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Loading Order Details</h1>
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">
+            Loading Order Details
+          </h1>
           <p className="text-gray-600">Preparing your checkout experience...</p>
         </div>
       </div>
@@ -231,7 +271,9 @@ const Checkout = () => {
       <div className="min-h-screen bg-yellow-400 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl p-8 shadow-lg w-full max-w-md text-center">
           <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Order Not Found</h1>
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">
+            Order Not Found
+          </h1>
           <p className="text-gray-600 mb-6">{orderError}</p>
           <button
             onClick={() => router.back()}
@@ -256,12 +298,14 @@ const Checkout = () => {
             <ArrowLeft className="h-5 w-5" />
             <span className="font-medium">Back</span>
           </button>
-          
+
           <div className="text-center">
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Checkout</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
+              Checkout
+            </h1>
             <p className="text-gray-700 mt-1">Complete your purchase</p>
           </div>
-          
+
           <div className="w-20"></div>
         </div>
 
@@ -272,7 +316,10 @@ const Checkout = () => {
               {/* Order ID */}
               <div className="bg-yellow-50 rounded-xl p-4 mb-6 text-center border border-yellow-200">
                 <p className="text-sm text-gray-700">
-                  Order ID: <span className="text-yellow-600 font-mono font-bold">{orderId}</span>
+                  Order ID:{" "}
+                  <span className="text-yellow-600 font-mono font-bold">
+                    {orderId}
+                  </span>
                 </p>
               </div>
 
@@ -300,7 +347,7 @@ const Checkout = () => {
                       className="w-full pl-12 pr-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all"
                     />
                   </div>
-                  
+
                   <div className="relative">
                     <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <input
@@ -331,7 +378,7 @@ const Checkout = () => {
                       className="w-full pl-12 pr-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all"
                     />
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="relative">
                       <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -343,7 +390,7 @@ const Checkout = () => {
                         className="w-full pl-12 pr-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all"
                       />
                     </div>
-                    
+
                     <div className="relative">
                       <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                       <select
@@ -351,16 +398,22 @@ const Checkout = () => {
                         onChange={(e) => setState(e.target.value)}
                         className="w-full pl-12 pr-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all appearance-none"
                       >
-                        <option value="" className="text-gray-500">Select State</option>
+                        <option value="" className="text-gray-500">
+                          Select State
+                        </option>
                         {nigerianStates.map((stateOption) => (
-                          <option key={stateOption} value={stateOption} className="text-gray-800">
+                          <option
+                            key={stateOption}
+                            value={stateOption}
+                            className="text-gray-800"
+                          >
                             {stateOption}
                           </option>
                         ))}
                       </select>
                     </div>
                   </div>
-                  
+
                   <div className="relative">
                     <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <input
@@ -399,16 +452,24 @@ const Checkout = () => {
               {/* Order Items */}
               <div className="space-y-3 mb-6 max-h-60 overflow-y-auto">
                 {orderDetails?.items?.map((item, index) => (
-                  <div key={index} className="flex items-center gap-3 bg-gray-50 rounded-xl p-3 border border-gray-200">
+                  <div
+                    key={index}
+                    className="flex items-center gap-3 bg-gray-50 rounded-xl p-3 border border-gray-200"
+                  >
                     <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                      <span className="text-yellow-700 text-xs font-bold">x{item.quantity}</span>
+                      <span className="text-yellow-700 text-xs font-bold">
+                        x{item.quantity}
+                      </span>
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-gray-800 font-medium text-sm truncate">
                         {item.productId?.name || "Product"}
                       </p>
                       <p className="text-yellow-600 text-sm font-bold">
-                        ₦{(item.productId?.discountPrice * item.quantity).toLocaleString()}
+                        ₦
+                        {(
+                          item.productId?.discountPrice * item.quantity
+                        ).toLocaleString()}
                       </p>
                     </div>
                   </div>
@@ -427,7 +488,9 @@ const Checkout = () => {
                 </div>
                 <div className="flex justify-between items-center text-lg font-bold text-gray-900 mt-4 pt-4 border-t border-gray-200">
                   <span>Total</span>
-                  <span className="text-yellow-600">₦{orderDetails?.total?.toLocaleString() || 0}</span>
+                  <span className="text-yellow-600">
+                    ₦{orderDetails?.total?.toLocaleString() || 0}
+                  </span>
                 </div>
               </div>
 
