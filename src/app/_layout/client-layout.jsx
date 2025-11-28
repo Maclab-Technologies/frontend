@@ -87,7 +87,7 @@ const ClientNavLayout = () => {
     if (isLoggedIn) {
       return [
         ...USER_DASHBOARD_LINKS,
-        { label: "Profile", href: "/profile", icon: FaUser },
+        // { label: "Profile", href: "/profile", icon: FaUser },
       ];
     } else {
       return [
@@ -311,11 +311,11 @@ const ClientNavLayout = () => {
                         </div>
                         <div className="py-2">
                           {[
-                            {
-                              href: "/profile",
-                              icon: FaUser,
-                              label: "Profile",
-                            },
+                            // {
+                            //   href: "/profile",
+                            //   icon: FaUser,
+                            //   label: "Profile",
+                            // },
                             {
                               href: "/dashboard",
                               icon: FaTachometerAlt,
@@ -532,7 +532,7 @@ const ClientNavLayout = () => {
               <div className="space-y-2">
                 {/* Additional user-specific links in mobile */}
                 {[
-                  { href: "/profile", icon: FaUser, label: "Profile" },
+                  // { href: "/profile", icon: FaUser, label: "Profile" },
                   {
                     href: "/settings",
                     icon: FaTachometerAlt,
