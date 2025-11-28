@@ -32,7 +32,6 @@ export default function ClientDashboard() {
       }
       try {
         const { success, data } = await dashboardStats(token);
-        console.log(data)
         if (success) {
           setStats(data.orders);
         }

@@ -199,24 +199,11 @@ const Register = () => {
       provider.addScope("email");
       provider.addScope("profile"); // This gives access to name, picture, etc.
 
-      // await setPersistence(
-      //   auth,
-      //   rememberMe ? browserLocalPersistence : browserSessionPersistence
-      // );
-
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
       // Get the ID token which contains user info
       const idToken = await user.getIdToken();
-
-      // The user object already contains the info you need
-      console.log("User details:", {
-        displayName: user.displayName,
-        email: user.email,
-        photoURL: user.photoURL,
-        uid: user.uid,
-      });
 
       // If you need these details in your backend, you can:
       // Option 1: Send the ID token (contains claims) to your backend

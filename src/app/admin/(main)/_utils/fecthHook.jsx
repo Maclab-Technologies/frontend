@@ -23,7 +23,6 @@ export function useFetch(url) {
     try {
       const response = await get(url, { token: secret });
 
-      console.log("response:", response);
       if (
         response.success &&
         (Array.isArray(response.data.data) ||
@@ -45,8 +44,8 @@ export function useFetch(url) {
     fetchData();
   }, [fetchData]);
   
-  console.log("useFetch data:", data);
-  console.log("useFetch error:", error);
+  // console.log("useFetch data:", data);
+  // console.log("useFetch error:", error);
 
   return { data, loading, error, refetch: fetchData };
 }

@@ -23,8 +23,6 @@ export default function CategoriesPage() {
     try {
       const response = await get("/categories");
 
-      console.log('API Response:', response);
-
       if (!response.success) {
         const errorText = response.data?.message || 'Unknown error';
         throw new Error(`Failed to fetch categories: ${errorText}`);
@@ -45,7 +43,6 @@ export default function CategoriesPage() {
         categoriesData = [];
       }
 
-      console.log('Extracted categories:', categoriesData);
       setCategories(categoriesData);
 
     } catch (error) {

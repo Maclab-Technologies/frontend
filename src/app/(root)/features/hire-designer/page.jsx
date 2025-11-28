@@ -965,9 +965,6 @@ export default function HireDesigner() {
 
     try {
       // In a real application, you'd send this data to your API
-      console.log("Submitting design request:", formData);
-      console.log("Design samples:", designSamples);
-
       // Store in localStorage
       const dataToSave = {
         ...formData,
