@@ -38,11 +38,6 @@ export default function Home() {
     <div className="bg-black text-white min-h-screen">
       <Carousel />
 
-      {/* Hero Section */}
-      {/* <section>
-        <Hero />
-      </section> */}
-
       {/* What We Offer Section */}
       <section>
         <WhatWeOffer />
