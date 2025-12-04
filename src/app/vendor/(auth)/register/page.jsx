@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
-import { EyeIcon, EyeOffIcon, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { EyeIcon, EyeOffIcon, CheckCircle, XCircle, AlertCircle, Home, User } from "lucide-react";
 import { VendorAuthContext } from "../../_provider/useVendorProvider";
 
 export default function VendorRegister() {
@@ -246,9 +246,27 @@ export default function VendorRegister() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-yellow-100 flex items-center justify-center p-4">
+    <div className="min-h-screen  flex items-center justify-center p-4">
+      {/* Top Navigation Buttons - Fixed Position */}
+      <div className="fixed top-4 left-4 right-4 z-10 flex justify-between">
+        <button
+          onClick={() => router.push("/")}
+          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-semibold rounded-lg hover:from-yellow-400 hover:to-yellow-500 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-yellow-500/25"
+        >
+          <Home className="w-4 h-4" />
+          Go back Home
+        </button>
+        
+        <button
+          onClick={() => router.push("/register")}
+          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-black to-gray-800 text-white font-semibold rounded-lg hover:from-gray-800 hover:to-black transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-gray-900/25"
+        >
+          <User className="w-4 h-4" />
+          Become a Customer
+        </button>
+      </div>
 
-      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden border-t-4 border-t-yellow-400">
+      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden border-t-4 border-t-yellow-400 mt-12">
         <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-8 text-center">
           <h1 className="text-4xl font-bold text-black mb-2">Join 59Minutes</h1>
           <p className="text-black/80 text-lg">
@@ -601,8 +619,9 @@ export default function VendorRegister() {
             </button>
           </form>
 
+          {/* Bottom Links */}
           <div className="mt-8 text-center border-t border-gray-200 pt-6">
-            <p className="text-gray-700">
+            <p className="text-gray-700 mb-4">
               Already have a vendor account?{" "}
               <Link
                 href="/vendor/login"
@@ -611,6 +630,27 @@ export default function VendorRegister() {
                 Sign in to your dashboard
               </Link>
             </p>
+            
+            {/* Additional Navigation Options */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mt-4">
+              <button
+                onClick={() => router.push("/")}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 text-gray-700 hover:text-black hover:bg-gray-100 rounded-lg transition-colors duration-200"
+              >
+                <Home className="w-4 h-4" />
+                Return to Homepage
+              </button>
+              
+              <button
+                onClick={() => router.push("/products")}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 text-gray-700 hover:text-black hover:bg-gray-100 rounded-lg transition-colors duration-200"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                Browse Products as Customer
+              </button>
+            </div>
           </div>
         </div>
       </div>
