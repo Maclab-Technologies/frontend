@@ -2,7 +2,56 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 
 const Carousel = () => {
-  // Enhanced banner data with fallback images
+  // ==============================
+  // BANNERS CONFIGURATION
+  // ==============================
+  
+  // 🎄 CHRISTMAS BANNERS (ACTIVE FROM DEC 1 - DEC 30, 2025)
+  // Comment out this section after Christmas to return to original banners
+  const banners = useMemo(() => [
+    {
+      id: 1,
+      desktopImage: '/images/christmas-discount.png', // Your Christmas banner image
+      mobileImage: '/images/christmas-discount.png',
+      title: 'Christmas Print Deals Are Here!',
+      subtitle: 'Get up to 20% off on all Christmas printing. Limited time offers!',
+      ctaLink: '/christmas-discount',
+      ctaText: 'Claim Christmas Offer',
+      gradient: 'from-red-900/80 via-green-900/60 to-transparent',
+      badge: 'CHRISTMAS SPECIAL',
+      themeColor: 'from-yellow-500 to-amber-500'
+    },
+    {
+      id: 2,
+      desktopImage: '/images/christmas-voucher.png', // Your Christmas banner image
+      mobileImage: '/images/christmas-voucher.png',
+      title: '₦20,000 Voucher Giveaway',
+      subtitle: 'Enter to win ₦20,000 for your Christmas printing needs',
+      ctaLink: '/christmas-voucher',
+      ctaText: 'Enter Giveaway',
+      gradient: 'from-blue-900/80 via-purple-900/60 to-transparent',
+      badge: 'GIVEAWAY',
+      themeColor: 'from-blue-500 to-cyan-500'
+    },
+    {
+      id: 3,
+      desktopImage: '/images/christmas-combo.png', // Your Christmas banner image
+      mobileImage: '/images/christmas-combo.png',
+      title: 'Christmas Combo Deals',
+      subtitle: 'Massive savings on bundled packages for events & businesses',
+      ctaLink: '/christmas-combo',
+      ctaText: 'View Combos',
+      gradient: 'from-green-900/80 via-emerald-900/60 to-transparent',
+      badge: 'COMBO DEALS',
+      themeColor: 'from-green-500 to-emerald-500'
+    },
+  ], []);
+
+  // ==============================
+  // ORIGINAL BANNERS (COMMENTED OUT DURING CHRISTMAS)
+  // Uncomment this section after Christmas to return to original banners
+  // ==============================
+  /*
   const banners = useMemo(() => [
     {
       id: 1,
@@ -21,7 +70,7 @@ const Carousel = () => {
       mobileImage: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=500&fit=crop&auto=format',
       title: 'Business Cards & Brochures',
       subtitle: 'Make a lasting impression with our premium finishes',
-      ctaLink: '/categories/cusiness-Cards',
+      ctaLink: '/categories/business-cards',
       ctaText: 'Explore Options',
       gradient: 'from-emerald-900/80 via-teal-900/60 to-transparent',
       badge: 'POPULAR'
@@ -38,7 +87,11 @@ const Carousel = () => {
       badge: 'OFFER'
     },
   ], []);
+  */
 
+  // ==============================
+  // CAROUSEL STATE & LOGIC
+  // ==============================
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
@@ -170,6 +223,9 @@ const Carousel = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [currentSlide]);
 
+  // ==============================
+  // RENDER
+  // ==============================
   return (
     <section 
       className="relative w-full overflow-hidden bg-gray-900 shadow-2xl"
@@ -208,6 +264,11 @@ const Carousel = () => {
                   alt={banner.title}
                   className="w-full h-full object-cover transition-transform duration-[10s] ease-out transform hover:scale-110"
                   loading={index === 0 ? "eager" : "lazy"}
+                  // Fallback for missing images
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = 'https://images.unsplash.com/photo-1579273166152-d725a4e2b755?w=1200&h=600&fit=crop&auto=format';
+                  }}
                 />
                 
                 {/* Gradient overlay */}
@@ -216,12 +277,15 @@ const Carousel = () => {
                 {/* Additional dark overlay for better text readability */}
                 <div className="absolute inset-0 bg-black/30"></div>
                 
-                {/* Animated geometric patterns */}
-                <div className="absolute inset-0 opacity-10">
-                  <div className="absolute top-10 right-10 w-32 h-32 border-2 border-white rounded-full animate-pulse"></div>
-                  <div className="absolute bottom-20 left-16 w-24 h-24 border border-white rotate-45 animate-bounce" style={{animationDelay: '1s'}}></div>
-                  <div className="absolute top-1/3 right-1/4 w-16 h-16 bg-white/20 rounded-full animate-ping" style={{animationDelay: '2s'}}></div>
-                </div>
+                {/* Christmas Animated Elements (only for Christmas banners) */}
+                {banner.badge.includes('CHRISTMAS') && (
+                  <div className="absolute inset-0 opacity-10">
+                    {/* Floating Christmas elements */}
+                    <div className="absolute top-10 right-10 w-32 h-32 text-4xl animate-pulse">🎄</div>
+                    <div className="absolute bottom-20 left-16 w-24 h-24 text-3xl animate-bounce" style={{animationDelay: '1s'}}>🎁</div>
+                    <div className="absolute top-1/3 right-1/4 w-16 h-16 text-2xl animate-ping" style={{animationDelay: '2s'}}>✨</div>
+                  </div>
+                )}
               </div>
               
               {/* Content overlay */}
@@ -229,20 +293,20 @@ const Carousel = () => {
                 <div className="container mx-auto px-6 md:px-12">
                   <div className="max-w-2xl">
                     {/* Badge */}
-                    <div className="inline-flex items-center px-4 py-2 bg-yellow-500/90 backdrop-blur-sm text-black font-bold text-sm rounded-full mb-6 shadow-lg">
+                    <div className={`inline-flex items-center px-4 py-2 ${banner.themeColor ? `bg-gradient-to-r ${banner.themeColor}` : 'bg-yellow-500/90'} backdrop-blur-sm text-black font-bold text-sm rounded-full mb-6 shadow-lg`}>
                       <span className="w-2 h-2 bg-black rounded-full mr-2 animate-pulse"></span>
                       {banner.badge}
                     </div>
                     
                     {/* Title with animation */}
-                    <h1 className={`text-4xl md:text-6xl font-bold text-white mb-4 md:mb-6 leading-tight transition-all duration-1000 ${
+                    <h1 className={`text-3xl md:text-5xl font-bold text-white mb-4 md:mb-6 leading-tight transition-all duration-1000 ${
                       isActive ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
                     }`}>
                       {banner.title}
                     </h1>
                     
                     {/* Subtitle with staggered animation */}
-                    <p className={`text-xl md:text-2xl text-gray-200 mb-6 md:mb-10 leading-relaxed transition-all duration-1000 delay-200 ${
+                    <p className={`text-lg md:text-xl text-gray-200 mb-6 md:mb-10 leading-relaxed transition-all duration-1000 delay-200 ${
                       isActive ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
                     }`}>
                       {banner.subtitle}
@@ -254,7 +318,7 @@ const Carousel = () => {
                     }`}>
                       <a 
                         href={banner.ctaLink} 
-                        className="group inline-flex items-center px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-bold text-lg rounded-full transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-yellow-500/50"
+                        className={`group inline-flex items-center px-8 py-4 ${banner.themeColor ? `bg-gradient-to-r ${banner.themeColor}` : 'bg-gradient-to-r from-yellow-500 to-orange-500'} hover:opacity-90 text-black font-bold text-lg rounded-full transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-yellow-500/50`}
                       >
                         <span>{banner.ctaText}</span>
                         <svg className="w-5 h-5 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -293,7 +357,7 @@ const Carousel = () => {
       
       {/* Enhanced indicator dots with progress */}
       <div className="absolute bottom-6 left-0 right-0 z-40 flex justify-center items-center gap-3">
-        {banners.map((_, index) => (
+        {banners.map((banner, index) => (
           <button
             key={index}
             onClick={() => goToSlide(index)}
@@ -307,7 +371,7 @@ const Carousel = () => {
             {/* Base dot */}
             <div className={`w-full h-full rounded-full transition-all duration-300 ${
               index === currentSlide 
-                ? 'bg-gradient-to-r from-yellow-500 to-orange-500' 
+                ? `bg-gradient-to-r ${banner.themeColor || 'from-yellow-500 to-orange-500'}` 
                 : 'bg-white/50 group-hover:bg-white/75'
             }`}></div>
             
