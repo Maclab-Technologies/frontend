@@ -17,6 +17,64 @@ import { toast } from "react-toastify";
 import debounce from "lodash.debounce";
 import "react-toastify/dist/ReactToastify.css";
 
+// Skeleton Loading Components
+const ProductCardSkeleton = () => (
+  <div className="bg-gray-800 rounded-xl overflow-hidden shadow-lg animate-pulse border border-gray-700">
+    {/* Image Skeleton */}
+    <div className="relative h-48 overflow-hidden bg-gray-700">
+      <div className="w-full h-full bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 animate-shimmer"></div>
+    </div>
+
+    {/* Content Skeleton */}
+    <div className="p-4">
+      {/* Category Skeleton */}
+      <div className="mb-3">
+        <div className="h-4 w-24 bg-gray-700 rounded-full"></div>
+      </div>
+
+      {/* Title Skeleton */}
+      <div className="mb-3">
+        <div className="h-5 w-3/4 bg-gray-700 rounded mb-2"></div>
+        <div className="h-5 w-1/2 bg-gray-700 rounded"></div>
+      </div>
+
+      {/* Price Skeleton */}
+      <div className="flex items-center gap-2 mb-4">
+        <div className="h-7 w-20 bg-gray-700 rounded"></div>
+        <div className="h-5 w-16 bg-gray-700 rounded"></div>
+      </div>
+
+      {/* Min Order Skeleton */}
+      <div className="h-3 w-32 bg-gray-700 rounded mb-4"></div>
+
+      {/* Button Skeletons */}
+      <div className="flex gap-2">
+        <div className="flex-1 h-12 bg-gradient-to-r from-gray-700 to-gray-600 rounded-lg"></div>
+        <div className="flex-1 h-12 bg-gray-700 rounded-lg"></div>
+      </div>
+    </div>
+  </div>
+);
+
+const FilterSkeleton = () => (
+  <div className="mt-4 p-4 bg-gray-700 rounded-md border border-gray-600 animate-pulse">
+    <div className="flex justify-between items-center mb-4">
+      <div className="h-5 w-32 bg-gray-600 rounded"></div>
+      <div className="h-4 w-20 bg-gray-600 rounded"></div>
+    </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <div className="h-4 w-24 bg-gray-600 rounded mb-2"></div>
+        <div className="h-10 w-full bg-gray-600 rounded"></div>
+      </div>
+      <div>
+        <div className="h-4 w-24 bg-gray-600 rounded mb-2"></div>
+        <div className="h-10 w-full bg-gray-600 rounded"></div>
+      </div>
+    </div>
+  </div>
+);
+
 // Utility function to validate product data
 const validateProduct = (product) => {
   if (!product) return null;
@@ -336,21 +394,52 @@ export default function ProductsPage() {
     debouncedSearch(e.target.value);
   };
 
-  if (loading && !isRefreshing)
+  // Skeleton loading for initial load
+  if (loading && !isRefreshing) {
     return (
       <div className="bg-gradient-to-b from-gray-900 to-black min-h-screen">
-        <div className="container mx-auto px-4 py-16">
-          <div className="flex justify-center items-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-yellow-500"></div>
+        {/* Header Skeleton */}
+        <header className="bg-gray-800 shadow-md py-4">
+          <div className="container mx-auto px-4">
+            <div className="flex justify-between items-center">
+              <div className="h-7 w-48 bg-gray-700 rounded animate-pulse"></div>
+              <div className="h-10 w-32 bg-gray-700 rounded animate-pulse"></div>
+            </div>
           </div>
-          <div className="text-center mt-4 text-yellow-500">
-            Loading products...
+        </header>
+
+        {/* Search and Filter Skeleton */}
+        <div className="bg-gray-800 border-t border-gray-700 py-4">
+          <div className="container mx-auto px-4">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-grow h-10 bg-gray-700 rounded animate-pulse"></div>
+              <div className="h-10 w-32 bg-gray-700 rounded animate-pulse"></div>
+              <div className="h-10 w-40 bg-gray-700 rounded animate-pulse"></div>
+            </div>
+            <FilterSkeleton />
+          </div>
+        </div>
+
+        {/* Results Count Skeleton */}
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex justify-between items-center mb-6">
+            <div className="h-6 w-48 bg-gray-700 rounded animate-pulse"></div>
+            <div className="h-6 w-32 bg-gray-700 rounded animate-pulse"></div>
+          </div>
+
+          {/* Product Grid Skeletons */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <ProductCardSkeleton key={index} />
+            ))}
           </div>
         </div>
       </div>
     );
+  }
 
-  if (error && products.length === 0)
+  // Error state
+  if (error && products.length === 0) {
     return (
       <div className="bg-gradient-to-b from-gray-900 to-black min-h-screen flex items-center justify-center">
         <div className="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full">
@@ -367,28 +456,11 @@ export default function ProductsPage() {
         </div>
       </div>
     );
+  }
 
-  if (error)
-    return (
-      <div className="bg-gradient-to-b from-gray-900 to-black min-h-screen flex items-center justify-center">
-        <div className="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full">
-          <h2 className="text-2xl font-bold text-red-400 mb-4">
-            Something went wrong
-          </h2>
-          <p className="text-white mb-6">{error}</p>
-          <button
-            onClick={refreshData}
-            className="bg-yellow-500 text-black px-4 py-3 rounded-md hover:bg-yellow-400 transition w-full flex items-center justify-center gap-2"
-          >
-            <FiRefreshCw /> Try Again
-          </button>
-        </div>
-      </div>
-    );
-
+  // Main content with skeleton loading for refreshing
   return (
     <div className="bg-gradient-to-b from-gray-900 to-black min-h-screen">
-
       {/* Header Section */}
       <header className="bg-gray-800 shadow-md py-4">
         <div className="container mx-auto px-4">
@@ -454,73 +526,79 @@ export default function ProductsPage() {
             </div>
           </div>
 
-          {/* Expanded Filters */}
+          {/* Expanded Filters - Show skeleton when refreshing */}
           {showFilters && (
-            <div className="mt-4 p-4 bg-gray-700 rounded-md border border-gray-600 animate-fadeIn">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="text-white font-medium">Filter Options</h3>
-                <button
-                  onClick={resetFilters}
-                  className="text-yellow-400 hover:text-yellow-300 text-sm flex items-center gap-1"
-                >
-                  <FiX /> Reset All
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Category Filter */}
-                <div>
-                  <label className="block text-gray-300 mb-2 text-sm">
-                    Category
-                  </label>
-                  <div className="relative">
-                    <select
-                      value={filters.category}
-                      onChange={(e) =>
-                        setFilters((prev) => ({
-                          ...prev,
-                          category: e.target.value,
-                        }))
-                      }
-                      className="appearance-none w-full px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-600 focus:outline-none focus:border-yellow-500"
+            <div className="mt-4 p-4 bg-gray-700 rounded-md border border-gray-600">
+              {isRefreshing ? (
+                <FilterSkeleton />
+              ) : (
+                <>
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="text-white font-medium">Filter Options</h3>
+                    <button
+                      onClick={resetFilters}
+                      className="text-yellow-400 hover:text-yellow-300 text-sm flex items-center gap-1"
                     >
-                      <option value="">All Categories</option>
-                      {categories &&
-                        categories.map((category) => (
-                          <option key={category} value={category}>
-                            {String(category)}
-                          </option>
-                        ))}
-                    </select>
-                    <FaTag className="absolute right-3 top-2.5 text-gray-400 pointer-events-none" />
+                      <FiX /> Reset All
+                    </button>
                   </div>
-                </div>
 
-                {/* Vendor Filter */}
-                <div>
-                  <label className="block text-gray-300 mb-2 text-sm">
-                    Vendor
-                  </label>
-                  <select
-                    value={filters.vendor}
-                    onChange={(e) =>
-                      setFilters((prev) => ({
-                        ...prev,
-                        vendor: e.target.value,
-                      }))
-                    }
-                    className="w-full px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-600 focus:outline-none focus:border-yellow-500"
-                  >
-                    <option value="">All Vendors</option>
-                    {vendors &&
-                      vendors.map((vendor) => (
-                        <option key={vendor} value={vendor}>
-                          {String(vendor)}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-              </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Category Filter */}
+                    <div>
+                      <label className="block text-gray-300 mb-2 text-sm">
+                        Category
+                      </label>
+                      <div className="relative">
+                        <select
+                          value={filters.category}
+                          onChange={(e) =>
+                            setFilters((prev) => ({
+                              ...prev,
+                              category: e.target.value,
+                            }))
+                          }
+                          className="appearance-none w-full px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-600 focus:outline-none focus:border-yellow-500"
+                        >
+                          <option value="">All Categories</option>
+                          {categories &&
+                            categories.map((category) => (
+                              <option key={category} value={category}>
+                                {String(category)}
+                              </option>
+                            ))}
+                        </select>
+                        <FaTag className="absolute right-3 top-2.5 text-gray-400 pointer-events-none" />
+                      </div>
+                    </div>
+
+                    {/* Vendor Filter */}
+                    <div>
+                      <label className="block text-gray-300 mb-2 text-sm">
+                        Vendor
+                      </label>
+                      <select
+                        value={filters.vendor}
+                        onChange={(e) =>
+                          setFilters((prev) => ({
+                            ...prev,
+                            vendor: e.target.value,
+                          }))
+                        }
+                        className="w-full px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-600 focus:outline-none focus:border-yellow-500"
+                      >
+                        <option value="">All Vendors</option>
+                        {vendors &&
+                          vendors.map((vendor) => (
+                            <option key={vendor} value={vendor}>
+                              {String(vendor)}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -561,7 +639,7 @@ export default function ProductsPage() {
           )}
         </div>
 
-        {/* Product Grid */}
+        {/* Product Grid with Skeleton Loading for Refresh */}
         {!Array.isArray(sortedProducts) || sortedProducts.length === 0 ? (
           <div className="bg-gray-800/50 rounded-lg p-8 text-center border border-gray-700">
             <h3 className="text-xl text-white mb-2">No products found</h3>
@@ -585,134 +663,139 @@ export default function ProductsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {sortedProducts.map((product) => {
-              if (!product) return null;
+            {/* Show skeletons when refreshing, otherwise show products */}
+            {isRefreshing
+              ? Array.from({ length: 8 }).map((_, index) => (
+                  <ProductCardSkeleton key={index} />
+                ))
+              : sortedProducts.map((product) => {
+                  if (!product) return null;
 
-              const productId = String(product.id);
-              const productName = String(product.name || "Unnamed Product");
-              const productCategory = String(
-                product.category || "Uncategorized"
-              );
-              const productMinOrder = Number(product.minOrder) || 0;
-              const productPrice = Number(product.price) || 0;
-              const productDiscountPrice = Number(product.discountPrice) || 0;
-              const productDiscountPercent = Number(product.discountPercent);
-              const isWishlisted = wishlist.has(productId);
+                  const productId = String(product.id);
+                  const productName = String(product.name || "Unnamed Product");
+                  const productCategory = String(
+                    product.category || "Uncategorized"
+                  );
+                  const productMinOrder = Number(product.minOrder) || 0;
+                  const productPrice = Number(product.price) || 0;
+                  const productDiscountPrice = Number(product.discountPrice) || 0;
+                  const productDiscountPercent = Number(product.discountPercent);
+                  const isWishlisted = wishlist.has(productId);
 
-              let mainImage = "/fallback-image.png";
-              if (
-                Array.isArray(product.images) &&
-                product.images.length > 0 &&
-                typeof product.images[0] === "string"
-              ) {
-                mainImage = product.images[0];
-              }
+                  let mainImage = "/fallback-image.png";
+                  if (
+                    Array.isArray(product.images) &&
+                    product.images.length > 0 &&
+                    typeof product.images[0] === "string"
+                  ) {
+                    mainImage = product.images[0];
+                  }
 
-              return (
-                <div
-                  key={productId}
-                  className="bg-gray-800 rounded-xl overflow-hidden shadow-2xl transition-all duration-300 hover:shadow-yellow-500/25 hover:translate-y-[-8px] group border border-gray-700"
-                >
-                  {/* Product Image with Overlay */}
-                  <div className="relative h-48 overflow-hidden bg-gray-900">
-                    <Image
-                      src={mainImage}
-                      alt={productName}
-                      fill
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-110"
-                      placeholder="blur"
-                      blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
-                    />
-                    
-                    {/* Discount Badge */}
-                    {productDiscountPercent > 0 && (
-                      <div className="absolute top-3 left-3 bg-yellow-500 text-black font-bold px-3 py-1 rounded-full text-sm shadow-lg">
-                        -{productDiscountPercent}% OFF
+                  return (
+                    <div
+                      key={productId}
+                      className="bg-gray-800 rounded-xl overflow-hidden shadow-2xl transition-all duration-300 hover:shadow-yellow-500/25 hover:translate-y-[-8px] group border border-gray-700"
+                    >
+                      {/* Product Image with Overlay */}
+                      <div className="relative h-48 overflow-hidden bg-gray-900">
+                        <Image
+                          src={mainImage}
+                          alt={productName}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          className="object-cover transition-transform duration-500 group-hover:scale-110"
+                          placeholder="blur"
+                          blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+                        />
+                        
+                        {/* Discount Badge */}
+                        {productDiscountPercent > 0 && (
+                          <div className="absolute top-3 left-3 bg-yellow-500 text-black font-bold px-3 py-1 rounded-full text-sm shadow-lg">
+                            -{productDiscountPercent}% OFF
+                          </div>
+                        )}
+
+                        {/* Action Buttons Overlay */}
+                        <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <button
+                            onClick={() => toggleWishlist(productId)}
+                            className={`p-2 rounded-full backdrop-blur-sm transition-all duration-300 ${
+                              isWishlisted 
+                                ? 'bg-red-500 text-white' 
+                                : 'bg-black/50 text-white hover:bg-black/70'
+                            }`}
+                          >
+                            <FiHeart className={`w-4 h-4 ${isWishlisted ? 'fill-current' : ''}`} />
+                          </button>
+                          <Link href={`/products/${productId}`}>
+                            <button className="p-2 rounded-full bg-black/50 text-white backdrop-blur-sm hover:bg-black/70 transition-all duration-300">
+                              <FiEye className="w-4 h-4" />
+                            </button>
+                          </Link>
+                        </div>
+
+                        {/* Vendor Tag */}
+                        <div className="absolute bottom-3 left-3">
+                          <span className="bg-black/70 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
+                            {product.vendor}
+                          </span>
+                        </div>
                       </div>
-                    )}
 
-                    {/* Action Buttons Overlay */}
-                    <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <button
-                        onClick={() => toggleWishlist(productId)}
-                        className={`p-2 rounded-full backdrop-blur-sm transition-all duration-300 ${
-                          isWishlisted 
-                            ? 'bg-red-500 text-white' 
-                            : 'bg-black/50 text-white hover:bg-black/70'
-                        }`}
-                      >
-                        <FiHeart className={`w-4 h-4 ${isWishlisted ? 'fill-current' : ''}`} />
-                      </button>
-                      <Link href={`/products/${productId}`}>
-                        <button className="p-2 rounded-full bg-black/50 text-white backdrop-blur-sm hover:bg-black/70 transition-all duration-300">
-                          <FiEye className="w-4 h-4" />
-                        </button>
-                      </Link>
+                      {/* Product Details */}
+                      <div className="p-4">
+                        {/* Category */}
+                        <div className="mb-2">
+                          <span className="text-yellow-400 text-xs font-medium uppercase tracking-wide">
+                            {productCategory}
+                          </span>
+                        </div>
+
+                        {/* Product Name */}
+                        <h3 className="text-lg font-bold text-white mb-2 line-clamp-2 leading-tight">
+                          {productName}
+                        </h3>
+
+                        {/* Price Section */}
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-xl font-bold text-yellow-400">
+                            ₦{productDiscountPrice?.toLocaleString()}
+                          </span>
+                          {productDiscountPrice < productPrice && (
+                            <span className="text-gray-400 text-sm line-through">
+                              ₦{productPrice.toLocaleString()}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Min Order */}
+                        <div className="text-xs text-gray-400 mb-4">
+                          Min. order: {productMinOrder} units
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-2">
+                          {/* Add to Cart Button */}
+                          <button
+                            onClick={() => handleAddToCart(product)}
+                            className="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-semibold py-3 px-4 rounded-lg hover:from-yellow-400 hover:to-yellow-500 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-yellow-500/25 flex items-center justify-center gap-2"
+                          >
+                            <FiShoppingCart className="w-5 h-5" />
+                            Add to Cart
+                          </button>
+
+                          {/* View Details Button */}
+                          <Link href={`/products/${productId}`} className="flex-1">
+                            <button className="w-full bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg hover:bg-gray-600 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] border border-gray-600 hover:border-gray-500 flex items-center justify-center gap-2">
+                              <FiEye className="w-5 h-5" />
+                              View
+                            </button>
+                          </Link>
+                        </div>
+                      </div>
                     </div>
-
-                    {/* Vendor Tag */}
-                    <div className="absolute bottom-3 left-3">
-                      <span className="bg-black/70 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
-                        {product.vendor}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Product Details */}
-                  <div className="p-4">
-                    {/* Category */}
-                    <div className="mb-2">
-                      <span className="text-yellow-400 text-xs font-medium uppercase tracking-wide">
-                        {productCategory}
-                      </span>
-                    </div>
-
-                    {/* Product Name */}
-                    <h3 className="text-lg font-bold text-white mb-2 line-clamp-2 leading-tight">
-                      {productName}
-                    </h3>
-
-                    {/* Price Section */}
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="text-xl font-bold text-yellow-400">
-                        ₦{productDiscountPrice?.toLocaleString()}
-                      </span>
-                      {productDiscountPrice < productPrice && (
-                        <span className="text-gray-400 text-sm line-through">
-                          ₦{productPrice.toLocaleString()}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Min Order */}
-                    <div className="text-xs text-gray-400 mb-4">
-                      Min. order: {productMinOrder} units
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-2">
-                      {/* Add to Cart Button */}
-                      <button
-                        onClick={() => handleAddToCart(product)}
-                        className="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-semibold py-3 px-4 rounded-lg hover:from-yellow-400 hover:to-yellow-500 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-yellow-500/25 flex items-center justify-center gap-2"
-                      >
-                        <FiShoppingCart className="w-5 h-5" />
-                        Add to Cart
-                      </button>
-
-                      {/* View Details Button */}
-                      <Link href={`/products/${productId}`} className="flex-1">
-                        <button className="w-full bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg hover:bg-gray-600 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] border border-gray-600 hover:border-gray-500 flex items-center justify-center gap-2">
-                          <FiEye className="w-5 h-5" />
-                          View
-                        </button>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+                  );
+                })}
           </div>
         )}
       </div>
