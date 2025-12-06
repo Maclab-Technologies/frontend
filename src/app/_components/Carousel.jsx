@@ -302,7 +302,7 @@ const Carousel = () => {
                 <img
                   src={isMobile ? banner.mobileImage : banner.desktopImage}
                   alt={banner.title}
-                  className="w-full h-full object-cover transition-transform duration-[10s] ease-out transform hover:scale-110"
+                  className="w-full h-full object-contain bg-black" // CHANGED: object-contain instead of object-cover, added bg-black
                   loading={index === 0 ? "eager" : "lazy"}
                   decoding="async"
                   // Fallback for missing images
@@ -313,11 +313,11 @@ const Carousel = () => {
                   }}
                 />
                 
-                {/* Gradient overlay */}
+                {/* Gradient overlay - Made stronger to ensure text readability */}
                 <div className={`absolute inset-0 bg-gradient-to-r ${banner.gradient}`}></div>
                 
-                {/* Additional dark overlay for better text readability */}
-                <div className="absolute inset-0 bg-black/30"></div>
+                {/* Additional dark overlay for better text readability - Made stronger */}
+                <div className="absolute inset-0 bg-black/40"></div>
                 
                 {/* Christmas Animated Elements (only for Christmas banners) */}
                 {isChristmasBanner(banner.badge) && (
