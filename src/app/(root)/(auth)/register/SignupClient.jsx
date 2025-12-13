@@ -17,7 +17,8 @@ import "react-toastify/dist/ReactToastify.css";
 import { AuthContext } from "@/app/(root)/_provider/useClientProvider";
 import { post } from "@/app/_hooks/fetch-hook";
 
-const Register = () => {
+const Register = ({promoCode}) => {
+  console.log("Promo Code in SignupClient:", promoCode);
   const router = useRouter();
   const { setIsLoggedIn, setAuthUser, setRole } = useContext(AuthContext);
 
@@ -163,7 +164,7 @@ const Register = () => {
 
     try {
       const response = await post(
-        `/auth/users/signup?promoCode=${}`,
+        `/auth/users/signup?promoCode=${promoCode}`,
         {
           email: formData.email,
           password: formData.password,

@@ -6,6 +6,7 @@ export const metadata = {
     description: 'Create your account to start printing with 59Minutes Print. Fast, reliable, and high-quality printing services at your fingertips.',
 }
 
-export default function RegisterPage() {
-    return <SignupClient />
+export default async function  RegisterPage({searchParams}) {
+    const { promoCode  } = await searchParams
+    return <SignupClient promoCode={promoCode} />
 }
