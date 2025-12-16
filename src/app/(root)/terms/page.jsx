@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import logo from "../../../../public/images/brandimage.jpeg";
 
 const TermsAndConditions = () => {
   const [activeSection, setActiveSection] = useState("terms");
@@ -27,7 +26,7 @@ const TermsAndConditions = () => {
             <div className="flex flex-col items-center space-y-4">
               <div className="relative">
                 <Image
-                  src={logo}
+                  src='/images/brandimage.jpeg'
                   alt="59 Minutes Print Logo"
                   width={100}
                   height={100}

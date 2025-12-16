@@ -3,7 +3,6 @@
 import { useState, useCallback, useContext } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import logo from "/public/images/brandimage.jpeg";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import {
   createUserWithEmailAndPassword,
@@ -464,7 +463,7 @@ const Register = ({promoCode}) => {
       {/* Right Section: Brand Image */}
       <div className="hidden w-full md:flex md:w-1/2 bg-[#726002] items-center justify-center p-4">
         <Image
-          src={logo}
+          src='/images/brandimage.jpeg'
           alt="59MinutesPrint Logo"
           className="w-full max-w-md rounded-lg shadow-xl"
           priority

@@ -28,7 +28,6 @@ import {
   FaQuestionCircle,
   FaMoneyBillWave,
 } from "react-icons/fa";
-import logo from "../../../public/images/brandimage.jpeg";
 import { usePathname } from "next/navigation";
 
 // Public navigation links for non-authenticated users
@@ -200,7 +199,7 @@ const ClientNavLayout = () => {
             >
               <div className="relative">
                 <Image
-                  src={logo}
+                  src='./images/brandimage.jpeg'
                   alt="59Minutes Prints"
                   width={40}
                   height={40}

@@ -1,3 +1,5 @@
+"use client"
+
 import { motion } from "framer-motion";
 import { FaPaintBrush, FaFileUpload, FaShoppingCart, FaPrint } from "react-icons/fa";
 import { useState, useRef, useEffect } from "react";

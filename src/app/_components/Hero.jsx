@@ -2,7 +2,6 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import brandguy from "../../../public/images/brandguy.png";
 
 const Hero = () => {
   const router = useRouter();
@@ -17,7 +16,7 @@ const Hero = () => {
         transition={{ duration: 0.8, ease: "easeOut" }}
       >
         <Image
-          src={brandguy}
+          src='/images/brandimage.jpeg'
           alt="Delivery Person"
           className="max-w-sm w-full rounded-lg"
           priority
