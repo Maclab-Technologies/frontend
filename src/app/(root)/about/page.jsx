@@ -1,5 +1,4 @@
 import Image from "next/image";
-import logo59 from "/public/images/brandimage.jpeg";
 const About = () => {
   return (
     <div className="bg-black min-h-screen">
@@ -18,7 +17,7 @@ const About = () => {
             </p>
             <div className="md:w-1/2 flex justify-center">
               <Image
-                src={logo59}
+                src='/images/brandimage.jpeg'
                 alt="59 Minutes Print Logo"
                 width={150}
                 height={150}
@@ -31,7 +30,7 @@ const About = () => {
           <div className="flex flex-col md:flex-row items-center md:space-x-6">
             <div className="md:w-1/2 flex justify-center">
               <Image
-                src={logo59}
+                src='/images/brandimage.jpeg'
                 alt="59 Minutes Print Logo"
                 width={150}
                 height={150}
@@ -50,7 +49,7 @@ const About = () => {
             </p>
             <div className="md:w-1/2 flex justify-center">
               <Image
-                src={logo59}
+                src='/images/brandimage.jpeg'
                 alt="59 Minutes Print Logo"
                 width={150}
                 height={150}

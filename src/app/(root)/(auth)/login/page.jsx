@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useContext } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import logo from "/public/images/brandimage.jpeg";
 import {
   FaEye,
   FaEyeSlash,
@@ -243,7 +242,7 @@ const Login = () => {
       <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-yellow-600 to-yellow-700 items-center justify-center p-8">
         <div className="relative w-full h-full max-w-md">
           <Image
-            src={logo}
+            src='/images/brandimage.jpeg'
             alt="59MinutesPrint Logo"
             fill
             className="object-contain rounded-2xl shadow-2xl"

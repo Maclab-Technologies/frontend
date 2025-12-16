@@ -2,10 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import logo from "../../../public/images/brandimage.jpeg";
-import paystacklogo from "../../../public/images/Paystack_Logo.png";
-import Flutterwavelogo from "../../../public/images/Flutterwave_Logo.png";
-import GIGlogo from "../../../public/images/GIG_Logistics_logo.png";
 import { FaFacebookF, FaInstagram, FaTwitter, FaEnvelope } from "react-icons/fa";
 
 const Footer = () => {
@@ -17,7 +13,7 @@ const Footer = () => {
         {/* Logo and Copyright */}
         <div>
           <Image
-            src={logo}
+            src='/images/brandimage.jpeg'
             alt="59 Minutes Print Logo"
             width={96}
             height={96}
@@ -130,7 +126,7 @@ const Footer = () => {
               <div className="flex space-x-4">
                 <div className="p-2 bg-gray-800 rounded-lg inline-block">
                   <Image
-                    src={paystacklogo}
+                    src='/images/Paystack_Logo.png'
                     alt="Paystack Payment Logo"
                     width={100}
                     height={50}
@@ -139,7 +135,7 @@ const Footer = () => {
                 </div>
                 <div className="p-2 bg-gray-800 rounded-lg inline-block">
                   <Image
-                    src={Flutterwavelogo}
+                    src='/images/Flutterwave_Logo.png'
                     alt="Flutterwave Payment Logo"
                     width={100}
                     height={50}
@@ -153,7 +149,7 @@ const Footer = () => {
               <h4 className="font-bold uppercase mb-2 text-center md:text-left">Delivery</h4>
               <div className="p-2 rounded-lg inline-block">
                 <Image
-                  src={GIGlogo}
+                  src='/images/GIG_Logistics_logo.png'
                   alt="GIG Logistics"
                   width={100}
                   height={50}

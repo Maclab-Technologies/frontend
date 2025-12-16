@@ -3,10 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import emailjs from "emailjs-com";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import logo from "../../../../public/images/brandimage.jpeg";
+import emailjs from "@emailjs/browser";
+
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
@@ -162,7 +162,7 @@ const ContactPage = () => {
               <div className="flex flex-col items-center space-y-4">
                 <div className="relative">
                   <Image
-                    src={logo}
+                    src='/images/brandimage.jpeg'
                     alt="59 Minutes Print Logo"
                     width={120}
                     height={120}

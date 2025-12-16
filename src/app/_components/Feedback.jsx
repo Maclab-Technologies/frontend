@@ -1,8 +1,9 @@
+"use client"
+
 import { useState } from "react";
-import emailjs from "emailjs-com";
+import emailjs from "@emailjs/browser";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 const Feedback = () => {
   const [formData, setFormData] = useState({
