@@ -13,7 +13,7 @@ import { useRouter } from "next/navigation";
 import { FiTrash, FiShoppingCart } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { AuthContext } from "@/app/(root)/_provider/useClientProvider";
-import { post } from "@/app/_hooks/fetch-hook";
+import { get, post } from "@/app/_hooks/fetch-hook";
 
 export default function Cart() {
   const cartItems = useSelector((state) => state.cart.cartItems || []);
@@ -91,6 +91,26 @@ export default function Cart() {
       }
 
       setIsProcessingCheckout(true);
+      let promoId;
+      let pd;
+
+      const res = await get(`/promos/status/my-promos`, {
+        token,
+      });
+      const promo = res.data?.data;
+
+      console.log(promo)
+      if (res.success) {
+        pd = promo[0]?.promo?.discountValue;
+        promoId = promo[0]?.promo?._id;
+      }
+
+      const initTotalAmount = cartItems.reduce(
+        (acc, item) => acc + (item.discountPrice || item.price) * item.quantity,
+        0
+      );
+
+      console.log({promoId, pd})
 
       const orderData = {
         items: cartItems.map((item) => ({
@@ -105,11 +125,10 @@ export default function Cart() {
             ?.map((img) => (typeof img === "string" ? img : img.preview))
             .filter(Boolean),
         })),
-        totalAmount: cartItems.reduce(
-          (acc, item) =>
-            acc + (item.discountPrice || item.price) * item.quantity,
-          0
-        ),
+        totalAmount: pd
+          ? initTotalAmount - (initTotalAmount * pd) / 100
+          : initTotalAmount,
+        promoId,
       };
 
       const response = await post(

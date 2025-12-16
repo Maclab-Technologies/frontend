@@ -85,10 +85,6 @@ const validateProduct = (product) => {
     typeof product.category === "object" && product.category
       ? String(product.category.name || "Uncategorized")
       : String(product.category || "Uncategorized");
-  const vendor =
-    typeof product.vendor === "object" && product.vendor
-      ? String(product.vendor.businessName || "Unknown vendor")
-      : String(product.vendor || "unknown vendor");
   return {
     _id: productId,
     id: productId,
@@ -96,7 +92,7 @@ const validateProduct = (product) => {
     description: String(product.description || ""),
     price: typeof product.price === "number" ? product.price : 0,
     category: category,
-    vendor: vendor,
+    vendor: product.vendor,
     images: Array.isArray(product.images)
       ? product.images.filter((img) => typeof img === "string")
       : typeof product.image === "string"
@@ -255,7 +251,7 @@ export default function ProductsPage() {
         !filters.category || product.category === filters.category;
 
       const matchesVendor =
-        !filters.vendor || product.vendor === filters.vendor;
+        !filters.vendor.businessName || product.vendor.businessName === filters.vendor.businessName;
 
       return matchesSearch && matchesCategory && matchesVendor;
     });
@@ -303,8 +299,8 @@ export default function ProductsPage() {
     const uniqueVendors = [
       ...new Set(
         products
-          .filter((p) => p && p.vendor && typeof p.vendor === "string")
-          .map((p) => p.vendor)
+          .filter((p) => p && p.vendor.businessName && typeof p.vendor.businessName === "string")
+          .map((p) => p.vendor.businessName)
           .filter(Boolean)
       ),
     ];
@@ -319,11 +315,13 @@ export default function ProductsPage() {
   };
 
   const handleAddToCart = (product) => {
+    console.log(product)
+
     if (!product) return;
 
     try {
       const cartItem = {
-        vendorId: product.vendor?.id || product.vendor,
+        vendorId: product.vendor?. _id,
         id: product.id,
         name: product.name,
         price: product.price,
@@ -502,9 +500,9 @@ export default function ProductsPage() {
               className="px-4 py-2 bg-gray-700 text-white rounded-md border border-gray-600 hover:bg-gray-600 transition flex items-center gap-2"
             >
               <FiFilter /> Filters
-              {(filters.category || filters.vendor) && (
+              {(filters.category || filters.vendor.businessName) && (
                 <span className="bg-yellow-500 text-black text-xs rounded-full px-2 py-0.5">
-                  {(filters.category ? 1 : 0) + (filters.vendor ? 1 : 0)}
+                  {(filters.category ? 1 : 0) + (filters.vendor.businessName ? 1 : 0)}
                 </span>
               )}
             </button>
@@ -578,7 +576,7 @@ export default function ProductsPage() {
                         Vendor
                       </label>
                       <select
-                        value={filters.vendor}
+                        value={filters.vendor.businessName}
                         onChange={(e) =>
                           setFilters((prev) => ({
                             ...prev,
@@ -737,7 +735,7 @@ export default function ProductsPage() {
                         {/* Vendor Tag */}
                         <div className="absolute bottom-3 left-3">
                           <span className="bg-black/70 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
-                            {product.vendor}
+                            {product.vendor.businessName}
                           </span>
                         </div>
                       </div>

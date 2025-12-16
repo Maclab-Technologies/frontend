@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import CountdownTimer from "../../_components/Christmas/CountdownTimer";
 import ChristmasSignupForm from "../../_components/Christmas/SignupForm";
-import { FacebookPixel } from "../../_components/Christmas/FacebookPixel";
 
 export default function ChristmasDiscountPage() {
   const [timerExpired, setTimerExpired] = useState(false);
@@ -13,9 +12,6 @@ export default function ChristmasDiscountPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white">
-      {/* Facebook Pixel */}
-      <FacebookPixel eventName="PageView" />
-      
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
         <header className="text-center mb-8">
@@ -103,10 +99,8 @@ export default function ChristmasDiscountPage() {
               campaign="20_percent_discount"
               ctaText="Unlock My 20% Discount"
               onSubmitSuccess={() => {
-                // Track conversion
-                if (window.fbq) {
-                  window.fbq('track', 'Lead');
-                }
+                // Simple success handler without Facebook Pixel
+                console.log("Form submitted successfully");
               }}
             />
             
