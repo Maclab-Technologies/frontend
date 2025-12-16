@@ -92,6 +92,12 @@ export default function Cart() {
 
       setIsProcessingCheckout(true);
 
+
+      // Fetch User Promo Codes - Optional
+
+
+
+
       const orderData = {
         items: cartItems.map((item) => ({
           vendorId: item.vendorId,
@@ -110,6 +116,7 @@ export default function Cart() {
             acc + (item.discountPrice || item.price) * item.quantity,
           0
         ),
+        // promoId: user promo id 
       };
 
       const response = await post(

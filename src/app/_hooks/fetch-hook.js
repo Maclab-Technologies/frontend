@@ -194,8 +194,8 @@ export const put = async (url, data, options = {}) =>
   fetchHook(url, { ...options, method: "PUT", data });
 
 // DELETE request wrapper
-export const del = async (url, options = {}) =>
-  fetchHook(url, { ...options, method: "DELETE" });
+export const del = async (url, data, options = {}) =>
+  fetchHook(url, { ...options, method: "DELETE", data });
 
 // PATCH request wrapper
 export const patch = async (url, data, options = {}) =>

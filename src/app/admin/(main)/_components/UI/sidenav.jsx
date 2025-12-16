@@ -4,7 +4,8 @@ import { useRouter, usePathname } from "next/navigation";
 import {
   FaTimes,
   FaUser,
-  FaBars
+  FaBars,
+  FaTags
 } from "react-icons/fa";
 import Navigation from "./navigation";
 import { AdminAuthContext } from "../../_provider/useAdminProvider";
@@ -25,6 +26,7 @@ const SideNav = () => {
     if (pathname.includes('/payouts')) return 'payouts';
     if (pathname.includes('/users')) return 'users';
     if (pathname.includes('/vendors')) return 'vendors';
+    if (pathname.includes('/promos')) return 'promos';
     return 'dashboard';
   };
 

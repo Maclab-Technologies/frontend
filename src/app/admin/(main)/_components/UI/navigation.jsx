@@ -7,7 +7,8 @@ import {
   FaBoxOpen, 
   FaMoneyBillWave, 
   FaWallet,
-  FaUsers
+  FaUsers,
+  FaTags  
 } from 'react-icons/fa';
 
 // Reusable Navigation Button Component
@@ -79,6 +80,11 @@ const navigationItems = [
     key: 'vendors',
     icon: FaWallet,
     label: 'Vendors Management'
+  },
+  {
+    key: 'promos',
+    icon: FaTags,
+    label: 'Promotions Management'
   }
 ];
 
