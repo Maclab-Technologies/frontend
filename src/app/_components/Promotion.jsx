@@ -107,13 +107,15 @@ const ChristmasPromotion = () => {
       icon: <FaTag className="w-6 h-6" />,
       color: "from-yellow-500 to-amber-600",
       badge: "MOST POPULAR",
-      link: "/christmas-discount",
+      link: "/register?promoCode=CHRISTMAS20_OFF",
       expires: "Dec 10, 2025",
       numberColor: "bg-gradient-to-br from-yellow-500 to-amber-500",
       sectionColor: "text-yellow-400",
       borderColor: "border-yellow-500/30",
       bgColor: "bg-yellow-500/20",
-      image: "/images/christmas-discount.png"
+      image: "/images/christmas-discount.png",
+      ctaText: "🎄 CLAIM 20% DISCOUNT NOW",
+      promoCode: "CHRISTMAS20_OFF"
     },
     {
       id: 2,
@@ -122,13 +124,15 @@ const ChristmasPromotion = () => {
       icon: <FaGift className="w-6 h-6" />,
       color: "from-blue-500 to-cyan-600",
       badge: "LIMITED TIME",
-      link: "/christmas-voucher",
+      link: "/register?promoCode=GIVEAWAY_ENTRY",
       expires: "Dec 20, 2025",
       numberColor: "bg-gradient-to-br from-blue-500 to-cyan-500",
       sectionColor: "text-blue-400",
       borderColor: "border-blue-500/30",
       bgColor: "bg-blue-500/20",
-      image: "/images/christmas-voucher.png"
+      image: "/images/christmas-voucher.png",
+      ctaText: "🎰 ENTER ₦20,000 GIVEAWAY",
+      promoCode: "GIVEAWAY_ENTRY"
     },
     {
       id: 3,
@@ -137,13 +141,15 @@ const ChristmasPromotion = () => {
       icon: <FaShoppingBag className="w-6 h-6" />,
       color: "from-green-500 to-emerald-600",
       badge: "BEST VALUE",
-      link: "/christmas-combo",
+      link: "/register?promoCode=59MIN_CHRISTMAS_20",
       expires: "Dec 30, 2025",
       numberColor: "bg-gradient-to-br from-green-500 to-emerald-500",
       sectionColor: "text-green-400",
       borderColor: "border-green-500/30",
       bgColor: "bg-green-500/20",
-      image: "/images/christmas-combo.png"
+      image: "/images/christmas-combo.png",
+      ctaText: "🎁 GRAB CHRISTMAS COMBO",
+      promoCode: "59MIN_CHRISTMAS_20"
     },
   ];
 
@@ -162,6 +168,19 @@ const ChristmasPromotion = () => {
       const prevIndex = (currentIndex - 1 + visibleCampaigns.length) % visibleCampaigns.length;
       setActiveCampaign(visibleCampaigns[prevIndex]);
     }
+  };
+
+  // Claim promo function (direct redirect)
+  const handleClaimPromo = () => {
+    const activeCampaignData = campaigns[activeCampaign];
+    // Log for analytics
+    console.log(`Claiming promo: ${activeCampaignData.promoCode}`);
+    
+    // Simulate processing
+    setTimeout(() => {
+      // Redirect to registration page with promo code
+      router.push(activeCampaignData.link);
+    }, 100);
   };
 
   // If normal phase or no campaigns, return modern compact promotion
@@ -272,6 +291,26 @@ const ChristmasPromotion = () => {
                   {activeCampaignData.description} – expires {activeCampaignData.expires}
                 </p>
                 
+                {/* Promo Code Display */}
+                <div className="mb-6 p-4 bg-black/40 rounded-xl border border-gray-700">
+                  <p className="text-sm text-gray-400 mb-2">Use Promo Code:</p>
+                  <div className="flex items-center justify-between">
+                    <code className="text-xl font-mono font-bold text-yellow-400 tracking-wider bg-black/50 px-4 py-2 rounded-lg">
+                      {activeCampaignData.promoCode}
+                    </code>
+                    <button 
+                      onClick={() => {
+                        navigator.clipboard.writeText(activeCampaignData.promoCode);
+                        // Show copied notification
+                        alert(`Promo code "${activeCampaignData.promoCode}" copied to clipboard!`);
+                      }}
+                      className="text-sm text-blue-400 hover:text-blue-300"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+                
                 {/* Countdown Timer */}
                 <div className="mb-8">
                   <p className="text-sm text-gray-400 mb-3">Offer ends in:</p>
@@ -291,10 +330,10 @@ const ChristmasPromotion = () => {
                 
                 <div className="flex flex-col sm:flex-row gap-4">
                   <button
-                    onClick={() => router.push(activeCampaignData.link)}
+                    onClick={handleClaimPromo}
                     className={`flex-1 py-4 ${activeCampaignData.numberColor} text-white font-bold text-lg rounded-lg hover:scale-105 transition-transform shadow-lg hover:shadow-xl flex items-center justify-center`}
                   >
-                    Claim This Offer
+                    {activeCampaignData.ctaText}
                     <FaArrowRight className="ml-2 w-5 h-5" />
                   </button>
                   
@@ -302,7 +341,7 @@ const ChristmasPromotion = () => {
                     onClick={() => router.push("/products")}
                     className="py-4 px-6 bg-gray-700/50 text-white font-bold text-lg rounded-lg hover:bg-gray-600/50 transition-colors border border-gray-600"
                   >
-                    View All
+                    View All Products
                   </button>
                 </div>
               </div>
@@ -377,6 +416,14 @@ const ChristmasPromotion = () => {
                     {campaign.description}
                   </p>
                   
+                  {/* Promo Code Preview */}
+                  <div className="mb-4 p-3 bg-black/30 rounded-lg border border-gray-700/50">
+                    <p className="text-xs text-gray-400 mb-1">Promo Code:</p>
+                    <code className="text-sm font-mono font-bold text-yellow-400">
+                      {campaign.promoCode}
+                    </code>
+                  </div>
+                  
                   <div className="flex items-center justify-between">
                     <span className={`text-sm font-bold ${campaign.sectionColor}`}>
                       {campaign.badge}
@@ -384,11 +431,12 @@ const ChristmasPromotion = () => {
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
+                        // Direct redirect to registration with promo code
                         router.push(campaign.link);
                       }}
                       className={`${campaign.sectionColor} hover:opacity-80 font-medium text-sm flex items-center`}
                     >
-                      View Offer
+                      Claim Offer
                       <FaArrowRight className="ml-2 w-4 h-4" />
                     </button>
                   </div>

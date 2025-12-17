@@ -199,7 +199,7 @@ const ClientNavLayout = () => {
             >
               <div className="relative">
                 <Image
-                  src='./images/brandimage.jpeg'
+                  src='/images/brandimage.jpeg'
                   alt="59Minutes Prints"
                   width={40}
                   height={40}
