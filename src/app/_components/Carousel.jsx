@@ -13,50 +13,50 @@ const Carousel = () => {
   
   // 🎄 CHRISTMAS BANNERS (ACTIVE FROM DEC 1 - DEC 30, 2025)
   // Comment out this section after Christmas to return to original banners
-  const banners = useMemo(() => [
-    {
-      id: 1,
-      desktopImage: '/images/christmas-ads-1.png',
-      mobileImage: '/images/christmas-ads-1.png',
-      title: 'Christmas Print Deals Are Here!',
-      subtitle: 'Get up to 20% off on all Christmas printing. Limited time offers!',
-      ctaLink: '/christmas-discount',
-      ctaText: 'Claim Christmas Offer',
-      gradient: 'from-red-900/80 via-green-900/60 to-transparent',
-      badge: 'CHRISTMAS SPECIAL',
-      themeColor: 'from-yellow-500 to-amber-500'
-    },
-    {
-      id: 2,
-      desktopImage: '/images/christmas-ads-2.png',
-      mobileImage: '/images/christmas-ads-2.png',
-      title: '₦20,000 Voucher Giveaway',
-      subtitle: 'Enter to win ₦20,000 for your Christmas printing needs',
-      ctaLink: '/christmas-voucher',
-      ctaText: 'Enter Giveaway',
-      gradient: 'from-blue-900/80 via-purple-900/60 to-transparent',
-      badge: 'GIVEAWAY',
-      themeColor: 'from-blue-500 to-cyan-500'
-    },
-    {
-      id: 3,
-      desktopImage: '/images/christmas-ads-3.png',
-      mobileImage: '/images/christmas-ads-3.png',
-      title: 'Christmas Combo Deals',
-      subtitle: 'Massive savings on bundled packages for events & businesses',
-      ctaLink: '/christmas-combo',
-      ctaText: 'View Combos',
-      gradient: 'from-green-900/80 via-emerald-900/60 to-transparent',
-      badge: 'COMBO DEALS',
-      themeColor: 'from-green-500 to-emerald-500'
-    },
-  ], [])
+  // const banners = useMemo(() => [
+  //   {
+  //     id: 1,
+  //     desktopImage: '/images/christmas-ads-1.png',
+  //     mobileImage: '/images/christmas-ads-1.png',
+  //     title: 'Christmas Print Deals Are Here!',
+  //     subtitle: 'Get up to 20% off on all Christmas printing. Limited time offers!',
+  //     ctaLink: '/christmas-discount',
+  //     ctaText: 'Claim Christmas Offer',
+  //     gradient: 'from-red-900/80 via-green-900/60 to-transparent',
+  //     badge: 'CHRISTMAS SPECIAL',
+  //     themeColor: 'from-yellow-500 to-amber-500'
+  //   },
+  //   {
+  //     id: 2,
+  //     desktopImage: '/images/christmas-ads-2.png',
+  //     mobileImage: '/images/christmas-ads-2.png',
+  //     title: '₦20,000 Voucher Giveaway',
+  //     subtitle: 'Enter to win ₦20,000 for your Christmas printing needs',
+  //     ctaLink: '/christmas-voucher',
+  //     ctaText: 'Enter Giveaway',
+  //     gradient: 'from-blue-900/80 via-purple-900/60 to-transparent',
+  //     badge: 'GIVEAWAY',
+  //     themeColor: 'from-blue-500 to-cyan-500'
+  //   },
+  //   {
+  //     id: 3,
+  //     desktopImage: '/images/christmas-ads-3.png',
+  //     mobileImage: '/images/christmas-ads-3.png',
+  //     title: 'Christmas Combo Deals',
+  //     subtitle: 'Massive savings on bundled packages for events & businesses',
+  //     ctaLink: '/christmas-combo',
+  //     ctaText: 'View Combos',
+  //     gradient: 'from-green-900/80 via-emerald-900/60 to-transparent',
+  //     badge: 'COMBO DEALS',
+  //     themeColor: 'from-green-500 to-emerald-500'
+  //   },
+  // ], [])
 
   // ==============================
   // ORIGINAL BANNERS (COMMENTED OUT DURING CHRISTMAS)
   // Uncomment this section after Christmas to return to original banners
   // ==============================
-  /*
+  
   const banners = useMemo(() => [
     {
       id: 1,
@@ -92,7 +92,7 @@ const Carousel = () => {
       badge: 'OFFER'
     },
   ], [])
-  */
+ 
 
   // ==============================
   // CAROUSEL STATE & LOGIC
